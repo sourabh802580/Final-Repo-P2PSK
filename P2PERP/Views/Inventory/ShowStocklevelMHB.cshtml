@@ -1,0 +1,437 @@
+﻿
+
+
+@{
+    ViewBag.Title = "ShowStocklevelMHB";
+}
+
+
+<div class="main-content">
+    <!-- Your entire Stock Level UI here (filter, table, modal trigger buttons) -->
+
+    <div class="container mt-4">
+      
+
+        <!-- 📋 DataTable -->
+        <div class="table-responsive shadow-lg rounded">
+            <h2 class="text-center text-primary fw-bold mb-4"> Stock Analysis & Raise Order  For Item Stock Refill   </h2>
+            <table id="myTable" class="table table-hover table-striped align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th><input type="checkbox" id="selectAll" /></th>
+                        <th>Sr No</th>
+                        <th>Item Name</th>
+                        <th>Item Code</th>
+                        <th>Reorder Qty</th>
+                        <th>Min Qty</th>
+                        <th>Max Qty</th>
+                        <th>Current Items</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<!-- 📦 Raise Order Modal -->
+<div class="modal fade" id="raiseOrderModal" tabindex="-1" aria-labelledby="raiseOrderLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content"> 
+            <!-- 🟢 Modal Header -->
+            <div class="modal-header bg-primary">
+                <h5 class="modal-title text-white w-100 text-center m-0" id="raiseOrderLabel">
+                    Raise Order
+                </h5>
+                <button type="button" class="btn-close btn-close-white position-absolute end-0 me-3" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <!-- 🟢 Modal Body -->
+            <div class="modal-body" id="modalContent">
+                <!-- Content will be loaded via AJAX -->
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p>Loading form...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<!-- ✅ Styling -->
+<style>
+    body {
+        background-color: #f8f9fa;
+    }
+    .modal-header {
+        justify-content: center; /* Center contents */
+        position: relative;
+    }
+
+        .modal-header .btn-close {
+            position: absolute;
+            right: 1rem;
+        }
+
+
+
+    .btnAction {
+        background: linear-gradient(45deg, #007bff, #00c6ff);
+        border: none;
+        padding: 6px 14px;
+        border-radius: 8px;
+        color: white;
+        font-weight: 500;
+        transition: 0.3s;
+    }
+
+        .btnAction:hover {
+            transform: scale(1.05);
+        }
+
+    .status-badge {
+        padding: 6px 10px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .status-low {
+        background-color: #ffc107;
+        color: #212529;
+    }
+
+    .status-ok {
+        background-color: #28a745;
+        color: white;
+    }
+
+    .status-high {
+        background-color: #dc3545;
+        color: white;
+    }
+
+    .status-raised {
+        background-color: #6f42c1;
+        color: white;
+    }
+
+
+    .modal-backdrop {
+        display: none;
+    }
+    /* Blur only main content when modal opens */
+    body.modal-open .main-content {
+     
+        position: relative;
+    }
+
+        body.modal-open .main-content::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1040; /* behind modal */
+            pointer-events: none; /* clicks pass to modal */
+        }
+
+    /* Ensure modal is above overlay */
+    .modal {
+        z-index: 1055 !important;
+    }
+
+
+    .btnAction:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    #myTable th, #myTable td {
+        vertical-align: middle !important;
+        text-align: center;
+    }
+
+        #myTable td:nth-child(3) {
+            text-align: left; /* Item Name aligned left for readability */
+        }
+</style>
+<script>
+    let stockData = [];
+
+    $(document).ready(function () {
+        // ✅ Load stock data
+        $.ajax({
+            url: '/Inventory/StockMHB',
+            type: 'GET',
+            success: function (data) {
+                stockData = data;
+                renderTable(stockData);
+            },
+            error: function () {
+                showToast("Error loading stock data", "danger");
+            }
+        });
+
+       
+
+        // ✅ Render Table
+        function renderTable(data) {
+            const tbody = $("#tbody");
+            tbody.empty();
+
+            if (!data || data.length === 0) {
+                tbody.append(`<tr><td colspan="9" class="text-center">No records found</td></tr>`);
+                return;
+            }
+
+            $.each(data, function (i, item) {
+                let statusClass = "status-ok";
+                if (item.StockStatus === "Minimum Stock") statusClass = "status-low";
+                else if (item.StockStatus === "Reorder Level") statusClass = "status-high";
+                else if (item.StockStatus === "Order Raised") statusClass = "status-raised";
+
+                tbody.append(`
+                    <tr>
+                        <td><input type="checkbox" class="row-select" value="${item.ItemCode}"/></td>
+                        <td></td>
+                        <td>${item.ItemName}</td>
+                        <td>${item.ItemCode}</td>
+                        <td>${item.ReorderQuantity}</td>
+                        <td>${item.minQuantity}</td>
+                        <td>${item.MaxQuantity}</td>
+                        <td>${item.CurrentItems}</td>
+                        <td><span class="status-badge ${statusClass}">${item.StockStatus}</span></td>
+                        <td>
+                           <button class="btnAction d-flex align-items-center justify-content-center gap-2"
+                                    data-id="${item.ItemCode}" 
+                                    ${item.StockStatus === "order-raised" ? "disabled" : ""}>
+                                <i class="bi bi-cart-plus"></i> Raise Order
+                            </button>
+
+                        </td>
+                    </tr>
+                `);
+            });
+
+ if ($.fn.DataTable.isDataTable('#myTable')) {
+    $('#myTable').DataTable().destroy();
+        }
+
+$('#myTable').DataTable({
+    dom: '<"d-flex justify-content-between align-items-center mb-3"<"dt-left"B><"dt-search"f>>rt<"bottom d-flex justify-content-between align-items-center"ip>',
+    buttons: [
+        {
+            extend: 'print',
+            title: 'Stock Level',
+            text: '<i class="bi bi-printer-fill text-dark fs-5"></i>',
+            exportOptions: {
+                columns: [1, 2, 3, 4, 5, 6, 7, 8],
+                rows: function (idx, data, node) {
+                    return $(node).find('.row-select').prop('checked');
+                },
+                format: {
+                    body: function (data, rowIdx, colIdx, node) {
+                        // ✅ Generate fresh serial numbers for export
+                        if (colIdx === 1) return rowIdx + 1;
+                        return $(node).text().trim();
+                    }
+                }
+            },
+            action: function (e, dt, button, config) {
+                if ($('.row-select:checked').length === 0) {
+                    showExportToast(); // 🔔 will now work
+                    return;
+                }
+                $.fn.dataTable.ext.buttons.print.action.call(this, e, dt, button, config);
+            }
+        },
+        {
+            extend: 'pdfHtml5',
+            title: 'Stock Level',
+            text: '<i class="bi bi-file-earmark-pdf text-danger fs-5"></i>',
+            exportOptions: {
+                columns: [1, 2, 3, 4, 5, 6, 7, 8],
+                rows: function (idx, data, node) {
+                    return $(node).find('.row-select').prop('checked');
+                },
+                format: {
+                    body: function (data, rowIdx, colIdx, node) {
+                        if (colIdx === 1) return rowIdx + 1;
+                        return $(node).text().trim();
+                    }
+                }
+            },
+            action: function (e, dt, button, config) {
+                if ($('.row-select:checked').length === 0) {
+                    showExportToast(); // 🔔 will now work
+                    return;
+                }
+                $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, button, config);
+            }
+        },
+        {
+            extend: 'excelHtml5',
+            title: 'Stock Level',
+            text: '<i class="bi bi-file-earmark-excel text-success fs-5"></i>',
+            exportOptions: {
+                columns: [1, 2, 3, 4, 5, 6, 7, 8],
+                rows: function (idx, data, node) {
+                    return $(node).find('.row-select').prop('checked');
+                },
+                format: {
+                    body: function (data, rowIdx, colIdx, node) {
+                        if (colIdx === 1) return rowIdx + 1;
+                        return $(node).text().trim();
+                    }
+                }
+            },
+            action: function (e, dt, button, config) {
+                if ($('.row-select:checked').length === 0) {
+                    showExportToast(); // 🔔 will now work
+                    return;
+                }
+                $.fn.dataTable.ext.buttons.excelHtml5.action.call(this, e, dt, button, config);
+            }
+        },
+        {
+            extend: 'csvHtml5',
+            title: 'Stock Level',
+            text: '<i class="bi bi-filetype-csv text-primary fs-5"></i>',
+            exportOptions: {
+                columns: [1, 2, 3, 4, 5, 6, 7, 8],
+                rows: function (idx, data, node) {
+                    return $(node).find('.row-select').prop('checked');
+                },
+                format: {
+                    body: function (data, rowIdx, colIdx, node) {
+                        if (colIdx === 1) return rowIdx + 1;
+                        return $(node).text().trim();
+                    }
+                }
+
+            },
+            action: function (e, dt, button, config) {
+                if ($('.row-select:checked').length === 0) {
+                    showExportToast(); // 🔔 will now work
+                    return;
+                }
+                $.fn.dataTable.ext.buttons.csvHtml5.action.call(this, e, dt, button, config);
+            }
+        }
+    ],
+    columnDefs: [
+        { targets: 1, render: function (data, type, row, meta) { return meta.row + 1; } },
+        { orderable: false, targets: [0, 9] }
+    ]
+});
+
+        }
+
+        // ✅ Select All functionality
+        $(document).on("change", "#selectAll", function () {
+            $(".row-select").prop("checked", this.checked);
+        });
+
+        $(document).on("change", ".row-select", function () {
+            $("#selectAll").prop("checked", $(".row-select:checked").length === $(".row-select").length);
+        });
+
+        // ✅ Configure toastr once
+toastr.options = {
+    closeButton: true,
+    progressBar: true,
+    preventDuplicates: true,
+    newestOnTop: true,
+    positionClass: "toast-top-right",
+    timeOut: "3000" // 3 seconds
+};
+
+// ✅ Helper function for warning toast
+          function showExportToast() {
+          toastr.warning("Please select at least one row before exporting.", "Warning");
+}
+
+
+
+
+        // ✅ Raise Order button click
+        $(document).on("click", ".btnAction", function () {
+            const itemId = $(this).data("id");
+
+            $('#raiseOrderModal').modal('show');
+            $('#modalContent').html(`<div class="text-center"><div class="spinner-border text-primary" role="status"></div><p>Loading form...</p></div>`);
+
+            $.ajax({
+                url: '/Inventory/stockformMHB',
+                type: 'GET',
+                data: { itemId: itemId },
+                success: function (response) {
+                    $('#modalContent').html(response);
+                },
+                error: function () {
+                    $('#modalContent').html('<div class="alert alert-danger">Failed to load the form.</div>');
+                }
+            });
+        });
+
+
+
+    });
+    $(document).on("submit", "#raiseOrderForm", function (e) {
+        e.preventDefault();
+
+        let form = this;
+
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "Do you want to submit this PR request?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#198754',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, Submit',
+            cancelButtonText: 'Cancel'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: 'Submitting...',
+                    text: 'Please wait while we process your request',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    didOpen: () => Swal.showLoading()
+                });
+
+                $.ajax({
+                    url: $(form).attr("action"),
+                    type: "POST",
+                    data: $(form).serialize(),
+                    success: function () {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success!',
+                            text: 'PR has been submitted successfully.',
+                            timer: 1500,
+                            showConfirmButton: false
+                        }).then(() => {
+                            // ✅ Refresh entire page after SweetAlert closes
+                            location.reload();
+                        });
+                    },
+                    error: function () { 
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops!',
+                            text: 'Something went wrong. Please try again.'
+                        });
+                    }
+                });
+            }
+        });
+    });
+</script>
+
+

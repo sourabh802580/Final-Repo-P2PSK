@@ -1,0 +1,597 @@
+﻿@{
+    ViewBag.Title = "Inhouse Transfer Report";
+}
+
+
+<style>
+    #reportTable th, #reportTable td {
+        text-align: center !important;
+        vertical-align: middle !important;
+    }
+
+    #detailTable th, #detailTable td {
+        text-align: center !important;
+        vertical-align: middle !important;
+    }
+
+
+    .control-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .left-controls {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .dt-buttons {
+        display: flex;
+        gap: 5px;
+    }
+
+    .toast-container {
+        position: fixed;
+        top: 0;
+        right: 0;
+        z-index: 9999;
+    }
+</style>
+<div class="container-fluid">
+    <div class="container bg-white rounded m-2 shadow p-2">
+        <h2 class="mb-4 text-center text-primary">Inhouse Transfer Report</h2>
+
+        <!-- Chart -->
+        <div class="card p-3 mb-4">
+            <h5 class="text-center">Quantity by Category per Department</h5>
+            <div id="deptCatChart" style="height:400px;"></div>
+        </div>
+
+        <!-- Table -->
+        <div class="card p-3 mb-4">
+            <h5>Inhouse Transfer List</h5>
+            <!-- Controls -->
+            <div class="control-container mb-3">
+                <div class="left-controls">
+                    <!-- Datepicker -->
+                    <div class="input-group" style="height:40px; max-width:280px;">
+                        <span class="input-group-text bg-primary text-white" style="height:100%;">
+                            <i class="bi bi-calendar-date"></i>
+                        </span>
+                        <input type="text" id="InhouseDatepicker" class="form-control" placeholder="Select date range" readonly style="height:100%;" />
+                    </div>
+                    <!-- Export buttons
+                    <div id="dtButtonsContainer" class="dt-buttons"></div>
+                    -->
+                </div>
+            </div>
+
+            <table id="reportTable" class="table table-bordered table-striped">
+                <thead class="table-dark text-white text-center fw-bold">
+                    <tr>
+                        <th><input type="checkbox" id="selectAllRows"></th>
+                        <th>Sr. No</th>
+                        <th>Inhouse Code</th>
+                        <th>Department</th>
+                        <th>Item Name</th>
+                        <th>Category</th>
+                        <th>UOM</th>
+                        <th>Quantity</th>
+                        <th>Transfer Date</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header  bg-primary text-center">
+                    <h5 class="modal-title text-center  text-white" id="detailModalLabel">Items Detail</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-bordered table-striped" id="detailTable">
+                        <thead class="table-dark text-white text-center fw-bold">
+                            <tr>
+                                <th>Item Name</th>
+                                <th>Department</th>
+                                <th>Category</th>
+                                <th>Quantity</th>
+                                <th>UOM</th>
+                                <th>Transfer Date</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastContainer" class="toast-container"></div>
+</div>
+<script>
+    let table, fullData = [];
+
+    function showToast(message, type = 'warning') {
+        const toastId = 'toast-' + Date.now();
+        let bgClass = '';
+        let icon = '';
+
+        switch (type) {
+            case 'success':
+                bgClass = 'bg-success text-white';
+                icon = '<i class="bi bi-check-circle-fill me-2"></i>';
+                break;
+            case 'danger':
+                bgClass = 'bg-danger text-white';
+                icon = '<i class="bi bi-x-circle-fill me-2"></i>';
+                break;
+            default: // warning
+                bgClass = 'bg-warning text-white';
+                icon = '<i class="bi bi-exclamation-triangle-fill me-2"></i>';
+                break;
+        }
+
+        const toastHTML = `
+      <div id="${toastId}" class="toast align-items-center ${bgClass} border-0 mb-2 shadow"
+           role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex flex-column w-100">
+          <div class="d-flex">
+            <div class="toast-body flex-grow-1 d-flex align-items-center">
+              ${icon} <span>${message}</span>
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                    data-bs-dismiss="toast" aria-label="Close"></button>
+          </div>
+          <!-- Progress bar -->
+          <div class="progress" style="height:3px;">
+            <div class="progress-bar bg-dark" role="progressbar" style="width: 100%"></div>
+          </div>
+        </div>
+      </div>
+    `;
+
+        $('#toastContainer').append(toastHTML);
+        const toastEl = document.getElementById(toastId);
+        const bsToast = new bootstrap.Toast(toastEl, { delay: 3000 }); // 3 sec timeout
+        bsToast.show();
+
+        // Animate progress bar
+        let progressBar = $(toastEl).find('.progress-bar');
+        progressBar.animate({ width: "0%" }, 3000, "linear");
+
+        // Remove toast when hidden
+        toastEl.addEventListener('hidden.bs.toast', () => {
+            $(toastEl).remove();
+        });
+    }
+    function loadReport(fromDate, toDate) {
+        if (table) table.destroy();
+
+        table = $('#reportTable').DataTable({
+            ajax: { url: '/Inventory/InhouseTransferReportDataAMG', data: { fromDate, toDate }, dataSrc: '' },
+            dom: '<"d-flex justify-content-between align-items-center mt-1 mb-2"Bf>rt<"d-flex justify-content-between mt-2"<"datatable-info"i><"datatable-pagination"p>>', pageLength: 10,
+            lengthMenu: [10, 25, 50, 100],
+            buttons: [
+                {
+                    extend: 'print',
+                    text: '<i class="bi bi-printer-fill text-dark fs-5"></i>',
+                    title: '', // remove default title
+                    action: function (e, dt, button, config) {
+                        if ($('#reportTable tbody input.row-check:checked').length === 0) {
+                            showToast('Please select at least one row to print!'); return;
+                        }
+                        $.fn.dataTable.ext.buttons.print.action.call(this, e, dt, button, config);
+                    },
+                    exportOptions: {
+                        rows: function (idx, data, node) { return $(node).find('.row-check').prop('checked'); },
+                        columns: ':visible:not(:first-child)'
+                    },
+                    customize: function (win) {
+                        const now = moment().format('DD/MM/YYYY');
+
+                        // Add heading and generated date
+                        $(win.document.body)
+                            .css('font-size', '12pt')
+                            .prepend(
+                                `<h2 style="text-align:center; margin-bottom:5px;">Inhouse Transfer Report</h2>
+             <div style="text-align:center; margin-bottom:10px; font-size:10pt;">Generated Date: ${now}</div>`
+                            );
+
+
+                        $(win.document.body).append(`
+
+
+                        <style>
+        thead th {
+            background-color: black !important;
+            color: white !important;
+            text-align: center !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        table {
+            border-collapse: collapse !important;
+            width: 100% !important;
+        }
+        td, th {
+            border: 1px solid #000 !important;
+            padding: 6px !important;
+        }
+    </style>
+
+
+
+                        `)
+
+
+                        // Find the table created by DataTables print
+                        const $table = $(win.document.body).find('table');
+
+                        // Apply table classes and styles
+                        $table.addClass('table table-bordered').css({
+                            'border-collapse': 'collapse',
+                            'width': '100%',
+                            'text-align': 'center'
+                        });
+
+                        // Apply border and padding to all cells
+                        $table.find('th, td').css({
+                            'border': '1px solid black',
+                            'padding': '5px',
+                            'text-align': 'center'
+                        });
+
+                        // Apply black header
+                        $table.find('thead th').each(function () {
+                            $(this).css({
+                                'background-color': 'black',
+                                'color': 'white'
+                            });
+                        });
+
+                    },
+                    format: {
+                        body: function (data, row, column, node) {
+                            if (column === 1) {
+                                return $('#reportTable tbody input.row-check:checked')
+                                    .index($(node).closest('tr').find('.row-check')) + 1;
+                            }
+                            if (column === 2 && data) { // date column
+                                let parts = data.split("-");
+                                if (parts.length === 3) data = `${parts[0]}/${parts[1]}/${parts[2]}`;
+                            }
+                            return data;
+                        }
+                    }
+                },
+
+                
+                {
+                    extend: 'pdfHtml5',
+                    text: '<i class="bi bi-file-earmark-pdf text-danger fs-5"></i>',
+                    title: 'Inhouse Transfer',
+                    action: function (e, dt, button, config) {
+                        if ($('#reportTable tbody input.row-check:checked').length === 0) {
+                            showToast('Please select at least one row to export PDF!'); return;
+                        }
+                        $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, button, config);
+                    },
+                    exportOptions: {
+                        rows: function (idx, data, node) { return $(node).find('.row-check').prop('checked'); },
+                        columns: ':visible:not(:first-child)'
+                    },
+                    customize: function (doc) {
+                        // Add generated date below title
+                        doc.content.splice(1, 0, {
+                            text: 'Generated Date: ' + new Date().toLocaleDateString(),
+                            alignment: 'center',
+                            margin: [0, 0, 0, 10],
+                            fontSize: 10
+                        });
+
+                        // Set table layout for borders
+                        doc.content[2].layout = {
+                            hLineWidth: function () { return 0.8; },
+                            vLineWidth: function () { return 0.8; },
+                            hLineColor: function () { return '#000000'; },
+                            vLineColor: function () { return '#000000'; },
+                            paddingLeft: function () { return 4; },
+                            paddingRight: function () { return 4; },
+                            paddingTop: function () { return 4; },
+                            paddingBottom: function () { return 4; }
+                        };
+
+                        // Black header with white text
+                        var headerRow = doc.content[2].table.body[0];
+                        headerRow.forEach(function (cell) {
+                            cell.fillColor = '#000000';
+                            cell.color = '#ffffff';
+                            cell.bold = true;
+                        });
+
+                        // Update serial numbers
+                        for (var i = 1; i < doc.content[2].table.body.length; i++) {
+                            doc.content[2].table.body[i][0].text = i;
+                        }
+                    },
+                    format: {
+                        body: function (data, row, column, node) {
+                            if (column === 1) {
+                                return $('#reportTable tbody input.row-check:checked')
+                                    .index($(node).closest('tr').find('.row-check')) + 1;
+                            }
+                            if (column === 2 && data) { // date column
+                                let parts = data.split("-");
+                                if (parts.length === 3) data = `${parts[0]}/${parts[1]}/${parts[2]}`;
+                            }
+                            return data;
+                        }
+                    }
+                },
+                {
+                    extend: 'excelHtml5',
+                    text: '<i class="bi bi-file-earmark-excel text-success fs-5"></i>',
+                    title: 'Inhouse Transfer',
+                    action: function (e, dt, button, config) {
+                        if ($('#reportTable tbody input.row-check:checked').length === 0) {
+                            showToast('Please select at least one row to export Excel!');
+                            return;
+                        }
+                        $.fn.dataTable.ext.buttons.excelHtml5.action.call(this, e, dt, button, config);
+                    },
+                    exportOptions: {
+                        rows: function (idx, data, node) { return $(node).find('.row-check').prop('checked'); },
+                        columns: ':visible:not(:first-child)',
+                        format: {
+                            body: function (data, row, column, node) {
+                                if (column === 1) {
+                                    return $('#reportTable tbody input.row-check:checked').index($(node).closest('tr').find('.row-check')) + 1;
+                                }
+                                return data;
+                            }
+                        }
+                    }
+                },
+                {
+                    extend: 'csvHtml5',
+                    text: '<i class="bi bi-filetype-csv text-primary fs-5"></i>',
+                    title: 'Inhouse Transfer',
+                    action: function (e, dt, button, config) {
+                        if ($('#reportTable tbody input.row-check:checked').length === 0) {
+                            showToast('Please select at least one row to export CSV!');
+                            return;
+                        }
+                        $.fn.dataTable.ext.buttons.csvHtml5.action.call(this, e, dt, button, config);
+                    },
+                    exportOptions: {
+                        rows: function (idx, data, node) { return $(node).find('.row-check').prop('checked'); },
+                        columns: ':visible:not(:first-child)',
+                        format: {
+                            body: function (data, row, column, node) {
+                                if (column === 1) {
+                                    return $('#reportTable tbody input.row-check:checked').index($(node).closest('tr').find('.row-check')) + 1;
+                                }
+                                return data;
+                            }
+                        }
+                    }
+                },
+
+            ],
+
+            columns: [
+                { data: null, orderable: false, render: () => `<input type="checkbox" class="row-check">` },
+                { data: null, render: (data, type, row, meta) => meta.row + 1 },
+                { data: 'InhouseCode' },
+                { data: 'TransferTo' },
+                { data: 'ItemName' },
+                { data: 'ItemCategory' },
+                { data: 'UOM' },
+                { data: 'Quantity' },
+                //{ data: 'TransferDate', render: d => d ? new Date(d).toLocaleDateString() : '' }
+                {
+                    data: "TransferDate", type: "string",   // ✅ override datetime detection
+                    render: function (data, type, row) {
+
+
+                        if (!data) return "";
+
+                        // Ensure format like "2025-08-06"
+                        let parts = data.split(" ")[0].split("-"); // ["2025","08","06"]
+                        if (parts.length !== 3) return data;
+
+                        let yyyy = parts[0];
+                        let mm = parts[1];
+                        let dd = parts[2];
+
+                        return `${dd}/${mm}/${yyyy}`;
+                    }
+                }
+            ],
+            drawCallback: function (settings) {
+                var api = this.api();
+                api.column(1, { page: 'current' }).nodes().each(function (cell, i) { cell.innerHTML = api.page.info().start + i + 1; });
+            },
+            initComplete: function () {
+                this.api().buttons().container().appendTo('#dtButtonsContainer');
+                $('#selectAllRows').off('change').on('change', function () { $('#reportTable tbody input.row-check').prop('checked', $(this).prop('checked')); });
+            }
+        });
+
+        $.getJSON('/Inventory/InhouseTransferReportDataAMG', { fromDate, toDate }, function (data) {
+            fullData = data;
+            const matrix = {}, categoriesSet = new Set(), departmentsSet = new Set();
+            data.forEach(d => {
+                const dept = d.TransferTo || 'Unknown';
+                const cat = d.ItemCategory || 'Uncategorized';
+                departmentsSet.add(dept); categoriesSet.add(cat);
+                matrix[dept] = matrix[dept] || {};
+                matrix[dept][cat] = (matrix[dept][cat] || 0) + d.Quantity;
+            });
+            const departments = Array.from(departmentsSet);
+            const categories = Array.from(categoriesSet);
+            const series = categories.map(cat => ({ name: cat, data: departments.map(dep => matrix[dep]?.[cat] || 0) }));
+            Highcharts.chart('deptCatChart', {
+                chart: { type: 'bar' }, // ✅ Horizontal bar
+                title: { text: '' },
+                xAxis: {
+                    categories: departments,
+                    title: { text: 'Departments' },
+                    labels: { style: { fontSize: '13px', fontWeight: '600' } }
+                },
+                yAxis: {
+                    min: 0,
+                    title: { text: 'Quantity' },
+                    labels: { style: { fontSize: '12px' } }
+                },
+                legend: {
+                    align: 'center',
+                    verticalAlign: 'bottom',
+                    layout: 'horizontal',
+                    itemStyle: { fontSize: '13px', fontWeight: '500' }
+                },
+                tooltip: {
+                    shared: true,
+                    backgroundColor: '#f8f9fa',
+                    borderColor: '#0d6efd',
+                    borderRadius: 8,
+                    formatter: function () {
+                        let s = `<b>${this.x}</b><br/>`;
+                        this.points.forEach(p => {
+                            s += `<span style="color:${p.color}">\u25CF</span>
+                      ${p.series.name}: <b>${p.y}</b><br/>`;
+                        });
+                        return s;
+                    }
+                },
+                plotOptions: {
+                    series: {
+                        stacking: null, // ✅ grouped, not stacked
+                        borderWidth: 0,
+                        cursor: 'pointer',
+                        dataLabels: {
+                            enabled: true,
+                            style: { fontSize: '11px', fontWeight: 'bold' }
+                        },
+                        point: {
+                            events: {
+                                click: function () {
+                                    showDetailModal(this.category, this.series.name);
+                                }
+                            }
+                        }
+                    }
+                },
+                series: series,
+                credits: { enabled: false },
+                colors: Highcharts.getOptions().colors.map(c =>
+                    Highcharts.color(c).brighten(0.05).get()
+                )
+            });
+
+        });
+    }
+
+    function showDetailModal(dept, category) {
+        $('#detailModalLabel').text(`Items in ${category} for ${dept}`);
+
+        // Destroy previous DataTable if exists
+        if ($.fn.DataTable.isDataTable('#detailTable')) {
+            $('#detailTable').DataTable().destroy();
+        }
+
+        const filtered = fullData.filter(d => d.TransferTo === dept && d.ItemCategory === category);
+        const tbody = $('#detailTable tbody');
+        tbody.empty();
+
+        filtered.forEach(item => {
+            tbody.append(`<tr>
+            <td>${item.ItemName}</td>
+            <td>${item.TransferTo}</td>
+            <td>${item.ItemCategory}</td>
+            <td>${item.Quantity}</td>
+            <td>${item.UOM}</td>
+            <td>${item.TransferDate ? new Date(item.TransferDate).toLocaleDateString() : ''}</td>
+        </tr>`);
+        });
+
+        // Initialize DataTable
+        $('#detailTable').DataTable({
+            paging: true,
+            searching: true,
+            ordering: true,
+            order: [[0, 'asc']],
+            lengthMenu: [5, 10, 25, 50],
+            pageLength: 5,
+            dom: '<"top d-flex justify-content-end"f>rtip', // simple layout: filter + table + info + pagination
+            // dom: '<"top d-flex justify-content-end mb-2">',
+            columnDefs: [
+                { className: "text-center", targets: "_all" } // center all columns
+            ]
+        });
+
+        new bootstrap.Modal(document.getElementById('detailModal')).show();
+    }
+
+
+    $(document).ready(function () {
+        $('#InhouseDatepicker').daterangepicker({
+            autoUpdateInput: false,
+            opens: "center",
+            drops: "down",
+            ranges: {
+                'Today': [moment(), moment()],
+                'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                'This Month': [moment().startOf('month'), moment().endOf('month')],
+                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+            },
+            locale: { cancelLabel: 'Clear' }
+        }, function (start, end) {
+            $('#InhouseDatepicker').val(start.format('YYYY-MM-DD') + ' - ' + end.format('YYYY-MM-DD'));
+            loadReport(start.format('YYYY-MM-DD'), end.format('YYYY-MM-DD'));
+        });
+        $('#InhouseDatepicker').on('cancel.daterangepicker', function () { $(this).val(''); loadReport(); });
+
+        loadReport();
+
+
+
+        const layoutWrapper = document.querySelector('.layout-wrapper');
+
+        // When modal opens
+        document.addEventListener('show.bs.modal', function (e) {
+            if (e.target.id === 'detailModal' && layoutWrapper) {
+                layoutWrapper.dataset.prevPosition = layoutWrapper.style.position; // save old position
+                layoutWrapper.style.position = 'static'; // allow scroll
+            }
+        });
+
+        // When modal closes
+        document.addEventListener('hidden.bs.modal', function (e) {
+            if (e.target.id === 'detailModal' && layoutWrapper) {
+                // remove bootstrap leftovers
+                document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
+                document.body.classList.remove('modal-open');
+                document.body.style.overflow = '';
+                document.body.style.paddingRight = '';
+                document.documentElement.style.overflow = '';
+
+                // restore layout-wrapper position
+                layoutWrapper.style.position = layoutWrapper.dataset.prevPosition || 'fixed';
+            }
+        });
+
+    });
+</script>

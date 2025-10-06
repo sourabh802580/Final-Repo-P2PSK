@@ -1,0 +1,878 @@
+﻿<style>
+    body {
+        background: #f8f9fa;
+    }
+
+    .chart-card {
+        background: #fff;
+        border-radius: 20px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        padding: 20px;
+        transition: transform 0.2s ease-in-out;
+        width: 100%;
+    }
+
+        .chart-card:hover {
+            transform: translateY(-5px);
+        }
+
+    h4 {
+        font-weight: 600;
+    }
+
+    /* 🔹 Tabs styling */
+    .nav-pills .nav-link {
+        padding: 6px 14px;
+        font-size: 14px;
+        border-radius: 8px;
+    }
+
+    .nav-item.card {
+        margin: 0 6px;
+    }
+
+    .tab-section {
+        margin-top: 20px;
+    }
+
+    #conConfirmedItemTable tbody td,
+    #conConfirmedItemTable thead th,
+    #nonConConfirmedItemTable tbody td,
+    #nonConConfirmedItemTable thead th {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    #conConfirmedItemTable thead th,
+    #nonConConfirmedItemTable thead th {
+        background-color: black !important;
+        color: white !important;
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    .modal-header .modal-title {
+        margin: 0 auto;
+        text-align: center;
+        width: 100%;
+    }
+
+    /* Chart container centering */
+    .chart-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        height: 100%;
+    }
+
+    #qualityChart {
+        width: 100%;
+        max-width: 400px;
+        height: 300px;
+        margin: 0 auto;
+    }
+
+    .legend-container {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 15px;
+    }
+
+    .legend-item {
+        margin: 0 15px;
+    }
+    /* Remove the minus sign for indeterminate state */
+    input[type="checkbox"]:indeterminate::before {
+        display: none !important;
+    }
+
+    /* Or make it blank */
+    input[type="checkbox"]:indeterminate {
+        background-color: #fff !important;
+        border-color: #adb5bd !important;
+    }
+</style>
+
+<!-- ✅ Combined Charts Container -->
+<div class="col-12 d-flex">
+    <div class="chart-card w-100">
+
+        <!-- 🔹 Header with Date Picker -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="mb-0 text-center" style="color:cornflowerblue;">Quality Check Reports</h4>
+
+            <!-- 🔹 Date Range Picker -->
+            <div class="input-group" style="max-width: 280px;">
+                <span class="input-group-text bg-primary text-white">
+                    <i class="bi bi-calendar-event"></i>
+                </span>
+                <input type="text" id="qualityDateRange" class="form-control" readonly placeholder="Select Date Range" />
+            </div>
+        </div>
+
+        <!-- 🔹 Single Chart Centered -->
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <!-- Confirmed Item Modal -->
+                <div class="modal fade" id="conModal" tabindex="-1" aria-labelledby="conModalLabel" aria-hidden="true" data-bs-backdrop="false" data-bs-keyboard="false">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header bg-primary">
+                                <h5 class="modal-title text-white" id="conModalLabel">Confirmed Item List</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <table id="conConfirmedItemTable" class="table table-striped table-bordered" style="width:100%">
+                                    <thead class="bg-black text-white">
+                                        <tr>
+                                            <th><input type="checkbox" id="conSelectAll" /></th>
+                                            <th>Sr. No.</th>
+                                            <th>GRN Code</th>
+                                            <th>Item Code</th>
+                                            <th>Item Name</th>
+                                            <th>Added Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!--Non Modal -->
+                <div class="modal fade" id="nonConModal" tabindex="-1" aria-labelledby="nonConModalLabel" aria-hidden="true" data-bs-backdrop="false" data-bs-keyboard="false">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header bg-primary text-white justify-content-center">
+                                <h5 class="modal-title text-white" id="nonConModalLabel">Non-Confirmed Item List</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <table id="nonConConfirmedItemTable" class="table table-striped justify-content-center table-bordered" style="width:100%">
+                                    <thead style="background-color:black; color:white;">
+                                        <tr>
+                                            <th><input type="checkbox" id="nonConSelectAll" /></th>
+                                            <th>Sr. No.</th>
+                                            <th>GRN Code</th>
+                                            <th>Item Code</th>
+                                            <th>Item Name</th>
+                                            <th>Description</th>
+                                            <th>Added Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Centered Chart: Confirm vs Non-Confirm -->
+                <div class="text-center">
+                    <h6 class="text-center mb-3">ConfirmItem vs Non-ConfirmItem</h6>
+                    <div class="legend-container">
+                        <div class="d-flex align-items-center me-3 legend-item" id="confirmLegend" style="cursor: pointer;">
+                            <span style="width:15px; height:15px; background:skyblue; display:inline-block; margin-right:6px; border-radius:50%;"></span>
+                            <span>Confirm</span>
+                        </div>
+                        <div class="d-flex align-items-center legend-item" id="nonConfirmLegend" style="cursor: pointer;">
+                            <span style="width:15px; height:15px; background:darkblue; display:inline-block; margin-right:6px; border-radius:50%;"></span>
+                            <span>Non-Confirm</span>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <div id="qualityChart"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ✅ Tabs Section -->
+<div class="tab-section">
+    <ul class="nav nav-pills nav-justified  p-2 rounded" id="stockTabs" role="tablist">
+        <li class="nav-item card shadow-sm" role="presentation">
+            <button class="nav-link active" id="current-tab" data-bs-toggle="tab" data-bs-target="#current" type="button" role="tab">
+                ConfirmItem
+            </button>
+        </li>
+        <li class="nav-item card shadow-sm" role="presentation">
+            <button class="nav-link" id="nonmoving-tab" data-bs-toggle="tab" data-bs-target="#nonmoving" type="button" role="tab">
+                Non-ConfirmItem
+            </button>
+        </li>
+    </ul>
+</div>
+
+<div class="tab-content mt-3">
+    <div class="tab-pane fade show active" id="current" role="tabpanel">
+        @Html.Partial("_ConfirmItemPR")
+    </div>
+    <div class="tab-pane fade" id="nonmoving" role="tabpanel">
+        @Html.Partial("_NonConfirmItemPR")
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        // Global Toastr options
+        toastr.options = {
+            "closeButton": true,
+            "progressBar": true,
+            "positionClass": "toast-top-right",
+            "timeOut": "3000"
+        };
+
+        let startDate = null;
+        let endDate = null;
+        let currentChartData = null;
+
+        // Date Range Picker initialization
+        $('#qualityDateRange').daterangepicker({
+            autoUpdateInput: false,
+            opens: "center",
+            drops: "down",
+            locale: { cancelLabel: 'Clear' },
+            ranges: {
+                'Today': [moment(), moment()],
+                'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                'This Month': [moment().startOf('month'), moment().endOf('month')],
+                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+            }
+        });
+
+        // Apply button logic
+        $('#qualityDateRange').on('apply.daterangepicker', function (ev, picker) {
+            $(this).val(picker.startDate.format('YYYY-MM-DD') + ' - ' + picker.endDate.format('YYYY-MM-DD'));
+            startDate = picker.startDate.format('YYYY-MM-DD');
+            endDate = picker.endDate.format('YYYY-MM-DD');
+
+            // Reload both chart and tables with new dates
+            loadQualityChart(startDate, endDate);
+            reloadTableData(); // This will reload tables when they are opened
+        });
+
+        // Clear logic
+        $('#qualityDateRange').on('cancel.daterangepicker', function (ev, picker) {
+            $(this).val('');
+            startDate = null;
+            endDate = null;
+
+            // Reload both chart and tables without dates
+            loadQualityChart(null, null);
+            reloadTableData();
+        });
+
+        // Function to reload table data (will be called when modals open)
+        function reloadTableData() {
+            // This function will be called when modals are opened
+            console.log("Table data reload triggered for date range:", startDate, endDate);
+        }
+
+        // Function to update Select All checkbox state - UPDATED FOR BLANK CHECKBOX
+        function updateSelectAllCheckbox(tableId, selectAllId) {
+            const totalRows = $(`${tableId} tbody .row-select`).length;
+            const checkedRows = $(`${tableId} tbody .row-select:checked`).length;
+
+            const $selectAll = $(selectAllId);
+
+            if (checkedRows === 0) {
+                // No rows selected - blank checkbox
+                $selectAll.prop('checked', false);
+                $selectAll.prop('indeterminate', false);
+            } else if (checkedRows === totalRows) {
+                // All rows selected - tick mark
+                $selectAll.prop('checked', true);
+                $selectAll.prop('indeterminate', false);
+            } else {
+                // Some rows selected - blank checkbox (no tick, no minus)
+                $selectAll.prop('checked', false);
+                $selectAll.prop('indeterminate', false);
+            }
+        }
+
+        // Open modal and load data for Confirmed items
+        function openConfirmItemModal() {
+            const modalId = '#conModal';
+            const tableId = '#conConfirmedItemTable';
+            const modalLabelId = '#conModalLabel';
+            const modalTitle = "Confirmed Item Details";
+            const url = '/Quality/ConfirmedItemDetailsPSR';
+
+            $(modalId).modal('show');
+            $(modalLabelId).text(modalTitle);
+
+            const params = {};
+            if (startDate && endDate) {
+                params.startDate = startDate;
+                params.endDate = endDate;
+            }
+
+            console.log("Confirmed Items API Params:", params);
+
+            $.ajax({
+                url: url,
+                type: 'GET',
+                data: params,
+                dataType: 'json',
+                success: function (data) {
+                    const items = Array.isArray(data) ? data : (data.data || []);
+                    const $tbody = $(`${tableId} tbody`);
+
+                    if ($.fn.DataTable.isDataTable(tableId)) {
+                        $(tableId).DataTable().destroy();
+                    }
+
+                    $tbody.empty();
+
+                    if (items.length > 0) {
+                        items.forEach((item, index) => {
+                            const dateToShow = item.QualityCheckDate || item.ItemAddedDate || '';
+                            const row = `<tr>
+                                <td><input type="checkbox" class="row-select" /></td>
+                                <td>${index + 1}</td>
+                                <td>${item.GRNCode || ''}</td>
+                                <td>${item.ItemCode || ''}</td>
+                                <td>${item.ItemName || ''}</td>
+                                <td>${dateToShow}</td>
+                            </tr>`;
+                            $tbody.append(row);
+                        });
+                    } else {
+                        $tbody.append('<tr><td colspan="6" class="text-center text-muted">No records found for selected date range</td></tr>');
+                    }
+
+                    // DataTable initialization
+                    initializeConfirmedDataTable(tableId);
+
+                    // Reset select all checkbox
+                    $('#conSelectAll').prop('checked', false).prop('indeterminate', false);
+
+                    console.log(`Confirmed Items loaded: ${items.length} records`);
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error loading confirmed items:", error);
+                    const $tbody = $(`${tableId} tbody`);
+                    $tbody.empty().append('<tr><td colspan="6" class="text-center text-danger">Error loading data</td></tr>');
+                }
+            });
+        }
+
+        // Open modal and load data for Non-Confirmed items
+        function openNonConfirmItemModal() {
+            const modalId = '#nonConModal';
+            const tableId = '#nonConConfirmedItemTable';
+            const modalLabelId = '#nonConModalLabel';
+            const modalTitle = "Non-Confirmed Item Details";
+            const url = '/Quality/FailedItemsGraphPR';
+
+            $(modalId).modal('show');
+            $(modalLabelId).text(modalTitle);
+
+            const params = {};
+            if (startDate && endDate) {
+                params.startDate = startDate;
+                params.endDate = endDate;
+            }
+
+            console.log("Non-Confirmed Items API Params:", params);
+
+            $.ajax({
+                url: url,
+                type: 'GET',
+                data: params,
+                dataType: 'json',
+                success: function (data) {
+                    const items = Array.isArray(data) ? data : (data.data || []);
+                    const $tbody = $(`${tableId} tbody`);
+
+                    if ($.fn.DataTable.isDataTable(tableId)) {
+                        $(tableId).DataTable().destroy();
+                    }
+
+                    $tbody.empty();
+
+                    if (items.length > 0) {
+                        items.forEach((item, index) => {
+                            const row = `<tr>
+                                <td><input type="checkbox" class="row-select" /></td>
+                                <td>${index + 1}</td>
+                                <td>${item.GRNCode || ''}</td> <!-- ✅ GRN Code added -->
+                                <td>${item.ItemCode || ''}</td>
+                                <td>${item.ItemName || ''}</td>
+                                <td>${item.Reason || ''}</td>
+                                <td>${item.AddedDate || ''}</td>
+                            </tr>`;
+                            $tbody.append(row);
+                        });
+                    } else {
+                        $tbody.append('<tr><td colspan="7" class="text-center text-muted">No records found for selected date range</td></tr>');
+                    }
+
+                    // DataTable initialization
+                    initializeNonConfirmedDataTable(tableId);
+
+                    // Reset select all checkbox
+                    $('#nonConSelectAll').prop('checked', false).prop('indeterminate', false);
+
+                    console.log(`Non-Confirmed Items loaded: ${items.length} records`);
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error loading non-confirmed items:", error);
+                    const $tbody = $(`${tableId} tbody`);
+                    $tbody.empty().append('<tr><td colspan="7" class="text-center text-danger">Error loading data</td></tr>');
+                }
+            });
+        }
+
+        // Initialize DataTable for Confirmed Items
+        function initializeConfirmedDataTable(tableId) {
+            $(tableId).DataTable({
+                ordering: false,
+                pageLength: 5,
+                responsive: true,
+                dom: '<"d-flex justify-content-between align-items-center mb-2"Bf>rt<"d-flex justify-content-between align-items-center mt-2"ip>',
+                buttons: getTableButtons('Confirmed Items', tableId, 6) // ✅ 6 columns now
+            });
+        }
+
+        // Initialize DataTable for Non-Confirmed Items
+        function initializeNonConfirmedDataTable(tableId) {
+            $(tableId).DataTable({
+                ordering: false,
+                pageLength: 5,
+                responsive: true,
+                dom: '<"d-flex justify-content-between align-items-center mb-2"Bf>rt<"d-flex justify-content-between align-items-center mt-2"ip>',
+                buttons: getTableButtons('Non-Confirmed Items', tableId, 7) // ✅ 7 columns now
+            });
+        }
+
+        // Function to regenerate serial numbers for selected rows
+        function regenerateSerialNumbersForExport(tableId, format) {
+            const selectedRows = $(`${tableId} tbody tr`).filter(function () {
+                return $(this).find('.row-select').prop('checked');
+            });
+
+            // Update serial numbers in the actual table for print/PDF
+            if (format === 'print' || format === 'pdf') {
+                selectedRows.each(function (index) {
+                    $(this).find('td:eq(1)').text(index + 1);
+                });
+            }
+
+            return selectedRows;
+        }
+
+        // Function to get export data with regenerated serial numbers
+        function getExportDataWithNewSerialNumbers(tableId) {
+            const dataTable = $(tableId).DataTable();
+            const selectedRows = dataTable.rows(function (idx, data, node) {
+                return $(node).find('.row-select').prop('checked');
+            });
+
+            // Create a copy of the data with regenerated serial numbers
+            const exportData = selectedRows.data().toArray().map((row, index) => {
+                const newRow = [...row];
+                // Update the serial number (index 1 in the data array since checkbox column is excluded)
+                newRow[1] = index + 1;
+                return newRow;
+            });
+
+            return exportData;
+        }
+
+        // Common table buttons configuration - Updated for GRN Code
+        function getTableButtons(title, tableId, columnCount) {
+            return [
+                {
+                    extend: 'print',
+                    text: '<i class="bi bi-printer-fill text-dark fs-5"></i>',
+                    title: '',
+                    exportOptions: {
+                        rows: function (idx, data, node) {
+                            return $(node).find('.row-select').prop('checked');
+                        },
+                        columns: ':not(:first-child)' // First column (checkbox) exclude
+                    },
+                    action: function (e, dt, button, config) {
+                        const selected = $(`${tableId} input.row-select:checked`).length;
+                        if (selected === 0) {
+                            toastr.warning('Please select at least one row before exporting.');
+                            return;
+                        }
+
+                        // Temporarily update serial numbers for print
+                        regenerateSerialNumbersForExport(tableId, 'print');
+
+                        $.fn.dataTable.ext.buttons.print.action.call(this, e, dt, button, config);
+                    },
+                    customize: function (win) {
+                        $(win.document.body).css({
+                            'font-size': '12px',
+                            'font-family': 'Arial, sans-serif'
+                        });
+
+                        let dateRangeText = '';
+                        if (startDate && endDate) {
+                            dateRangeText = `<p style="text-align:center;">Date Range: ${startDate} to ${endDate}</p>`;
+                        }
+
+                        // Ensure serial numbers are sequential in print
+                        const $printTable = $(win.document.body).find('table');
+                        const $rows = $printTable.find('tbody tr');
+                        $rows.each(function (index) {
+                            $(this).find('td:eq(0)').text(index + 1);
+                        });
+
+                        // Add title and metadata
+                        $(win.document.body).prepend(`
+        <h3 style="text-align:center;">${title}</h3>
+        <p style="text-align:center;">Generated on: ${moment().format("YYYY-MM-DD")}</p>
+        ${dateRangeText}
+    `);
+
+                        // Get the body reference
+                        var $body = $(win.document.body);
+
+                        // Add print-specific CSS styles
+                        $body.append(`
+        <style>
+            thead th {
+                background-color: black !important;
+                color: white !important;
+                text-align: center !important;
+                vertical-align: middle !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                font-weight: bold !important;
+                padding: 8px !important;
+            }
+            table {
+                border-collapse: collapse !important;
+                width: 100% !important;
+                margin: 0 auto !important;
+            }
+            td, th {
+                border: 1px solid #000 !important;
+                padding: 6px !important;
+                text-align: center !important;
+                vertical-align: middle !important;
+            }
+            tbody td {
+                text-align: center !important;
+                vertical-align: middle !important;
+            }
+        </style>
+    `);
+
+                        // Center the main title
+                        $body.find('h1').css('text-align', 'center');
+
+                        // Add table classes and styling
+                        $body.find('table')
+                            .addClass('table table-bordered table-striped')
+                            .css('width', '100%');
+
+                        // Set body font size
+                        $body.css('font-size', '12pt');
+                    }
+                },
+                {
+                    extend: 'pdf',
+                    text: '<i class="bi bi-file-earmark-pdf text-danger fs-5"></i>',
+                    title: title,
+                    exportOptions: {
+                        rows: function (idx, data, node) {
+                            return $(node).find('.row-select').prop('checked');
+                        },
+                        columns: ':not(:first-child)' // First column (checkbox) exclude
+                    },
+                    action: function (e, dt, button, config) {
+                        const selected = $(`${tableId} input.row-select:checked`).length;
+                        if (selected === 0) {
+                            toastr.warning('Please select at least one row before exporting.');
+                            return;
+                        }
+                        $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, button, config);
+                    },
+                    customize: function (doc) {
+                        doc.pageMargins = [40, 60, 40, 40];
+                        doc.styles.title = {
+                            fontSize: 16,
+                            bold: true,
+                            alignment: 'center',
+                            margin: [0, 0, 0, 10]
+                        };
+                        doc.content.splice(1, 0, {
+                            text: `Generated on: ${moment().format("YYYY-MM-DD")}`,
+                            alignment: 'center',
+                            margin: [0, 0, 0, 10],
+                            fontSize: 10,
+                            italics: true
+                        });
+                        if (startDate && endDate) {
+                            doc.content.splice(2, 0, {
+                                text: `Date Range: ${startDate} to ${endDate}`,
+                                alignment: 'center',
+                                margin: [0, 0, 0, 10],
+                                fontSize: 10
+                            });
+                        }
+                        const table = doc.content.find(n => n.table);
+                        if (table) {
+                            // Regenerate serial numbers for PDF
+                            const exportData = getExportDataWithNewSerialNumbers(tableId);
+                            if (exportData.length > 0) {
+                                // Update the table body with new serial numbers
+                                for (let i = 1; i < table.table.body.length; i++) {
+                                    if (exportData[i - 1]) {
+                                        table.table.body[i][0] = i;
+                                    }
+                                }
+                            }
+
+                            table.table.widths = Array(table.table.body[0].length).fill('*');
+                            table.layout = {
+                                hLineWidth: () => 0.5,
+                                vLineWidth: () => 0.5,
+                                hLineColor: () => '#aaa',
+                                vLineColor: () => '#aaa',
+                                fillColor: (i) => i === 0 ? '#343a40' : null,
+                                paddingLeft: () => 5,
+                                paddingRight: () => 5
+                            };
+                            table.table.body[0].forEach(cell => {
+                                cell.fillColor = '#343a40';
+                                cell.color = 'white';
+                                cell.alignment = 'center';
+                                cell.fontSize = 11;
+                            });
+                        }
+                    }
+                },
+                {
+                    extend: 'excel',
+                    text: '<i class="bi bi-file-earmark-excel text-success fs-5"></i>',
+                    title: title,
+                    exportOptions: {
+                        rows: function (idx, data, node) {
+                            return $(node).find('.row-select').prop('checked');
+                        },
+                        columns: ':not(:first-child)' // First column (checkbox) exclude
+                    },
+                    action: function (e, dt, button, config) {
+                        const selected = $(`${tableId} input.row-select:checked`).length;
+                        if (selected === 0) {
+                            toastr.warning('Please select at least one row before exporting.');
+                            return;
+                        }
+
+                        // Get data with regenerated serial numbers
+                        const exportData = getExportDataWithNewSerialNumbers(tableId);
+
+                        // For Excel, we need to create custom export
+                        const headers = [];
+                        $(`${tableId} thead th:not(:first-child)`).each(function () {
+                            headers.push($(this).text().trim());
+                        });
+
+                        // Prepare data for Excel
+                        const excelData = [headers];
+                        exportData.forEach(row => {
+                            // Skip checkbox column (index 0) and take rest of the columns
+                            const excelRow = row.slice(1);
+                            excelData.push(excelRow);
+                        });
+
+                        // Create worksheet
+                        const ws = XLSX.utils.aoa_to_sheet(excelData);
+
+                        // Create workbook
+                        const wb = XLSX.utils.book_new();
+                        XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+
+                        // Export to Excel
+                        XLSX.writeFile(wb, title + '.xlsx');
+                    }
+                },
+                {
+                    extend: 'csv',
+                    text: '<i class="bi bi-filetype-csv text-success fs-5"></i>',
+                    title: title,
+                    exportOptions: {
+                        rows: function (idx, data, node) {
+                            return $(node).find('.row-select').prop('checked');
+                        },
+                        columns: ':not(:first-child)' // First column (checkbox) exclude
+                    },
+                    action: function (e, dt, button, config) {
+                        const selected = $(`${tableId} input.row-select:checked`).length;
+                        if (selected === 0) {
+                            toastr.warning('Please select at least one row before exporting.');
+                            return;
+                        }
+
+                        // Get data with regenerated serial numbers
+                        const exportData = getExportDataWithNewSerialNumbers(tableId);
+
+                        const headers = [];
+                        $(`${tableId} thead th:not(:first-child)`).each(function () {
+                            headers.push($(this).text().trim());
+                        });
+
+                        // Create CSV content
+                        let csvContent = headers.map(header => `"${header}"`).join(',') + '\n';
+
+                        exportData.forEach(row => {
+                            const csvRow = row.slice(1).map(cell => `"${cell || ''}"`).join(',');
+                            csvContent += csvRow + '\n';
+                        });
+
+                        // Download CSV
+                        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                        const link = document.createElement("a");
+                        const url = URL.createObjectURL(blob);
+                        link.setAttribute("href", url);
+                        link.setAttribute("download", title + ".csv");
+                        link.style.visibility = 'hidden';
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                    }
+                }
+            ];
+        }
+
+        // Load Quality Chart (Pie) - UPDATED VERSION
+        function loadQualityChart(start = null, end = null) {
+            // Dono APIs se data lekar manually count calculate karenge
+            const confirmedUrl = '/Quality/ConfirmedItemDetailsPSR';
+            const failedUrl = '/Quality/FailedItemsGraphPR';
+
+            const params = {};
+            if (start) params.startDate = start;
+            if (end) params.endDate = end;
+
+            console.log("Loading chart data with params:", params);
+
+            // Parallel requests for both confirmed and failed items
+            Promise.all([
+                $.ajax({ url: confirmedUrl, type: 'GET', data: params }),
+                $.ajax({ url: failedUrl, type: 'GET', data: params })
+            ]).then(function (results) {
+                const confirmedData = Array.isArray(results[0]) ? results[0] : (results[0].data || []);
+                const failedData = Array.isArray(results[1]) ? results[1] : (results[1].data || []);
+
+                const confirmedCount = confirmedData.length;
+                const failedCount = failedData.length;
+
+                console.log(`Confirmed: ${confirmedCount}, Failed: ${failedCount}`);
+
+                // Chart data banayenge
+                const chartData = [
+                    {
+                        name: "ConfirmItem",
+                        y: confirmedCount,
+                        count: confirmedCount
+                    },
+                    {
+                        name: "NonConfirmItem",
+                        y: failedCount,
+                        count: failedCount
+                    }
+                ];
+
+                console.log("Calculated Chart Data:", chartData);
+
+                // Chart render karenge
+                Highcharts.chart('qualityChart', {
+                    chart: {
+                        type: 'pie',
+                        backgroundColor: 'transparent',
+                        margin: [0, 0, 0, 0],
+                        spacing: [0, 0, 0, 0]
+                    },
+                    title: { text: null },
+                    tooltip: {
+                        pointFormat: '<b>{point.y}</b> items',
+                        headerFormat: '<span style="font-size: 13px">{point.key}</span><br/>'
+                    },
+                    legend: {
+                        enabled: false
+                    },
+                    plotOptions: {
+                        pie: {
+                            allowPointSelect: true,
+                            cursor: 'pointer',
+                            innerSize: '50%',
+                            dataLabels: {
+                                enabled: true,
+                                format: '{point.y}',
+                                style: { fontWeight: 'bold', fontSize: '14px' }
+                            },
+                            point: {
+                                events: {
+                                    click: function () {
+                                        if (this.name === "ConfirmItem") {
+                                            openConfirmItemModal();
+                                        } else if (this.name === "NonConfirmItem") {
+                                            openNonConfirmItemModal();
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    series: [{
+                        name: 'Quality Reports',
+                        colorByPoint: true,
+                        colors: ['#87CEEB', '#00008B'],
+                        data: chartData
+                    }]
+                });
+
+            }).catch(function (error) {
+                console.error("Error loading chart data:", error);
+                $('#qualityChart').html('<p class="text-center text-danger">Error loading chart data</p>');
+            });
+        }
+
+        // Select All Checkbox Logic - UPDATED
+        $(document).on('change', '#conSelectAll', function () {
+            const isChecked = $(this).prop('checked');
+            $('#conConfirmedItemTable tbody .row-select').prop('checked', isChecked);
+            $(this).prop('indeterminate', false);
+        });
+
+        $(document).on('change', '#nonConSelectAll', function () {
+            const isChecked = $(this).prop('checked');
+            $('#nonConConfirmedItemTable tbody .row-select').prop('checked', isChecked);
+            $(this).prop('indeterminate', false);
+        });
+
+        // Individual checkbox change handlers - UPDATED
+        $(document).on('change', '#conConfirmedItemTable tbody .row-select', function () {
+            updateSelectAllCheckbox('#conConfirmedItemTable', '#conSelectAll');
+        });
+
+        $(document).on('change', '#nonConConfirmedItemTable tbody .row-select', function () {
+            updateSelectAllCheckbox('#nonConConfirmedItemTable', '#nonConSelectAll');
+        });
+
+        // Legend click handlers
+        $('#confirmLegend').on('click', function () {
+            openConfirmItemModal();
+        });
+
+        $('#nonConfirmLegend').on('click', function () {
+            openNonConfirmItemModal();
+        });
+
+        // Initial load without filters
+        loadQualityChart(null, null);
+    });
+</script>

@@ -1,0 +1,367 @@
+﻿@model int
+
+<div class="card mt-3">
+    <div class="card-body">
+      
+
+        <div class="table-responsive ">
+            <table id="reqTable1" class="table table-striped table-bordered">
+                <thead class="table-dark">
+                    <tr>
+                        <th><input type="checkbox" id="selectAll1"></th>
+                        <th>Sr. No.</th>
+                        <th>Item Code</th>
+                        <th>Item Name</th>
+                        <th>Description</th>
+                        <th>Required Quantity</th>
+                        <th>Required Date</th>
+                        <th>Request Type</th>
+                    </tr>
+                </thead>
+                <tbody id="tblRecent1">
+                    <tr>
+                        <td colspan="7" class="text-center">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        let requirementId = @Model;
+        let dataTable; // Declare dataTable variable
+
+        loadRequirementDetails(requirementId);
+
+        function loadRequirementDetails(id) {
+            $.ajax({
+                url: "@Url.Action("ViewReqMasterListRHK", "Inventory")",
+                type: "GET",
+                data: { id: id },
+                success: function (response) {
+                    if (response?.data?.length > 0) {
+                        populateTable(response.data);
+                    } else {
+                        showNoData();
+                    }
+                },
+                error: function () {
+                    showError();
+                }
+            });
+        }
+
+        function populateTable(data) {
+            let html = "";
+            data.forEach(item =>
+            {
+                let i = 1;
+                html += `<tr>
+                    <td><input type="checkbox" class="row-select" value="${item.ItemCode}"></td>
+                    <td>${i++}</td>
+                    <td>${item.ItemCode || 'N/A'}</td>
+                    <td>${item.ItemName || 'N/A'}</td>
+                  <td>
+                <span data-bs-toggle="tooltip"
+                      data-bs-placement="top"
+                      title="${item.Description || ''}">
+                    ${item.Description || 'N/A'}
+                </span>
+            </td>
+                    <td>${item.RequiredQuantity || '0'}</td>
+                    <td>${item.RequiredDate ? formatDisplayDate(item.RequiredDate) : 'N/A'}</td>
+                    <td>${item.RequestType || 'N/A'}</td>
+                </tr>`;
+            });
+        
+            
+
+            $('#tblRecent1').html(html);
+
+
+            $('[data-bs-toggle="tooltip"]').tooltip();
+
+            // Initialize DataTable after populating data
+            initDataTable();
+
+        }
+      
+      
+
+
+        function initDataTable() {
+            // Destroy existing DataTable if already initialized
+            if ($.fn.DataTable.isDataTable('#reqTable1')) {
+                $('#reqTable1').DataTable().clear().destroy();
+            }
+
+            dataTable = $('#reqTable1').DataTable({
+                pageLength: 10,
+                paging: true,
+                ordering: false,
+                searching: true,
+                dom: '<"d-flex justify-content-between align-items-center mt-1 mb-2"Bf>rt<"d-flex justify-content-between mt-2"<"datatable-info"i><"datatable-pagination"p>>',
+                buttons: [
+                    // 🔹 Print
+                    {
+                        extend: 'print',
+                        text: '<i class="bi bi-printer-fill text-dark fs-5"></i>',
+                        className: 'btn btn-sm btn-outline-dark',
+                        title: 'Requirement Details',
+                        messageTop: function () {
+                            return '<h3 style="text-align:center">Generated Date: ' +
+                                new Date().toLocaleDateString('en-GB') + '</h3>';
+                        },
+                        action: function (e, dt, button, config) {
+                            if ($('#reqTable1 tbody input.row-select:checked').length === 0) {
+                                showExportToast();
+                                return;
+                            }
+                            $.fn.dataTable.ext.buttons.print.action.call(this, e, dt, button, config);
+                        },
+                        exportOptions: {
+                            rows: function (idx, data, node) {
+                                return $(node).find('.row-select').prop('checked');
+                            },
+                            columns: ':visible:not(:first-child)',
+
+                            format: {
+                                body: function (data, row, column, node) {
+                                    if (column === 1)
+                                        return $('#reqTable1 tbody input.row-select:checked')
+                                            .index($(node).closest('tr').find('.row-select')) + 1;
+
+                                    return typeof data === 'string'
+                                        ? data.replace(/<[^>]*>/g, '').trim()
+                                        : data;
+
+                                }
+                            }
+                        },
+                        customize: function (win) {
+                            var $body = $(win.document.body);
+
+                            $body.append(`
+        <style>
+            thead th {
+                background-color: black !important;
+                color: white !important;
+                text-align: center !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            table {
+                border-collapse: collapse !important;
+                width: 100% !important;
+            }
+            td, th {
+                border: 1px solid #000 !important;
+                padding: 6px !important;
+                 text-align: center !important;
+            }
+        </style>
+`);
+
+                            $body.find('h1').css('text-align', 'center');
+
+
+
+                            $body.find('table')
+                                .addClass('table table-bordered table-striped')
+                                .css('width', '100%');
+
+                            $body.css('font-size', '12pt');
+                        }
+                    },
+                    // 🔹 PDF
+                    {
+                        extend: 'pdfHtml5',
+                        text: '<i class="bi bi-file-earmark-pdf text-danger fs-5"></i>',
+                        className: 'btn btn-sm btn-outline-danger',
+                        title: "Requirement Details",
+                        orientation: 'landscape',
+                        pagesize: 'A4',
+                        customize: function (doc) {
+
+                            doc.content.splice(1, 0, {
+                                text: 'Generated Date: ' + new Date().toLocaleDateString('en-GB'),
+                                alignment: 'center',
+                                margin: [0, 0, 0, 12]
+                            });
+
+                            // Center table
+                            var table = doc.content[doc.content.length - 1].table;
+                            table.widths = new Array(table.body[0].length).fill('*'); // equal widths
+                            doc.content[doc.content.length - 1].alignment = 'center'; // ✅ Center table
+
+
+                            doc.styles.tableHeader = { fillColor: '#000000', color: 'white', alignment: 'center' };
+
+                            var objLayout = {};
+                            objLayout['hLineWidth'] = function () { return 1; };
+                            objLayout['vLineWidth'] = function () { return 1; };
+                            objLayout['hLineColor'] = function () { return '#000'; };
+                            objLayout['vLineColor'] = function () { return '#000'; };
+                            objLayout['paddingLeft'] = function () { return 4; };
+                            objLayout['paddingRight'] = function () { return 4; };
+                            doc.content[doc.content.length - 1].layout = objLayout;
+
+                            var tableBody = doc.content[doc.content.length - 1].table.body;
+                            tableBody.forEach(function (row) {
+                                row.forEach(function (cell) {
+                                    cell.alignment = 'center';
+                                });
+                            });
+                        },
+                        action: function (e, dt, button, config) {
+                            if ($('#reqTable1 tbody input.row-select:checked').length === 0) {
+                                showExportToast();
+                                return;
+                            }
+                            $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, button, config);
+                        },
+                        exportOptions: {
+                            rows: function (idx, data, node) {
+                                return $(node).find('.row-select').prop('checked');
+                            },
+                            columns: ':visible:not(:first-child)',
+                            format: {
+                                body: function (data, row, column, node) {
+                                    if (column === 1)
+                                        return $('#reqTable1 tbody input.row-select:checked')
+                                            .index($(node).closest('tr').find('.row-select')) + 1;
+                                    return typeof data === 'string'
+                                        ? data.replace(/<[^>]*>/g, '').trim()
+                                        : data;
+                                }
+                            }
+                        }
+                    },
+                    // 🔹 Excel
+                    {
+                        extend: 'excelHtml5',
+                        text: '<i class="bi bi-file-earmark-excel text-success fs-5"></i>',
+                        className: 'btn btn-sm btn-outline-success',
+                        title: "Requirement Details",
+                        action: function (e, dt, button, config) {
+                            if ($('#reqTable1 tbody input.row-select:checked').length === 0) {
+                                showExportToast();
+                                return;
+                            }
+                            $.fn.dataTable.ext.buttons.excelHtml5.action.call(this, e, dt, button, config);
+                        },
+                        exportOptions: {
+                            rows: function (idx, data, node) {
+                                return $(node).find('.row-select').prop('checked');
+                            },
+                            columns: ':visible:not(:first-child)',
+                            format: {
+                                body: function (data, row, column, node) {
+                                    if (column === 1)
+                                        return $('#reqTable1 tbody input.row-select:checked')
+                                            .index($(node).closest('tr').find('.row-select')) + 1;
+                                    return typeof data === 'string'
+                                        ? data.replace(/<[^>]*>/g, '').trim()
+                                        : data;
+                                }
+                            }
+                        }
+                    },
+                    // 🔹 CSV
+                    {
+                        extend: 'csvHtml5',
+                        text: '<i class="bi bi-filetype-csv text-primary fs-5"></i>',
+                        className: 'btn btn-sm btn-outline-primary',
+                        title: "Requirement Details",
+                        action: function (e, dt, button, config) {
+                            if ($('#reqTable1 tbody input.row-select:checked').length === 0) {
+                                showExportToast();
+                                return;
+                            }
+                            $.fn.dataTable.ext.buttons.csvHtml5.action.call(this, e, dt, button, config);
+                        },
+                        exportOptions: {
+                            rows: function (idx, data, node) {
+                                return $(node).find('.row-select').prop('checked');
+                            },
+                            columns: ':visible:not(:first-child)',
+                            format: {
+                                body: function (data, row, column, node) {
+                                    if (column === 1)
+                                        return $('#reqTable1 tbody input.row-select:checked')
+                                            .index($(node).closest('tr').find('.row-select')) + 1;
+                                    return typeof data === 'string'
+                                        ? data.replace(/<[^>]*>/g, '').trim()
+                                        : data;
+                                }
+                            }
+                        }
+                    }
+                ]
+
+            });
+
+
+            // --- SelectAll toggle ---
+            $('#selectAll1').off('change').on('change', function () {
+                $('#reqTable1 tbody .row-select').prop('checked', $(this).prop('checked'));
+            });
+
+            // --- Update SelectAll state ---
+            $('#reqTable1').off('change', '.row-select').on('change', '.row-select', function () {
+                let total = $('#reqTable1 tbody .row-select').length;
+                let checked = $('#reqTable1 tbody .row-select:checked').length;
+                $('#selectAll1').prop('checked', total === checked);
+            });
+
+        }
+
+
+     
+
+
+
+        function formatDisplayDate(dateValue) {
+            let date = new Date(dateValue);
+            if (isNaN(date.getTime())) return dateValue;
+            let d = String(date.getDate()).padStart(2, '0');
+            let m = String(date.getMonth() + 1).padStart(2, '0');
+            let y = date.getFullYear();
+            return `${d}/${m}/${y}`;
+        }
+
+        function showNoData() {
+            $('#tblRecent1').html(`<tr><td colspan="8" class="text-center text-muted"><i class="fas fa-database"></i> No details found</td></tr>`);
+        }
+
+        function showError() {
+            $('#tblRecent1').html(`<tr><td colspan="8" class="text-center text-danger"><i class="fas fa-exclamation-triangle"></i> Error loading data</td></tr>`);
+        }
+
+        // ✅ Configure toastr once
+        toastr.options = {
+            closeButton: true,
+            progressBar: true,
+            newestOnTop: true,
+            positionClass: "toast-top-right",
+            preventDuplicates: true,
+            timeOut: 3000,
+            extendedTimeOut: 1000,
+            showDuration: 300,
+            hideDuration: 300,
+            showMethod: "slideDown",
+            hideMethod: "fadeOut"
+        };
+
+        // ✅ Helper function for warning toast
+        function showExportToast() {
+            toastr.warning("Please select at least one row before exporting.", "Warning");
+        }
+    });
+</script>

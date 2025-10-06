@@ -1,0 +1,239 @@
+﻿/* ----------------------------
+           Theme Variables
+        ----------------------------- */
+:root {
+    --bg-color: #f8f9fa;
+    --text-color: #212529;
+    --card-bg: #fff;
+    --tab-bg: #fff;
+    --tab-text: #212529;
+    --tab-active-bg: #3b82f6;
+    --tab-active-text: #fff;
+    --border-color: #dee2e6;
+    --btn-save-bg: #6366f1;
+    --btn-cancel-bg: #df3f40;
+    --table-header-bg: #343a40;
+    --table-header-text: #fff;
+}
+
+/* Dark theme auto (based on system) */
+@media (prefers-color-scheme: dark) {
+    :root {
+        /*E2E2E6,#312d4b*/
+        --bg-color: #121212;
+        --text-color: #f8f9fa;
+        --card-bg: #1e1e1e;
+        --tab-bg: #1e1e1e;
+        --tab-text: #f8f9fa;
+        --tab-active-bg: #3b82f6;
+        --tab-active-text: #fff;
+        --border-color: #444;
+        --btn-save-bg: #4f46e5;
+        --btn-cancel-bg: #b91c1c;
+        --table-header-bg: #222;
+        --table-header-text: #f8f9fa;
+    }
+}
+
+body {
+    background: var(--bg-color);
+    color: var(--text-color);
+    transition: background 0.3s, color 0.3s;
+}
+
+/* ----------------------------
+           Rotating Border Tabs
+        ----------------------------- */
+.tab-header {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin-bottom: 30px;
+}
+
+.tab-btn {
+    position: relative;
+    padding: 12px 30px;
+    border-radius: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    background: var(--tab-bg);
+    color: var(--tab-text);
+    border: none;
+    z-index: 1;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+    .tab-btn::before {
+        content: "";
+        position: absolute;
+        top: -3px;
+        left: -3px;
+        right: -3px;
+        bottom: -3px;
+        border-radius: 14px;
+        background: conic-gradient(from 0deg, #3b82f6, #9333ea, #f59e0b, #ef4444, #3b82f6);
+        z-index: -1;
+        animation: spin 4s linear infinite;
+    }
+
+    .tab-btn::after {
+        content: "";
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        right: 2px;
+        bottom: 2px;
+        border-radius: 10px;
+        background: var(--tab-bg);
+        z-index: -1;
+    }
+
+    .tab-btn.active {
+        background: var(--tab-active-bg);
+        color: blue !important;
+    }
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Tab contents */
+.tab-content {
+    display: none;
+    padding: 20px;
+    animation: fadeIn 0.5s ease;
+}
+
+    .tab-content.active {
+        display: block;
+    }
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Buttons */
+.btn-save {
+    background-color: var(--btn-save-bg);
+    color: white;
+}
+
+.btn-cancel {
+    background-color: var(--btn-cancel-bg);
+    color: white;
+}
+
+.form-section {
+    margin-bottom: 1.5rem;
+}
+
+.table-container {
+    overflow-x: auto;
+}
+
+.table thead {
+    background-color: var(--table-header-bg);
+    color: var(--table-header-text);
+}
+
+/* Required field */
+.form-label.required::after {
+    content: " *";
+    color: red;
+}
+
+[data-bs-theme="dark"] form,
+[data-bs-theme="dark"] .tab-content {
+    background-color: #312d4b !important;
+    color: #ffffff; /* Make text readable */
+}
+/* overlay */
+#loader-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(255,255,255,0.95);
+    z-index: 9999;
+}
+
+/* dots */
+.dot-loader {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+    .dot-loader span {
+        width: 14px;
+        height: 14px;
+        background: skyblue;
+        border-radius: 50%;
+        display: inline-block;
+        opacity: 0;
+        transform: translateY(0);
+        animation: dot-bounce 1s infinite;
+        animation-fill-mode: both;
+        animation-timing-function: ease-in-out;
+    }
+
+        /* sequential delays */
+        .dot-loader span:nth-child(1) {
+            animation-delay: 0s;
+        }
+
+        .dot-loader span:nth-child(2) {
+            animation-delay: 0.18s;
+        }
+
+        .dot-loader span:nth-child(3) {
+            animation-delay: 0.36s;
+        }
+
+/* Razor requires escaping @ when writing keyframes inline */
+@keyframes dot-bounce {
+    0% {
+        opacity: 0;
+        transform: translateY(0);
+    }
+
+    30% {
+        opacity: 1;
+        transform: translateY(-10px);
+    }
+
+    60% {
+        opacity: 0.7;
+        transform: translateY(0);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translateY(0);
+    }
+}
+
+/* hidden main until loader gone */
+#main-container {
+    display: none;
+}

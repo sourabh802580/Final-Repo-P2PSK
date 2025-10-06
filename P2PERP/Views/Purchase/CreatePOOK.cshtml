@@ -1,0 +1,650 @@
+﻿@model P2PLibray.Purchase.Purchase
+
+@{
+    ViewBag.Title = "CreatePOOK";
+}
+
+@*<h2>CreatePOOK</h2>*@
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Purchase Order Form</title>
+        <style>
+            body {
+                background-color: #f4f5f7;
+                font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+                color: #333;
+            }
+
+            .po-form {
+                background: #fff;
+                padding: 30px;
+                border-radius: 16px;
+                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+                margin: 30px auto;
+                max-width: 1150px;
+            }
+
+            .section-title {
+                font-size: 1.1rem;
+                font-weight: 600;
+                color: #000;
+                margin-bottom: 12px;
+                border-left: 4px solid #000;
+                padding-left: 10px;
+            }
+
+            .input-wrapper {
+                background: #fafafa;
+                border: 1px solid #ddd;
+                border-radius: 10px;
+                padding: 10px 12px;
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+            }
+
+                .input-wrapper:hover {
+                    border-color: #000;
+                    box-shadow: 0 0 8px rgba(0, 0, 0, 0.12);
+                }
+
+                .input-wrapper i {
+                    color: #000;
+                    font-size: 1.1rem;
+                    margin-right: 8px;
+                }
+
+                .input-wrapper input,
+                .input-wrapper textarea {
+                    border: none;
+                    outline: none;
+                    background: transparent;
+                    width: 100%;
+                    font-size: 0.95rem;
+                }
+
+            textarea {
+                resize: none;
+                min-height: 70px;
+            }
+
+            .terms-list {
+                padding-left: 20px;
+                margin-top: 5px;
+            }
+
+                .terms-list li {
+                    margin-bottom: 6px;
+                    font-size: 0.92rem;
+                }
+
+            .table thead {
+                background: #000;
+                color: #fff;
+            }
+
+            .table tbody tr td {
+                font-size: 0.9rem;
+            }
+
+            .totals {
+                text-align: right;
+                font-weight: 600;
+            }
+
+            .totals-row td {
+                border-top: 2px solid #000;
+            }
+
+            .btn-create {
+                background: #000;
+                color: #fff;
+                border-radius: 10px;
+                padding: 8px 20px;
+                font-weight: 500;
+            }
+
+                .btn-create:hover {
+                    background: #333;
+                }
+
+            .btn-cancel {
+                background: #dc3545;
+                color: #fff;
+                border-radius: 10px;
+                padding: 8px 20px;
+                font-weight: 500;
+            }
+
+                .btn-cancel:hover {
+                    background: #a71d2a;
+                }
+
+
+            #tblItems tbody td,
+            #tblItems thead th,
+            #tblItems tfoot td {
+                padding: 0.3rem 0.5rem; /* smaller padding */
+                font-size: 0.85rem; 
+                vertical-align: middle; /* vertical alignment */
+            }
+
+            #tblItems tbody tr {
+                line-height: 1.2; /* compact row height */
+            }
+
+            .table-sm th,
+            .table-sm td {
+                padding: 0.25rem 0.5rem; /* Bootstrap small table adjustment */
+            }
+
+            .tooltip-dark .tooltip-inner {
+                background-color: #000;
+                color: #fff;
+            }
+
+            .tooltip-dark .tooltip-arrow::before {
+                border-top-color: #000 !important;
+            }
+
+
+        </style>
+    </head>
+    <body>
+        <!-- Toast container somewhere fixed, e.g. top right -->
+        <div id="toastContainer"
+             class="toast-container position-fixed top-0 end-0 p-3"
+             style="z-index: 2000;">
+        </div>
+
+        <div class="container">
+            <form class="po-form">
+                <h2 class="text-center text-primary">Purchase Order</h2>
+
+                <!-- General Details -->
+                <h5 class="section-title">General Details</h5>
+                <input type="hidden" id="TotalAmount" name="TotalAmount" />
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="input-wrapper">
+                            <i class="bi bi-hash"></i>
+                            <input type="text" class="form-control border-0" id="QuotationNo" name="RegisterQuotationCode" placeholder="Quotation Number" readonly>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="input-wrapper">
+                            <i class="bi bi-calendar-date"></i>
+                            <input type="text" class="form-control border-0" name="QuotationDate" id="QuotationDate" readonly>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="input-wrapper">
+                            <i class="bi bi-person-check"></i>
+                            <input type="text" class="form-control border-0" name="ApprovedRejectedBy" id="ApprovedBy" placeholder="Approved By" readonly>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="input-wrapper">
+                            <i class="bi bi-calendar-check"></i>
+                            <input type="text" class="form-control border-0" name="ApprovedRejectedDate" id="ApprovedDate" placeholder="Approved Date" readonly>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="input-wrapper position-relative">
+                            <i class="bi bi-envelope position-absolute" style="top: 50%; left: 12px; transform: translateY(-50%);"></i>
+                            <select class="form-select ps-5 border-0" name="Usercode" id="ddlAccountant">
+                                <option value="">Select Accountant Email</option>
+                                <!-- Options will be dynamically populated via AJAX -->
+                            </select>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Vendor Details -->
+                <h5 class="section-title mt-4">Vendor Details</h5>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="input-wrapper">
+                            <i class="bi bi-person"></i>
+                            <input type="text" class="form-control border-0" id="VendorName" name="VendorName" placeholder="Vendor Name" readonly>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="input-wrapper">
+                            <i class="bi bi-buildings"></i>
+                            <input type="text" class="form-control border-0" id="CompanyName" name="CompanyName" placeholder="Company Name" readonly>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="input-wrapper">
+                            <i class="bi bi-geo-alt"></i>
+                            <input type="text" class="form-control border-0" id="CompanyAddress" name="CompanyAddress" placeholder="Company Address" readonly>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="input-wrapper">
+                            <i class="bi bi-telephone"></i>
+                            <input type="tel" class="form-control border-0" id="VendorContactNumber" name="MobileNo" placeholder="Vendor Contact Number" readonly>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="input-wrapper">
+                            <i class="bi bi-envelope-at"></i>
+                            <input type="email" class="form-control border-0" id="VendorEmail" name="Email" placeholder="Vendor Email" readonly>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="input-wrapper">
+                            <i class="bi bi-bank"></i>
+                            <input type="text" class="form-control border-0" id="VendorAccountNumber" name="AccountNumber" placeholder="Vendor Account Number" readonly>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="input-wrapper">
+                            <i class="bi bi-upc-scan"></i>
+                            <input type="text" class="form-control border-0" id="IFSCcode" name="IFSCcode" placeholder="IFSC Code" readonly>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="input-wrapper">
+                            <i class="bi bi-cash-stack"></i>
+                            <input type="text" class="form-control border-0" id="SwiftCode" name="SwiftCode" placeholder="Swift Code" readonly>
+                        </div>
+                    </div>
+                   
+                </div>
+
+                <!-- Company Details -->
+                <h5 class="section-title mt-4">Company Details</h5>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="input-wrapper">
+                            <i class="bi bi-house-door"></i>
+                            <textarea class="form-control border-0" id="BillingAddress" name="BillingAddress" placeholder="Billing Address"></textarea>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="input-wrapper">
+                            <i class="bi bi-truck"></i>
+                            <textarea class="form-control border-0" id="DeliveryAddress" name="DeliveryAddress" placeholder="Delivery Address" readonly></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Terms & Conditions -->
+                <h5 class="section-title mt-4">Terms & Conditions</h5>
+                <ul id="termsList">
+                
+                </ul>
+
+                <!-- Item Details -->
+                <h5 class="section-title mt-4">Item Details</h5>
+                <!-- Items Table -->
+                <div class="table-responsive mt-4">
+                    <table class="table table-bordered table-striped text-center" id="tblItems">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>SRNo</th>
+                                <th>Item Code</th>
+                                <th class="d-none">RegisterQuotationItemCode</th>
+                                <th>Item Name</th>
+                                <th>Description</th>
+                                <th>Quantity</th>
+                                <th>UOM</th>
+                                <th>Unit Rate</th>
+                                <th>Discount</th>
+                                <th>GST</th>
+                                <th>Amount</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Dynamically populated rows -->
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="10" class="text-end fw-bold">Sub Total</td>
+                                <td colspan="2" class="text-center" id="subTotal"></td>
+                            </tr>
+                            <tr>
+                                <td colspan="10" class="text-end fw-bold">Transportation Charges</td>
+                                <td colspan="2" class="text-center" id="transportationCharges"></td>
+                            </tr>
+                            <tr class="table-secondary">
+                                <td colspan="10" class="text-end fw-bold">Grand Total</td>
+                                <td colspan="2" class="text-center" id="grandTotal" name="TotalAmount"></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+
+                <!-- Action Buttons -->
+                <div class="text-end mt-4">
+                    <button type="button" class="btn btn-success" onclick="CretePO(event)">
+                        <i class="bi bi-check2-circle me-2"></i>Create PO
+                    </button>
+                    <button type="reset" class="btn btn-cancel" onclick="window.location.href='SelectedQuotationListShowOK'">
+                        <i class="bi bi-x-circle me-2"></i>Cancel
+                    </button>
+
+                </div>
+            </form>
+        </div>
+        @*toster script*@
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+        <script>
+            // ====================================================
+            // ✅ Define SweetAlert mixin FIRST (global reusable alert)
+            // ====================================================
+            const swalWithBootstrapButtons = Swal.mixin({
+                customClass: {
+                    confirmButton: "btn btn-success",
+                    cancelButton: "btn btn-danger"
+                },
+                buttonsStyling: false
+            });
+
+            // ====================================================
+            // ✅ Global Variables
+            // ====================================================
+            var table;
+
+            // ====================================================
+            // ✅ Document Ready - Fetch PO Details and Initialize Page
+            // ====================================================
+            $(document).ready(function () {
+
+                $.ajax({
+                    url: '/Purchase/GetCreatePoDetailsOK',
+                    type: 'GET',
+                    success: function (response) {
+                        let header = response.QuotationHeader[0];
+                        let staff = response.AccountantStaff;
+                        let terms = response.TermsConditions;
+                        let items = response.Items;
+
+                        console.log("terms", terms);
+                        console.log("items", items);
+                        console.log("HEADER", header);
+
+                        // ------------------------------
+                        // 📝 Populate Header Details
+                        // ------------------------------
+                        $("#QuotationNo").val(header.QuotationID);
+                        $("#QuotationDate").val(header.QuotationDateString);
+                        $("#ApprovedBy").val(header.ApprovedBy);
+                        $("#ApprovedDate").val(header.OriginalApprovedDate);
+                        $("#VendorName").val(header.VendorName);
+                        $("#CompanyName").val(header.CompanyName);
+                        $("#CompanyAddress").val(header.CompanyAddress);
+                        $("#VendorContactNumber").val(header.MobileNo);
+                        $("#VendorEmail").val(header.Email);
+                        $("#VendorAccountNumber").val(header.AccountNumber);
+                        $("#IFSCcode").val(header.IFSCCode);
+                        $("#SwiftCode").val(header.SwiftCode);
+                        $("#DeliveryAddress").val(header.DeliveryAddress);
+                        $("#TotalAmount").val(header.TotalAmount);
+                        $("#transportationCharges").text(header.ShippingCharges);
+                        $("#grandTotal").text(header.TotalAmount);
+                        $("#subTotal").text('₹' + (header.SubAmount).toFixed(2));
+
+                        // ------------------------------
+                        // 👨‍💼 Accountant Dropdown
+                        // ------------------------------
+                        $("#ddlAccountant").empty().append('<option>Select Accountant Email</option>');
+                        $.each(staff, function (i, row) {
+                            $("#ddlAccountant").append(`<option value="${row.StaffCode}">${row.AccountEmail}</option>`);
+                        });
+
+                        // ------------------------------
+                        // 📜 Terms & Conditions
+                        // ------------------------------
+                        $("#termsList").empty();
+                        $.each(terms, function (i, row) {
+                            $("#termsList").append(`
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="${row.TermConditionId}" id="term${row.TermConditionId}">
+                                    <label class="form-check-label" for="term${row.TermConditionId}">${row.TermConditionName}</label>
+                                </div>
+                            `);
+                        });
+
+                        // ------------------------------
+                        // 📦 Items Table Initialization
+                        // ------------------------------
+                        table = $('#tblItems').DataTable({
+                            destroy: true,
+                            data: items,
+                            columns: [
+                                { data: "SRNO" },
+                                { data: "ItemCode" },
+                                { data: "RegisterQuotationItemCode", visible: false },
+                                { data: "ItemName" },
+                                {
+                                    data: "Description",
+                                    render: function (data) {
+                                        let safe = (data === null || data === undefined) ? '' : String(data);
+                                        return `<span data-bs-toggle="tooltip" title="${safe}">${safe}</span>`;
+                                    }
+                                },
+                                { data: "Quantity" },
+                                { data: "UOM" },
+                                { data: "CostPerUnit", render: data => '₹' + parseFloat(data).toFixed(2) },
+                                { data: "Discount" },
+                                { data: "GST" },
+                                { data: "Amount", render: data => '₹' + parseFloat(data).toFixed(2) },
+                                { data: null, orderable: false, searchable: false, render: () => '<a href="#" class="remove-link">Remove</a>' }
+                            ],
+                            paging: true,
+                            searching: true,
+                            ordering: true,
+                            lengthChange: false,
+                            pageLength: 5,
+                            drawCallback: function () {
+                                // Re-number rows
+                                this.api().rows({ order: 'applied', search: 'applied' }).nodes().each(function (row, i) {
+                                    $(row).find('td:eq(0)').text(i + 1);
+                                });
+
+                                // Initialize tooltips
+                                initializeTooltips();
+
+                                // Recalculate totals
+                                updateTableCalculations();
+                            }
+                        });
+
+                        // Remove link handler
+                        $('#tblItems tbody').on('click', '.remove-link', function (e) {
+                            e.preventDefault();
+                            let row = table.row($(this).closest('tr'));
+                            if (row) {
+                                row.remove().draw();
+                            }
+                        });
+                    },
+                    error: function (err) {
+                        console.log(err);
+                    }
+                });
+            });
+
+            // ====================================================
+            // ✅ Toast Notification Helper
+            // ====================================================
+            function showToast(message, type = 'danger') {
+                const toastHTML = `
+                    <div class="toast align-items-center text-white bg-${type} border-0 mb-2" role="alert">
+                        <div class="d-flex">
+                            <div class="toast-body">${message}</div>
+                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                        </div>
+                    </div>`;
+                const $toast = $(toastHTML);
+                $('#toastContainer').append($toast);
+                new bootstrap.Toast($toast[0], { delay: 3000 }).show();
+                $toast.on('hidden.bs.toast', function () { $(this).remove(); });
+            }
+
+            // ====================================================
+            // ✅ Tooltip Initializer
+            // ====================================================
+            function initializeTooltips() {
+                $('[data-bs-toggle="tooltip"]').each(function () {
+                    const existing = bootstrap.Tooltip.getInstance(this);
+                    if (existing) existing.dispose();
+                });
+
+                $('[data-bs-toggle="tooltip"]').each(function () {
+                    new bootstrap.Tooltip(this, {
+                        placement: 'top',
+                        customClass: 'tooltip-dark',
+                        popperConfig: {
+                            modifiers: [
+                                { name: 'flip', options: { fallbackPlacements: [] } }
+                            ]
+                        }
+                    });
+                });
+            }
+
+            // ====================================================
+            // ✅ Recalculate Subtotal & Grand Total
+            // ====================================================
+            function updateTableCalculations() {
+                if (!table) return;
+                let subamount = 0;
+
+                table.rows({ search: 'applied' }).every(function () {
+                    let rowData = this.data();
+                    let amount = parseFloat(rowData.Amount) || 0;
+                    subamount += amount;
+                });
+
+                $("#subTotal").text('₹' + subamount.toFixed(2));
+                let transportation = parseFloat($("#transportationCharges").text().replace(/[^0-9.-]+/g, '')) || 0;
+                let grandTotal = subamount + transportation;
+
+                $("#grandTotal").text('₹' + grandTotal.toFixed(2));
+                $("#TotalAmount").val(grandTotal.toFixed(2));
+
+                console.log("Grand Total Recalculated:", grandTotal);
+                console.log("Subamount:", subamount);
+            }
+
+            // ====================================================
+            // ✅ Create PO Function with SweetAlert Confirmation
+            // ====================================================
+            function CretePO(e) {
+                e.preventDefault();
+
+                // Remove old hidden fields
+                $(".po-form input[name='ItemsJson']").remove();
+                $(".po-form input[name='Terms']").remove();
+
+                // Collect items
+                let poItems = [];
+                table.rows({ search: 'applied' }).every(function () {
+                    let rowData = this.data();
+                    poItems.push({ RQItemCode: rowData.RegisterQuotationItemCode });
+                });
+                console.log("PO Items:", poItems);
+
+                // Add hidden field for items
+                $(".po-form").append(
+                    `<input type="hidden" name="POItems" value='${JSON.stringify(poItems)}'/>`
+                );
+
+                // Collect terms
+                let checkedTermIds = [];
+                $('#termsList input[type=checkbox]:checked').each(function () {
+                    checkedTermIds.push($(this).val());
+                });
+                let idsString = checkedTermIds.join(",");
+                $(".po-form").append(
+                    `<input type="hidden" name="TermConditionIds" value="${idsString}" />`
+                );
+
+                console.log("Selected TermCondition IDs:", idsString);
+
+                // Calculate grand total
+                let grandTotalNumber = parseFloat($("#grandTotal").text().replace(/[^0-9.-]+/g, ''));
+                $("#TotalAmount").val(grandTotalNumber.toFixed(2));
+
+                // Serialize form
+                let formData = $(".po-form").serialize();
+                console.log("Serialized Form Data:", formData);
+
+                // Build model (for debug)
+                let model = {
+                    RegisterQuotationCode: $("#QuotationID").val(),
+                    UserCode: $("#ddlAccountant").val(),
+                    TotalAmount: $("#grandTotal").val(),
+                    TermsConditionId: idsString,
+                    BillingAddress: $("#BillingAddress").val(),
+                    POItems: poItems
+                };
+                console.log("Model", model);
+
+                // SweetAlert Confirmation
+                swalWithBootstrapButtons.fire({
+                    title: "Are you sure?",
+                    text: "Do you really want to create this Purchase Order?",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Yes, create it!",
+                    cancelButtonText: "No, cancel!",
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: '/Purchase/SavePOOK',
+                            type: 'POST',
+                            data: formData,
+                            success: function (res) {
+                                if (res.success) {
+                                    swalWithBootstrapButtons.fire({
+                                        title: "Created!",
+                                        text: res.message,
+                                        icon: "success",
+                                        showConfirmButton: false, // Hide OK button
+                                        timer: 1500              // Auto-close after 1.5 seconds
+                                        //timerProgressBar: true
+                                    }).then(() => {
+                                        setTimeout(function () {
+                                            window.location.href = "/Purchase/SelectedQuotationListShowOK";
+                                        }, 800);
+                                    });
+                                } else {
+                                    swalWithBootstrapButtons.fire({
+                                        title: "Error",
+                                        text: res.message,
+                                        icon: "error"
+                                    });
+                                }
+                            },
+                            error: function (err) {
+                                console.error(err);
+                                swalWithBootstrapButtons.fire({
+                                    title: "Error",
+                                    text: "An unexpected error occurred while saving PO.",
+                                    icon: "error"
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+
+            // ====================================================
+            // ✅ End of Script
+            // ====================================================
+        </script>
+    </body>
+</html>

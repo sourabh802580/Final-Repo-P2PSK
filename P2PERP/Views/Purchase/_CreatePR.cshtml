@@ -1,0 +1,399 @@
+﻿@model P2PLibray.Purchase.Purchase
+
+<h3 class="text-center fw-bold">Create Purchase Requisition</h3>
+
+<div class="container mt-4">
+    @using (Html.BeginForm("CreatePR", "Purchase", FormMethod.Post, new { id = "prForm" }))
+    {
+        @Html.AntiForgeryToken()
+
+        <!-- ===== PR Form Fields ===== -->
+        <div class="row g-3 mb-4">
+
+            <!-- PR Code (Auto-generated) -->
+            <div class="col-md-4">
+                <label for="PRcode" class="form-label">Purchase Requisition No:</label>
+                @Html.TextBoxFor(m => m.PRCode, new { @class = "form-control", @id = "PRcode", placeholder = "Auto-generated", @readonly = "readonly" })
+            </div>
+
+
+            <!-- IndustryType Name Dropdown -->
+            <div class="col-md-4">
+                <label for="IndustryType" class="form-label">Industry Type:</label>
+                <select id="IndustryType" class="form-control IndustryType">
+                    <option value="">Select Industry Type</option>
+                </select>
+            </div>
+
+            <!-- Item Name Dropdown -->
+            <div class="col-md-4">
+                <label for="ItemName" class="form-label">Item Name:</label>
+                <select id="ItemName" class="form-control ItemName">
+                    <option value="">Select Item</option>
+                </select>
+            </div>
+
+            <!-- Item Code (Auto-filled) -->
+            <div class="col-md-4">
+                <label for="ItemCode" class="form-label">Item Code:</label>
+                <input type="text" id="ItemCode" class="form-control ItemCode" readonly placeholder="Auto-filled" />
+            </div>
+
+            <!-- Item Description -->
+            <div class="col-md-4">
+                <label for="Description" class="form-label">Description:</label>
+                <textarea id="Description" class="form-control Description" rows="2" readonly></textarea>
+            </div>
+
+            <!-- UOM (Unit of Measure) -->
+            <div class="col-md-4">
+                <label for="UOM" class="form-label">UOM:</label>
+                <input type="text" id="UOM" class="form-control" readonly placeholder="Auto-filled" />
+            </div>
+
+            <!-- Unit Rate -->
+            <div class="col-md-4">
+                <label for="UnitRate" class="form-label">Unit Rate:</label>
+                <input type="text" id="UnitRate" class="form-control UnitRate" readonly placeholder="Auto-filled" />
+            </div>
+
+            <!-- Required Quantity -->
+            <div class="col-md-4">
+                <label for="Qty" class="form-label">Required Quantity:</label>
+                <input type="number" id="Qty" class="form-control" min="1" placeholder="Enter quantity" />
+            </div>
+
+            <!-- Required Date -->
+            <div class="col-md-4">
+                <label for="ToDate" class="form-label">Required Date:</label>
+                <input type="date" id="ToDate" class="form-control" />
+            </div>
+
+            <!-- Priority Dropdown -->
+            <div class="col-md-4">
+                <label for="priority" class="form-label">Priority Name:</label>
+                <select id="priority" class="form-control priority">
+                    <option value="">Select Priority</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Add Item Button -->
+        <div class="mb-4 text-end">
+            <button type="button" id="AddItem" class="btn btn-success"><i class="bi bi-plus-circle"></i> Add Item</button>
+        </div>
+
+        <!-- Item Details Table -->
+        <h4 class="mb-3">Item Details</h4>
+        <div class="table-responsive mb-4">
+            <table class="table table-bordered table-hover" id="ItemTable">
+                <thead class="table-light">
+                    <tr>
+                        <th>SR No</th>
+                        <th>Item Code</th>
+                        <th>Item Name</th>
+                        <th>UOM</th>
+                        <th>Description</th>
+                        <th>Unit Rate</th>
+                        <th>Qty</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Items will be appended here -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Form Buttons -->
+        <div class="text-end mb-4">
+            <button type="reset" class="btn btn-danger me-2">
+                <i class="bi bi-x-circle"></i> Cancel
+            </button>
+            <button type="submit" class="btn btn-success me-2">
+                <i class="bi bi-check-circle"></i> Create PR
+            </button>
+        </div>
+    }
+</div>
+
+
+<!-- Scripts -->
+<script>
+    $(document).ready(function () {
+
+        // Fetch and set PR code from server
+        $.ajax({
+            url: '/Purchase/GetNewPRCode',
+            type: 'GET',
+            success: function (response) {
+                $("#PRcode").val(response.PRCode);
+            },
+            error: function (xhr, status, error) {
+                console.error("Error fetching PRCode:", error);
+            }
+        });
+
+        //  Fetch and populate Item dropdown
+        $.ajax({
+            url: '/Purchase/NewItemPartialSP',
+            type: 'GET',
+            success: function (response) {
+                if (response.success) {
+                    var items = response.data;
+                    var select = $(".ItemName");
+                    select.empty();
+                    select.append('<option value="">Select Item</option>');
+                    $.each(items, function (index, item) {
+                        select.append($('<option/>')
+                            .val(item.ItemCode)
+                            .text(item.ItemName)
+                            .attr('data-uom', item.UOM)
+                            .attr('data-description', item.Description)
+                            .attr('data-UnitRate', item.UnitRate)
+
+                        );
+                    });
+                } else {
+                    alert(response.message);
+                }
+            }
+        });
+
+        //  Fetch and populate Priority dropdown
+        $.getJSON('/Purchase/GetPrioritySP', function (data) {
+            var ddl = $('#priority');
+            ddl.empty().append('<option value="">-- Select Priority --</option>');
+            $.each(data, function (i, item) {
+                ddl.append($('<option>').val(item.Value).text(item.Text));
+            });
+        });
+
+        // Load IndustryType dropdown
+        $.getJSON('/Purchase/GetIndustryTypeSP', function (data) {
+            var ddl = $('#IndustryType');
+            ddl.empty().append('<option value="">-- Select Industry Type --</option>');
+            $.each(data, function (i, item) {
+                ddl.append($('<option>').val(item.Value).text(item.Text));
+            });
+        });
+
+        // When IndustryType changes → load Items
+        $('#IndustryType').change(function () {
+            var categoryId = $(this).val();
+            if (categoryId) {
+                $.ajax({
+                    url: '/Purchase/NewItemPartialSP',
+                    type: 'GET',
+                    data: { itemcatagoryid: categoryId },
+                    success: function (response) {
+                        var items = response.data || [];
+                        var select = $(".ItemName");
+                        select.empty().append('<option value="">Select Item</option>');
+
+                        $.each(items, function (index, item) {
+                            select.append($('<option/>')
+                                .val(item.ItemCode)
+                                .text(item.ItemName)
+                                .attr('data-uom', item.UOM)
+                                .attr('data-description', item.Description)
+                                .attr('data-unitrate', item.UnitRate));
+                        });
+                    },
+                    error: function () {
+                        $(".ItemName").empty().append('<option value="">Select Item</option>');
+                    }
+                });
+
+                $(this).prop('disabled', true);
+            }
+        });
+
+        // When Item changes → auto fill details
+        $(document).on("change", ".ItemName", function () {
+            var selectedOption = $(this).find('option:selected');
+            $(".ItemCode").val(selectedOption.val());
+            $("#UOM").val(selectedOption.attr('data-uom'));
+            $(".Description").val(selectedOption.attr('data-description'));
+            $(".UnitRate").val(selectedOption.attr('data-unitrate'));
+        });
+
+        //  Add Item to Table
+        var selectedItems = [];
+
+        // Add Item to Table
+        $("#AddItem").click(function () {
+            var srNo = $("#ItemTable tbody tr").length + 1;
+            var itemCode = $(".ItemCode").val();
+            var itemName = $(".ItemName option:selected").text();
+            var uom = $("#UOM").val();
+            var description = $(".Description").val();
+            var unitRates = $(".UnitRate").val();
+            var qty = $("#Qty").val();
+
+            if (itemCode === "" || itemName === "" || qty === "") {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Missing Fields",
+                    text: "Please fill all required fields before adding.",
+                    confirmButtonText: "OK"
+                });
+                return;
+            }
+
+            // Add new row to table
+            var row = "<tr>" +
+                "<td>" + srNo + "</td>" +
+                "<td>" + itemCode + "</td>" +
+                "<td>" + itemName + "</td>" +
+                "<td>" + uom + "</td>" +
+                "<td>" + description + "</td>" +
+                "<td>" + unitRates + "</td>" +
+                "<td>" + qty + "</td>" +
+                "<td><button type='button' class='btn btn-danger btn-sm remove'><i class='bi bi-trash'></i></button></td>" +
+                "</tr>";
+
+            $("#ItemTable tbody").append(row);
+
+            // Track selected item
+            if (!selectedItems.includes(itemCode)) {
+                selectedItems.push(itemCode);
+            }
+
+            // Remove selected item from dropdown
+            $(".ItemName option:selected").remove();
+            $(".ItemName").val(""); 
+
+            // Clear input fields after adding
+            $(".ItemCode, #UOM, .Description, .UnitRate, #Qty").val("");
+
+            Swal.fire({
+                icon: "success",
+                title: "Item Added Successfully",
+                showConfirmButton: false,
+                timer: 1500
+            });
+        });
+
+
+        //  Remove item from table
+        $(document).on('click', '.remove', function () {
+            let row = $(this).closest('tr');
+
+            Swal.fire({
+                title: "Are you sure?",
+                text: "Do you want to remove this item?",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#d33",
+                cancelButtonColor: "#3085d6",
+                confirmButtonText: "<i class='bi bi-trash'></i> Yes, remove it!",
+                cancelButtonText: "Cancel"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    row.remove();
+
+                    Swal.fire({
+                        icon: "success",
+                        title: "Removed!",
+                        text: "Item has been removed.",
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                }
+            });
+        });
+
+        var today = new Date();
+        var day = String(today.getDate()).padStart(2, '0');
+        var month = String(today.getMonth() + 1).padStart(2, '0'); 
+        var year = today.getFullYear();
+        var minDate = year + '-' + month + '-' + day;
+
+        $('#ToDate').attr('min', minDate); 
+
+
+
+
+        //  Form Submit → Create PR
+        $("#prForm").submit(function (e) {
+            e.preventDefault();
+
+            var PRCode = $("#PRcode").val();
+            var requiredDate = $("#ToDate").val();
+            var status = $("#Status").val();
+            var priorityId = parseInt($("#priority").val());
+            var description = $("#Description").val();
+
+            var items = [];
+            $("#ItemTable tbody tr").each(function () {
+                var row = $(this);
+                var item = {
+                    PRCode: $("#PRcode").val(),
+                    ItemCode: row.find("td:eq(1)").text().trim(),
+                    RequiredQuantity: parseFloat(row.find("td:eq(6)").text().trim())
+                };
+                items.push(item);
+            });
+
+            if (items.length === 0) {
+                Swal.fire({
+                    icon: "warning",
+                    title: "No Items",
+                    text: "Please add at least one item before submitting!"
+                });
+                return;
+            }
+
+            // Prepare final data object
+            var data = {
+                PRCode: PRCode,
+                RequiredDate: requiredDate,
+                Status: 5,
+                PriorityId: priorityId,
+                Description: description,
+                ApproveRejectedDate: null,
+                Items: items
+            };
+
+            // Submit data via AJAX
+            $.ajax({
+                url: '/Purchase/CreatePR',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(data),
+                success: function (response) {
+                    if (response.success) {
+                        Swal.fire({
+                            icon: "success",
+                            title: "Purchase Requisition Created",
+                            text: "Your PR has been created successfully!",
+                            timer: 2000,
+                            showConfirmButton: false
+                        }).then(() => {
+                            window.location.href = '/Purchase/AllRequisitionSP';
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: response.message || "Failed to create PR!"
+                        });
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error:", error);
+                    Swal.fire({
+                        icon: "error",
+                        title: "Server Error",
+                        text: xhr.responseText || "Something went wrong while creating PR!"
+                    });
+                }
+            });
+        });
+
+    });
+</script>
+
+
+

@@ -1,0 +1,48 @@
+﻿
+@model P2PLibray.Inventory.Inventory
+
+<div class="card p-3 bg-light">
+    <h4>Raise Order</h4>
+    <form id="raiseOrderForm" method="post" action="/Inventory/SubmitPRMHB">
+        <div class="row mb-2">
+            <div class="col">
+                <label>Item Name</label>
+                <input type="text" class="form-control" value="@Model.ItemName" readonly />
+            </div>
+            <div class="col">
+                <label>Item Code</label>
+                <input type="text" name="ItemCode" class="form-control" value="@Model.ItemCode" readonly />
+            </div>
+        </div>
+
+        <div class="row mb-2">
+            <div class="col">
+                <label>Quantity</label>
+                <input type="number" name="Quantity" class="form-control" required />
+            </div>
+            <div class="col">
+                <label>UOM</label>
+                <input type="text" class="form-control" value="@Model.UOMName" readonly />
+            </div>
+        </div>
+
+        <div class="row mb-2">
+            <div class="col">
+                <label>Description</label>
+                <textarea name="Description" class="form-control" readonly>@Model.Description</textarea>
+            </div>
+            <div class="col">
+                <label for="RequiredDate">Required Date</label>
+                <input type="date" id="RequiredDate" name="RequiredDate"
+                       class="form-control" required
+                       min="@DateTime.Now.ToString("yyyy-MM-dd")" />
+            </div>
+
+        </div>
+
+        <div class="text-end">
+            <button type="submit" class="btn btn-success">Submit for PR</button>
+        </div>
+    </form>
+</div>
+

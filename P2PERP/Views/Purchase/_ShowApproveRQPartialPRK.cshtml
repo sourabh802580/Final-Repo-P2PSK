@@ -1,0 +1,102 @@
+﻿@{
+    Layout = null; // No layout for partial view
+}
+
+<!-- Table Container -->
+<div class="table-responsive">
+    <table id="requestedRfqTable" class="table table-bordered table-hover align-middle shadow-sm">
+        <thead class="table-dark text-center">
+            <tr>
+                <th>Sr No.</th> <!-- Serial Number column -->
+                <th>RFQ Code</th>
+                <th>RQ Code</th>
+                <th>Added Date</th>
+                <th>Vender Name</th>
+                <th>Company Name</th>
+                <th>Total Amount</th>
+            </tr>
+        </thead>
+        <tbody id="tbodyRequestedRfq" class="text-center">
+            <tr>
+                <td colspan="7" class="text-muted py-3">Loading...</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- Center align all cells -->
+<style>
+    #requestedRfqTable thead th,
+    #requestedRfqTable tbody td {
+        text-align: center;
+        vertical-align: middle;
+    }
+</style>
+
+<!-- JavaScript -->
+<script>
+    $(document).ready(function () {
+        const tableId = "#requestedRfqTable";
+
+        // Load Requested RFQ list
+        $.ajax({
+            url: '/Purchase/ShowApproveRQPRK', // JSON endpoint
+            type: 'GET',
+            success: function (data) {
+                const $tbody = $("#tbodyRequestedRfq");
+                $tbody.empty();
+
+                if (!data || data.length === 0) {
+                    $tbody.append('<tr><td colspan="7" class="text-center text-muted">No records found</td></tr>');
+                    return;
+                }
+
+                data.forEach(function (i, index) {
+                    // Format date using moment.js
+                    const addedDate = i.AddedDate ? moment(i.AddedDate).format('DD/MM/YYYY') : '';
+
+                    $tbody.append(`
+                        <tr>
+                            <td>${index + 1}</td> <!-- Serial Number -->
+                            <td>${i.RFQCode}</td>
+                            <td>${i.RQCode}</td>
+                            <td>${addedDate}</td>
+                            <td>${i.VenderName}</td>
+                            <td>${i.CompanyName}</td>
+                            <td>₹${i.TotalAmount}</td>
+                        </tr>
+                    `);
+                });
+
+                // Initialize or re-initialize DataTable
+                if ($.fn.DataTable.isDataTable(tableId)) {
+                    $(tableId).DataTable().destroy();
+                }
+
+                $(tableId).DataTable({
+                    paging: true,
+                    searching: true,
+                    ordering: true,
+                    responsive: true,
+                    lengthChange: false,   // ✅ Show "entries per page"
+                    info: true,           // ✅ Show "Showing 1 to 10 of N entries"
+                    pageLength: 10,
+                    lengthMenu: [[5, 10, 25, 50, -1], [5, 10, 25, 50, "All"]],
+
+                    // ✅ Custom layout: entries on left, pagination on right
+                    dom: '<"row mb-2"<"col-sm-6"l><"col-sm-6 text-end"f>>' +
+                        'rt' +
+                        '<"row mt-2"<"col-sm-6"i><"col-sm-6 text-end"p>>',
+
+                    columnDefs: [
+                        { orderable: false, targets: 0 }
+                    ]
+                });
+
+            },
+            error: function () {
+                $("#tbodyRequestedRfq").html('<tr><td colspan="7" class="text-danger text-center">Error loading records</td></tr>');
+            }
+        });
+    });
+</script>

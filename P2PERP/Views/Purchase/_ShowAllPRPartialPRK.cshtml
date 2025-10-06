@@ -1,0 +1,87 @@
+﻿@{
+    Layout = null;
+}
+
+<!-- Table Container -->
+<div class="table-responsive">
+    <table id="allPrTable" class="table table-bordered table-hover align-middle shadow-sm">
+        <thead class="table-dark text-center">
+            <tr>
+                <th>PR Code</th>
+                <th>Priority</th>
+                <th>Status</th>
+                <th>Added Date</th>
+                <th>Approved/Rejected Date</th>
+                <th>Approved/Rejected By</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody id="tbodyAllPR" class="text-center">
+            <tr>
+                <td colspan="7" class="text-muted py-3">Loading...</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<style>
+    #allPrTable thead th,
+    #allPrTable tbody td {
+        text-align: center;
+        vertical-align: middle;
+    }
+</style>
+
+<script>
+    $(document).ready(function () {
+        const tableId = "#allPrTable";
+
+        // Show loading initially
+        $("#tbodyAllPR").html('<tr><td colspan="7" class="text-muted py-3">Loading...</td></tr>');
+
+        $.ajax({
+            url: '/Purchase/ShowAllPRK',
+            type: 'GET',
+            success: function (data) {
+                const $tbody = $("#tbodyAllPR");
+                $tbody.empty();
+
+                if (!data || data.length === 0) {
+                    $tbody.append('<tr><td colspan="7" class="text-center text-muted">No records found</td></tr>');
+                    return;
+                }
+
+                data.forEach(function (item) {
+                    $tbody.append(`
+                        <tr>
+                            <td>${item.PRCode}</td>
+                            <td>${item.Priority}</td>
+                            <td>${item.StatusName}</td>
+                            <td>${item.AddedDate}</td>
+                            <td>${item.ApprovedRejectedDate}</td>
+                            <td>${item.FullName}</td> <!-- ✅ Fixed here -->
+                            <td>${item.Description}</td>
+                        </tr>
+                    `);
+                });
+
+                // Reinitialize DataTable if already exists
+                if ($.fn.DataTable.isDataTable(tableId)) {
+                    $(tableId).DataTable().destroy();
+                }
+
+                $(tableId).DataTable({
+                    paging: true,
+                    searching: true,
+                    ordering: true,
+                    responsive: true,
+                    lengthChange: false,
+                    info: false
+                });
+            },
+            error: function () {
+                $("#tbodyAllPR").html('<tr><td colspan="7" class="text-danger text-center">Error loading records</td></tr>');
+            }
+        });
+    });
+</script>

@@ -1,0 +1,58 @@
+﻿.scroll-container {
+    /*            width: 350px;*/
+    height: 70vh;
+    overflow-y: scroll;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+    /*            position:fixed;*/
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+
+/* Apply variables */
+body {
+    background-color: var(--body-bg) !important;
+    color: var(--card-text) !important;
+}
+
+.navbar {
+    background-color: var(--navbar-bg) !important;
+    color: var(--navbar-text) !important;
+}
+
+/* Sidebar/Menu styles */
+
+
+.layout-menu {
+    background-color: var(--sidebar-bg) !important;
+    color: var(--sidebar-text) !important;
+}
+
+.menu-item:not(.active):hover {
+    background-color: var(--menu-item-hover-bg) !important;
+}
+
+.menu-item.active {
+    /*            background-color: var(--menu-item-active-bg) !important;*/
+    color: var(--menu-item-active-text) !important;
+}
+
+.menu-link {
+    color: var(--sidebar-text) !important;
+}
+
+    .menu-link:hover {
+        color: var(--menu-item-active-text) !important;
+    }
+
+    .active > .menu-link:not(.menu-toggle) {
+        color:white !important;
+    }
+
+    .card {
+        background-color: var(--card-bg) !important;
+        color: var(--card-text) !important;
+    }

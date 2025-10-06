@@ -1,0 +1,221 @@
+﻿<!-- Modal Dispatch -->
+
+<h1>HEllo Rutik</h1>
+<div class="modal fade" id="staticBackdrop2" data-bs-backdrop="false" data-bs-keyboard="false" tabindex="-1"
+     aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="staticBackdropLabel">Goods Receipt Note</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+                <!-- General Details -->
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="fw-bold text-decoration-underline mb-3">General Details</h5>
+                        <div class="row g-3">
+                            <div class="col-sm-6 col-md-2">
+                                <label class="form-label">GRN NO</label>
+                                <input type="text" class="form-control" value="GRN003" readonly>
+                            </div>
+                            <div class="col-sm-6 col-md-2">
+                                <label class="form-label">GR NO</label>
+                                <input type="text" class="form-control" value="GR3" readonly>
+                            </div>
+                            <div class="col-sm-6 col-md-2">
+                                <label class="form-label">GR DATE</label>
+                                <input type="date" class="form-control" value="2020-12-06">
+                            </div>
+                            <div class="col-sm-6 col-md-3">
+                                <label class="form-label">VENDOR NAME</label>
+                                <input type="text" class="form-control" value="Swati">
+                            </div>
+                            <div class="col-sm-6 col-md-3">
+                                <label class="form-label">VENDOR CODE</label>
+                                <input type="text" class="form-control" value="V6">
+                            </div>
+                            <div class="col-sm-6 col-md-3">
+                                <label class="form-label">INVOICE NO</label>
+                                <input type="text" class="form-control" value="INV001">
+                            </div>
+                            <div class="col-sm-6 col-md-3">
+                                <label class="form-label">PO NO</label>
+                                <input type="text" class="form-control" value="PO4">
+                            </div>
+                        </div>
+
+                        <!-- Dispatch Address -->
+                        <div class="mt-3">
+                            <label class="form-label text-danger">*DISPATCH ADDRESS</label>
+                            <textarea class="form-control" rows="2"></textarea>
+                        </div>
+
+                        <!-- Transport Details -->
+                        <h6 class="fw-bold text-decoration-underline mt-3">Transport Details</h6>
+                        <div class="row g-3">
+                            <div class="col-sm-6 col-md-3">
+                                <label class="form-label">Transport Name</label>
+                                <input type="text" class="form-control">
+                            </div>
+                            <div class="col-sm-6 col-md-3">
+                                <label class="form-label">Transport Contact</label>
+                                <input type="text" class="form-control">
+                            </div>
+                            <div class="col-sm-6 col-md-3">
+                                <label class="form-label">Vehicle No</label>
+                                <input type="text" class="form-control">
+                            </div>
+                            <div class="col-sm-6 col-md-3">
+                                <label class="form-label">Vehicle Type</label>
+                                <input type="text" class="form-control">
+                            </div>
+                        </div>
+
+                        <!-- Addresses -->
+                        <div class="row g-3 mt-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Company Address</label>
+                                <textarea class="form-control" rows="2">SECTOR 28, PLOT NO 214
+SHANTINIWAS, NIGDIPRADHIKARAN,
+PUNE 411044</textarea>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Billing Address</label>
+                                <textarea class="form-control" rows="2">SECTOR 28, PLOT NO 214
+SHANTINIWAS, NIGDIPRADHIKARAN,
+PUNE 411044</textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product Details -->
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="fw-bold text-decoration-underline mb-3">Product Details</h5>
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>SR NO</th>
+                                        <th>ITEM CODE</th>
+                                        <th>ITEM</th>
+                                        <th>ITEM DESCRIPTION</th>
+                                        <th>QTY</th>
+                                        <th>UOM</th>
+                                        <th>UNIT RATE (RS)</th>
+                                        <th>AMOUNT</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1</td>
+                                        <td>IC01</td>
+                                        <td>Screw</td>
+                                        <td>Description</td>
+                                        <td>100</td>
+                                        <td>Kg</td>
+                                        <td>40</td>
+                                        <td>4000</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Totals -->
+                        <div class="row justify-content-end">
+                            <div class="col-sm-12 col-md-4">
+                                <table class="table table-bordered">
+                                    <tr>
+                                        <th>Total</th>
+                                        <td>4000</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Transport Charges</th>
+                                        <td>0</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Total Amount</th>
+                                        <td>4000</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Representatives -->
+                <div class="card mb-3">
+                    <div class="card-body text-center">
+                        <h5 class="fw-bold text-decoration-underline mb-3">Representatives</h5>
+                        <p><strong>Created By:</strong> MANAGER</p>
+                        <button class="btn btn-success me-2">Dispatch</button>
+                        <button class="btn btn-danger">Cancel</button>
+                        <p class="text-warning mt-3 small">
+                            When user clicks on Dispatch button then status of GR is changed from Assigned to Dispatch
+                            and this is ready for print
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Button to open modal -->
+<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#packingSlipModal">
+    Open Packing Slip
+</button>
+
+
+
+
+
+<script>
+    // Modal button click (Create GR)
+    $('#Return tbody').on('click', '.btn-grn', function () {
+        var rowData = table.row($(this).closest('tr')).data();
+        var grnCode = rowData.GRNCode;
+
+        console.log("Clicked GRNCode:", grnCode);
+
+        //fill modal input
+
+        $.ajax({
+            url: '/GRN/GSTGRNItemsHSB',
+            type: 'GET',
+            data: { code: grnCode }, // This will now reach the controller
+            success: function (response) {
+                console.log("AJAX Success:", response);
+                if (response.data.length > 0) {
+                    let item = response.data[0];
+
+                    console.log("HEllo", item.GRNCode);
+                    $('#staticBackdrop input[name="GRNCode"]').val(item.GRNCode);
+                    $('#staticBackdrop input[name="POCode"]').val(item.POCode);
+                    $('#staticBackdrop input[name="VenderName"]').val(item.VenderName);
+                    $('#staticBackdrop input[name="InvoiceNo"]').val(item.InvoiceNo);
+                    $('#staticBackdrop input[name="InvoiceDate"]').val(item.InvoiceDate);
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error("AJAX Error:", error);
+            }
+        });
+
+
+    });
+</script>
+
+
+
+
+
+

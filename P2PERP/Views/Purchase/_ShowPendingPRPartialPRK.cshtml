@@ -1,0 +1,100 @@
+﻿@{
+    Layout = null; // No layout for this partial view
+}
+
+<!-- Table -->
+<div class="table-responsive shadow-sm rounded">
+    <table id="pendingPRTable" class="table table-striped table-hover table-bordered align-middle">
+        <thead class="table-dark text-center">
+            <tr>
+                <th>Sr No</th>
+                <th>PR Code</th>
+                <th>Added Date</th>
+                <th>Added BY</th>
+                <th>Priority</th>
+            </tr>
+        </thead>
+        <tbody id="tbody" class="text-center">
+            <tr><td colspan="5" class="text-muted">Loading...</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- CSS to Center Table Content -->
+<style>
+    #pendingPRTable thead th,
+    #pendingPRTable tbody td {
+        text-align: center;
+        vertical-align: middle;
+    }
+</style>
+
+<!-- JavaScript/jQuery Logic -->
+<script>
+    $(document).ready(function () {
+        loadPendingPR();
+
+        // Load Pending PRs
+        function loadPendingPR() {
+            $.ajax({
+                url: "/Purchase/ShowPndPRPRK",
+                type: "GET",
+                dataType: "json",
+                cache: false,
+                success: function (data) {
+                    const $tbody = $("#tbody");
+                    $tbody.empty();
+
+                    if (!data || data.length === 0) {
+                        $tbody.append('<tr><td colspan="5" class="text-muted text-center">No pending PRs found.</td></tr>');
+                        return;
+                    }
+
+                    // Build rows with Sr No
+                    data.forEach((item, index) => {
+                        const addedDate = item.AddedDate ? moment(item.AddedDate).format("DD/MM/YYYY") : "";
+
+                        $tbody.append(`
+                            <tr>
+                                <td>${index + 1}</td>
+                                <td>${item.PRCode}</td>
+                                <td>${addedDate}</td>
+                                <td>${item.FullName}</td>
+                                <td>${item.Priority}</td>
+                            </tr>
+                        `);
+                    });
+
+                    // Re-init DataTable
+                    if ($.fn.DataTable.isDataTable("#pendingPRTable")) {
+                        $('#pendingPRTable').DataTable().destroy();
+                    }
+
+                    $('#pendingPRTable').DataTable({
+                        paging: true,
+                        searching: true,
+                        ordering: true,
+                        responsive: true,
+                        lengthChange: false,  // ✅ Show "entries per page" dropdown
+                        info: true,          // ✅ Show "Showing X to Y of Z entries"
+                        pageLength: 10,      // ✅ Optional default entries
+                        lengthMenu: [[5, 10, 25, 50, -1], [5, 10, 25, 50, "All"]],
+
+                        // ✅ Layout: entries left, search right (top); info left, pagination right (bottom)
+                        dom: '<"row mb-2"<"col-sm-6"l><"col-sm-6 text-end"f>>' +
+                            'rt' +
+                            '<"row mt-2"<"col-sm-6"i><"col-sm-6 text-end"p>>',
+
+                        columnDefs: [
+                            { orderable: false, targets: 0 } // disable sorting for Sr No
+                        ]
+                    });
+
+                },
+                error: function () {
+                    $("#tbody").html('<tr><td colspan="5" class="text-danger text-center">Error loading PRs.</td></tr>');
+                }
+            });
+        }
+    });
+</script>

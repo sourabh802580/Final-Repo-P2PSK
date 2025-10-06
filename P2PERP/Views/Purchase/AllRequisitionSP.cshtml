@@ -1,0 +1,72 @@
+﻿<div class="container mt-4">
+    <!-- Title Section -->
+    <h3 class="fw-bold text-dark text-center">
+        <span class="text-warning">Purchase Requisition</span>
+    </h3>
+
+    <!-- Navigation Tabs -->
+    <ul class="nav nav-pills nav-justified" id="stockTabs" role="tablist">
+        <!-- Tab: All PR -->
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="current-tab" data-bs-toggle="tab" data-bs-target="#current" type="button" role="tab">
+                All PR
+            </button>
+        </li>
+
+        <!-- Tab: Create New PR -->
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="nonmoving-tab" data-bs-toggle="tab" data-bs-target="#createpr" type="button" role="tab">
+                Create New PR
+            </button>
+        </li>
+
+        <!-- Tab: Pending PR -->
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="nonmoving-tab" data-bs-toggle="tab" data-bs-target="#pendingpr" type="button" role="tab">
+                Pending PR
+            </button>
+        </li>
+
+        <!-- Tab: Approved PR -->
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="nonmoving-tab" data-bs-toggle="tab" data-bs-target="#approvedpr" type="button" role="tab">
+                Approved PR
+            </button>
+        </li>
+    </ul>
+
+    <!-- Tab Content Section -->
+    <div class="tab-content mt-3">
+        <!-- All PR Content -->
+        <div class="tab-pane fade show active" id="current" role="tabpanel">
+            @Html.Partial("_AllPRSP")
+        </div>
+
+        <!-- Create PR Content -->
+        <div class="tab-pane fade show" id="createpr" role="tabpanel">
+            @Html.Partial("_CreatePR")
+        </div>
+
+        <!-- Pending PR Content -->
+        <div class="tab-pane fade show" id="pendingpr" role="tabpanel">
+            @Html.Partial("_PendingPRSP")
+        </div>
+
+        <!-- Approved PR Content -->
+        <div class="tab-pane fade show" id="approvedpr" role="tabpanel">
+            @Html.Partial("_ApprovedPRSP")
+        </div>
+    </div>
+</div>
+
+<script>
+    // Script to manually handle 'active' class switching for nav links
+    document.querySelectorAll('.nav-link').forEach(link => {
+        link.addEventListener('click', function () {
+            // Remove 'active' from all links
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+            // Add 'active' to clicked link
+            this.classList.add('active');
+        });
+    });
+</script>

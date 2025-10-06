@@ -1,0 +1,116 @@
+﻿@{
+    Layout = null; // No layout for partial view
+}
+
+<!-- Table Container -->
+<div class="table-responsive">
+    <table id="approvedPrTable" class="table table-bordered table-hover align-middle shadow-sm">
+        <thead class="table-dark text-center">
+            <tr>
+                <th>Sr No</th>
+                <th>PR Code</th>
+                <th>Added Date</th>
+                <th>Approved/Rejected Date</th>
+                <th>Priority</th>
+            </tr>
+        </thead>
+        <tbody id="tbodyPartial" class="text-center">
+            <tr>
+                <td colspan="5" class="text-muted py-3">Loading...</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- Center align all cells -->
+<style>
+    #approvedPrTable thead th,
+    #approvedPrTable tbody td {
+        text-align: center;
+        vertical-align: middle;
+    }
+</style>
+
+<!-- JavaScript -->
+<script>
+    $(document).ready(function () {
+        const tableId = "#approvedPrTable";
+
+        // Load approved PR list
+        $.ajax({
+            url: '/Purchase/ShowApprovPRK',
+            type: 'GET',
+            success: function (data) {
+                const $tbody = $("#tbodyPartial");
+                $tbody.empty();
+
+                if (!data || data.length === 0) {
+                    $tbody.append('<tr><td colspan="5" class="text-center text-muted">No records found</td></tr>');
+                    return;
+                }
+
+                data.forEach(function (i, index) {
+                    // Format dates using moment.js
+                    const addedDate = i.AddedDate ? moment(i.AddedDate).format('DD/MM/YYYY') : '';
+                    const approvedDate = i.ApprovedRejectedDate ? moment(i.ApprovedRejectedDate).format('DD/MM/YYYY') : '';
+
+                    $tbody.append(`
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td>${i.PRCode}</td>
+                            <td>${addedDate}</td>
+                            <td>${approvedDate}</td>
+                            <td>${i.Priority}</td>
+                        </tr>
+                    `);
+                });
+
+                // Initialize or re-initialize DataTable
+                if ($.fn.DataTable.isDataTable(tableId)) {
+                    $(tableId).DataTable().destroy();
+                }
+
+                $(tableId).DataTable({
+                    paging: true,
+                    searching: true,
+                    ordering: true,
+                    responsive: true,
+                    lengthChange: false,   // ✅ Show "entries per page"
+                    info: true,           // ✅ Show "Showing 1 to 10 of N entries"
+                    pageLength: 10,
+                    lengthMenu: [[5, 10, 25, 50, -1], [5, 10, 25, 50, "All"]],
+
+                    // ✅ Custom layout: entries on left, pagination on right
+                    dom: '<"row mb-2"<"col-sm-6"l><"col-sm-6 text-end"f>>' +
+                        'rt' +
+                        '<"row mt-2"<"col-sm-6"i><"col-sm-6 text-end"p>>',
+
+                    columnDefs: [
+                        { orderable: false, targets: 0 }
+                    ]
+                });
+
+            },
+            error: function () {
+                $("#tbodyPartial").html('<tr><td colspan="5" class="text-danger text-center">Error loading records</td></tr>');
+            }
+        });
+
+        // View PR items in modal
+        $(document).on("click", ".btnActionPartial", function () {
+            let prCode = $(this).data("id");
+
+            $.ajax({
+                url: '/Purchase/ShowApporvePRItemPRK',
+                type: 'GET',
+                data: { prCode: prCode },
+                success: function (partialView) {
+                    $("#prModalBody").html(partialView); // reuse modal
+                },
+                error: function () {
+                    alert("⚠ Error loading PR items");
+                }
+            });
+        });
+    });
+</script>

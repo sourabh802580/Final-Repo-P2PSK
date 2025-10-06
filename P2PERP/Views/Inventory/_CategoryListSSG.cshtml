@@ -1,0 +1,362 @@
+﻿@{
+    Layout = "";
+}
+
+<!-- Category List Card -->
+<div class="table-responsive card shadow p-3 bg-white rounded">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="text-primary fw-bolder text-center flex-grow-1 m-0">Category List</h4>
+        <div class="d-flex gap-2">
+            <button class="btn btn-success btn-sm" id="btnAddCategory">
+                <i class="bi bi-plus-circle"></i> Add Category
+            </button>
+            <div id="exportContainer" class="d-flex gap-2"></div>
+        </div>
+    </div>
+
+    <table id="categoryTable" class="table table-bordered table-striped text-center align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th><input type="checkbox" id="selectAllCategory" /></th>
+                <th>Sr. No.</th>
+                <th>Category Name</th>
+                <th>Description</th>
+                <th>HSN Code</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<!-- Create/Edit Category Modal -->
+<div class="modal fade" id="categoryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-primary py-2 px-3" style="min-height:50px;">
+                <h5 class="modal-title m-0 flex-grow-1 text-white text-center fs-5" id="categoryModalTitle">Create / Edit Category</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="categoryModalBody">
+                <p class="text-center py-3">Loading...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+toastr.options = {
+    closeButton: true,
+    progressBar: true,
+    preventDuplicates: true,
+    newestOnTop: true,
+    positionClass: "toast-top-right",
+    timeOut: "3000"
+};
+
+function showExportWarning(msg="Please select at least one row before exporting.") { toastr.warning(msg,"Warning"); }
+function showExportSuccess(msg="Export completed.") { toastr.success(msg,"Success"); }
+
+$(document).ready(function () {
+    let selectedCategories = new Set();
+    let exportSerialCounter = 0;
+
+    // Initialize DataTable
+    let table = $('#categoryTable').DataTable({
+        ajax: {
+            url: '@Url.Action("GetAllCategoriesSSG","Inventory")',
+            type: 'GET',
+            dataSrc: function(json){
+                if(!json || !json.data) return [];
+                if(json.data.length===0) toastr.info("No categories found.");
+                return json.data;
+            },
+            error: function(){ toastr.error("Failed to load category list.","Error"); }
+        },
+        columns: [
+            {
+                data:'ItemCategoryId', orderable:false, className:'text-center',
+                render: function (d) {
+                    return '<input type="checkbox" class="rowCheckboxCategory" value="' + d + '">';
+                }
+            },
+            {
+                data:null, className:'text-center',
+                render:function(data,type,row,meta){ return meta.row+1; }
+            },
+            { data:'ItemCategoryName', className:'text-center' },
+            {
+                data:'Description', className:'text-center',
+                render: function (d) {
+                    return '<span data-bs-toggle="tooltip" title="' + (d || '') + '">' + (d || '') + '</span>';
+                }
+            },
+            { data:'HSNCode', className:'text-center' },
+            {
+                data:null, orderable:false, className:'text-center',
+                render: function (data,type,row) {
+                    return `
+                        <div class="d-flex gap-1 justify-content-center">
+                            <button class="btn btn-secondary btn-sm btnEditCategory" data-id="${row.ItemCategoryId}" data-bs-toggle="tooltip" title="Edit Category">
+                                <i class="bi bi-pencil-square"></i>
+                            </button>
+                            <button class="btn btn-danger btn-sm btnDeleteCategory" data-id="${row.ItemCategoryId}" data-name="${row.ItemCategoryName}" data-bs-toggle="tooltip" title="Delete Category">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>`;
+                }
+            }
+        ],
+        dom:'<"row mb-3"<"col-md-6 d-flex gap-2 align-items-center"B><"col-md-6 d-flex justify-content-end"f>>t<"row mt-3"<"col-md-6"i><"col-md-6 d-flex justify-content-end"p>>',
+        buttons: [
+            // PRINT
+            {
+                extend: 'print',
+                text: '<i class="bi bi-printer-fill fs-5"></i>',
+                title: '',
+                exportOptions: {
+                    columns: [2, 3, 4],
+                    rows: (idx, data) => selectedCategories.has(data.ItemCategoryId)
+                },
+                customize: function (win) {
+                    let body = $(win.document.body);
+                    body.find('h1').remove();
+
+                    body.prepend(
+                        '<h2 style="text-align:center; color:black;">Category List</h2>' +
+                        '<h5 style="text-align:center; color:black;">Generated Date: ' +
+                        moment().format("DD/MM/YYYY") + '</h5>'
+                    );
+
+                    body.find('table thead tr').prepend('<th>S.No.</th>');
+                    let counter = 0;
+                    body.find('table tbody tr').each(function () {
+                        $(this).prepend('<td>' + (++counter) + '</td>');
+                    });
+
+                    let css = `
+                        table thead th {
+                            background-color: #000 !important;
+                            color: #fff !important;
+                            text-align: center !important;
+                            -webkit-print-color-adjust: exact !important;
+                            print-color-adjust: exact !important;
+                        }
+                        table tbody td { text-align: center; }
+                    `;
+                    $(win.document.head).append('<style>' + css + '</style>');
+                },
+                action: function (e, dt, btn, config) {
+                    if (selectedCategories.size === 0) { showExportWarning(); return; }
+                    $.fn.dataTable.ext.buttons.print.action.call(this, e, dt, btn, config);
+                    showExportSuccess("Print started.");
+                }
+            },
+
+            //  PDF
+            {
+                extend: 'pdfHtml5',
+                text: '<i class="bi bi-file-earmark-pdf fs-5 text-danger"></i>',
+                title: '',
+                exportOptions: {
+                    columns: [2, 3, 4],
+                    rows: (idx, data) => selectedCategories.has(data.ItemCategoryId)
+                },
+                customize: function (doc) {
+                    exportSerialCounter = 0;
+
+                    doc.content.unshift(
+                        { text: 'Category List', style: 'title', alignment: 'center', margin: [0, 0, 0, 5], color: 'black' },
+                        { text: 'Generated Date: ' + moment().format("DD/MM/YYYY"), style: 'date', alignment: 'center', margin: [0, 0, 0, 10], color: 'black' }
+                    );
+
+                    let body = doc.content[doc.content.length - 1].table.body;
+
+                    body[0].unshift({ text: 'S.No.', bold: true, fillColor: '#000', color: '#fff', alignment: 'center' });
+                    for (let i = 1; i < body.length; i++) {
+                        body[i].unshift({ text: (++exportSerialCounter).toString(), alignment: 'center' });
+                    }
+
+                    doc.content[doc.content.length - 1].table.widths = Array(body[0].length).fill('*');
+
+                    doc.styles.tableHeader.fillColor = '#000';
+                    doc.styles.tableHeader.color = '#fff';
+                    doc.styles.tableHeader.alignment = 'center';
+
+                    body.forEach(function (row, rowIndex) {
+                        if (rowIndex > 0) { 
+                            row.forEach(function (cell) {
+                                cell.alignment = 'center';
+                            });
+                        }
+                    });
+
+                    doc.content[doc.content.length - 1].layout = {
+                        hLineWidth: function () { return 0.5; },
+                        vLineWidth: function () { return 0.5; },
+                        hLineColor: function () { return '#000'; },
+                        vLineColor: function () { return '#000'; }
+                    };
+                },
+                action: function (e, dt, btn, config) {
+                    if (selectedCategories.size === 0) { showExportWarning(); return; }
+                    $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, btn, config);
+                    showExportSuccess("PDF export completed.");
+                }
+            },
+
+
+            // EXCEL
+            {
+                extend: 'excelHtml5',
+                text: '<i class="bi bi-file-earmark-excel fs-5 text-success"></i>',
+                title: 'Category List - ' + moment().format("DD-MM-YYYY"),
+                exportOptions: {
+                    columns: [1,2,3,4],
+                    rows: (idx, data) => selectedCategories.has(data.ItemCategoryId),
+                    format: {
+                        body: function (data, row, column, node) {
+                            if (column === 0) return row + 1;
+                            return $('<div>').html(data).text();
+                        }
+                    }
+                },
+                customize: function (xlsx) {
+                    let sheet = xlsx.xl.worksheets['sheet1.xml'];
+                    $('row:first c', sheet).attr('s', '2');
+                },
+                action: function (e, dt, btn, config) {
+                    if (selectedCategories.size === 0) { showExportWarning(); return; }
+                    $.fn.dataTable.ext.buttons.excelHtml5.action.call(this, e, dt, btn, config);
+                    showExportSuccess("Excel export completed.");
+                }
+            },
+
+            // CSV
+            {
+                extend: 'csvHtml5',
+                text: '<i class="bi bi-filetype-csv fs-5 text-success"></i>',
+                title: 'Category_List_' + moment().format("DD-MM-YYYY"),
+                exportOptions: {
+                    columns: [2, 3, 4],
+                    rows: (idx, data) => selectedCategories.has(data.ItemCategoryId)
+                },
+                customize: function (csv) {
+                    let lines = csv.split('\n');
+                    let counter = 0;
+
+                    let headerInfo = "Category List\nGenerated Date: " + moment().format("DD/MM/YYYY") + "\n";
+
+                    lines = lines.map((line, idx) => {
+                        if (idx === 0) return "S.No.," + line;
+                        if (line.trim() === '') return '';
+                        return (++counter) + ',' + line;
+                    });
+
+                    return headerInfo + lines.join('\n');
+                },
+                action: function (e, dt, btn, config) {
+                    if (selectedCategories.size === 0) { showExportWarning(); return; }
+                    $.fn.dataTable.ext.buttons.csvHtml5.action.call(this, e, dt, btn, config);
+                    showExportSuccess("CSV export completed.");
+                }
+            }
+        ],
+
+        select: { style:'multi', selector:'td:first-child input' },
+        rowCallback: function(row,data){
+            $(row).find('.rowCheckboxCategory').prop('checked', selectedCategories.has(data.ItemCategoryId));
+        },
+        drawCallback: function(){
+            $('[data-bs-toggle="tooltip"]').each(function(){
+                if(this._tooltip) this._tooltip.dispose();
+                this._tooltip = new bootstrap.Tooltip(this,{
+                    template:'<div class="tooltip" role="tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner" style="background-color:black;color:white;"></div></div>'
+                });
+            });
+        }
+    });
+
+    // Checkbox select
+    $(document).on('change','.rowCheckboxCategory',function(){
+        const id=parseInt($(this).val());
+        $(this).is(':checked')?selectedCategories.add(id):selectedCategories.delete(id);
+        $('#selectAllCategory').prop('checked',
+            table.rows({page:'current'}).nodes().to$().find('.rowCheckboxCategory').length ===
+            table.rows({page:'current'}).nodes().to$().find('.rowCheckboxCategory:checked').length
+        );
+    });
+    $(document).on('change','#selectAllCategory',function(){
+        const checked=$(this).is(':checked');
+        table.rows().every(function(){ checked?selectedCategories.add(this.data().ItemCategoryId):selectedCategories.delete(this.data().ItemCategoryId); });
+        $('#categoryTable').find('.rowCheckboxCategory').prop('checked',checked);
+    });
+
+    //  Modal open for Edit
+    $(document).on('click','.btnEditCategory',function(){
+        const id = $(this).data('id');
+        $('#categoryModalTitle').text("Edit Category");
+        $('#categoryModal').modal('show');
+        $('#categoryModalBody').html('<p class="text-center py-3">Loading...</p>');
+        $.get('@Url.Action("CreateCategorySSG","Inventory")',{id:id})
+            .done(data=>$('#categoryModalBody').html(data))
+            .fail(()=>$('#categoryModalBody').html('<p class="text-danger text-center">Failed to load form.</p>'));
+    });
+
+    //  Modal open for Add
+    $('#btnAddCategory').on('click',function(){
+        $('#categoryModalTitle').text("Create Category");
+        $('#categoryModal').modal('show');
+        $('#categoryModalBody').html('<p class="text-center py-3">Loading...</p>');
+        $.get('@Url.Action("CreateCategorySSG","Inventory")')
+            .done(data=>$('#categoryModalBody').html(data))
+            .fail(()=>$('#categoryModalBody').html('<p class="text-danger text-center">Failed to load form.</p>'));
+    });
+
+    // Delete Category with SweetAlert
+    $(document).on('click', '.btnDeleteCategory', function () {
+        var categoryId = $(this).data('id');
+        var categoryName = $(this).data('name');
+        var row = $(this).closest('tr');
+
+        Swal.fire({
+            title: "Are you sure?",
+            text: "This will delete the category \"" + categoryName + "\"!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6",
+            confirmButtonText: "Yes, delete it!",
+            cancelButtonText: "No, cancel"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '/Inventory/DeleteCategorySSG',
+                    type: 'POST',
+                    data: { ItemCategoryId: categoryId },
+                    success: function (res) {
+                        if (res && res.success) {
+                            row.remove();
+                            $('#categoryTable').DataTable().ajax.reload(null, false);
+
+                            Swal.fire({
+                                icon: "success",
+                                title: "Deleted!",
+                                text: "Category \"" + categoryName + "\" has been deleted.",
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
+                        } else {
+                            Swal.fire({ icon: "error", title: "Error!", text: res.message || "Could not delete the category." });
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Delete error:", error);
+                        Swal.fire({ icon: "error", title: "Oops...", text: "Something went wrong while deleting!" });
+                    }
+                });
+            }
+        });
+    });
+});
+</script>

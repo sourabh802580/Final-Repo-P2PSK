@@ -1,0 +1,424 @@
+﻿<div class="container">
+    <div class="card p-4">
+        <!-- Date Filters -->
+        <div class="mb-3 d-flex gap-2">
+            <div class="input-group" style="max-width: 280px;">
+                <span class="input-group-text bg-primary text-white">
+                    <i class="bi bi-calendar-date"></i>
+                </span>
+                <input type="text" id="Rejectedrange" class="form-control" placeholder="Select date range" readonly />
+            </div>
+
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="table-responsive">
+                    <table id="ReturnGoods" class="table table-striped table-bordered">
+                        <thead class="table-dark">
+                            <tr>
+                                <th><input type="checkbox" id="selectAll" /></th>
+                                <th>Sr No</th>
+                                <th>GRNNO</th>
+                                <th>GRNDate</th>
+                                @*<th>GRNstatus</th>*@
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modalContainer"></div>
+
+
+
+<script>
+    toastr.options = {
+        closeButton: true,
+        progressBar: true,
+        newestOnTop: true,
+        positionClass: "toast-top-right",
+        preventDuplicates: true,
+        timeOut: 3000,
+        extendedTimeOut: 1000,
+        showDuration: 300,
+        hideDuration: 300,
+        showMethod: "slideDown",
+        hideMethod: "fadeOut"
+    };
+
+    $(document).ready(function () {
+        // ================= Date Range Picker =================
+        let startDate = null;
+        let endDate = null;
+
+        function cb(start, end) {
+            $('#Rejectedrange').val(start.format('YYYY-MM-DD') + ' - ' + end.format('YYYY-MM-DD'));
+            startDate = start;
+            endDate = end;
+            table.draw();
+        }
+
+        $('#Rejectedrange').daterangepicker({
+            autoUpdateInput: false,
+            locale: { cancelLabel: 'Clear' },
+            ranges: {
+                'Today': [moment(), moment()],
+                'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                'This Month': [moment().startOf('month'), moment().endOf('month')],
+                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+            }
+        }, cb);
+
+        $('#Rejectedrange').on('apply.daterangepicker', function (ev, picker) {
+            cb(picker.startDate, picker.endDate);
+        });
+
+        $('#Rejectedrange').on('cancel.daterangepicker', function () {
+            $(this).val('');
+            startDate = null;
+            endDate = null;
+            table.draw();
+        });
+
+        // ================= Custom Date Filter =================
+        $.fn.dataTable.ext.search.push(function (settings, data) {
+            if (settings.nTable.id !== 'ReturnGoods') return true;
+
+            const dateStr = data[3];
+            const addedDate = moment(dateStr, ["YYYY-MM-DD", "YYYY-MM-DD HH:mm:ss", moment.ISO_8601], true);
+
+            // If date is invalid or no filter selected -> show
+            if (!addedDate.isValid() || !startDate || !endDate) {
+                return true;
+            }
+
+            return addedDate.isSameOrAfter(startDate, 'day') &&
+                addedDate.isSameOrBefore(endDate, 'day');
+        });
+
+        // ================= DataTable =================
+        var table = $('#ReturnGoods').DataTable({
+            dom: '<"d-flex justify-content-between align-items-center mb-2"Bf>rt<"d-flex justify-content-between align-items-center"i p>',
+            buttons: [
+
+
+                // ==== Print ====
+                {
+                    extend: 'print',
+                    text: '<i class="bi bi-printer-fill fs-5"></i>',
+                    title: '',
+                    exportOptions: {
+                        rows: function (idx, data, node) {
+                            return $(node).find('input.rowCheckbox').prop('checked');
+                        },
+                        columns: [2, 3, 4],
+                        modifier: { search: 'applied', order: 'applied' }
+                    },
+                    action: function (e, dt, button, config) {
+                        if ($('.rowCheckbox:checked').length === 0) {
+                            toastr.warning("Please select at least one row before printing!");
+                        } else {
+                            $.fn.dataTable.ext.buttons.print.action.call(this, e, dt, button, config);
+                        }
+                    },
+                    customize: function (win) {
+                        // Add title & generated date
+                        $(win.document.body).prepend(
+                            `<h3 style="text-align:center;margin-top:10px">Rejected GRN Report</h3>
+                             <p style="text-align:center;margin-top:0;margin-bottom:12px">Generated on: ${moment().format("YYYY-MM-DD")}</p>`
+                        );
+
+                        // Find printed table
+                        var $table = $(win.document.body).find('table');
+
+                        // Prepend Sr No header
+                        $table.find('thead tr').each(function () {
+                            $(this).prepend('<th style="text-align:center;padding:6px">Sr No</th>');
+                        });
+
+                        // Prepend Sr No cells to each tbody row
+                        $table.find('tbody tr').each(function (idx) {
+                            $(this).prepend(`<td style="text-align:center;padding:6px">${idx + 1}</td>`);
+                        });
+
+                        // Styling
+                        $table.addClass('compact').css({
+                            'font-size': '12px',
+                            'border-collapse': 'collapse',
+                            'margin-left': 'auto',
+                            'margin-right': 'auto'
+                        });
+                        $table.find('thead').css({
+                            'background-color': '#343a40',
+                            'color': 'white'
+                        });
+                        $table.find('table td, table th, td, th').css({
+                            'text-align': 'center',
+                            'padding': '6px',
+                            'border': '1px solid #ddd'
+                        });
+                    }
+                },
+
+                // ==== PDF (with Sr No column, styled, full width) ====
+                {
+                    extend: 'pdfHtml5',
+                    text: '<i class="bi bi-file-earmark-pdf text-danger fs-5"></i>',
+                    title: 'GRN Details',
+                    exportOptions: {
+                        rows: function (idx, data, node) {
+                            return $(node).find('input.rowCheckbox').prop('checked');
+                        },
+                        columns: [2, 3, 4],
+                        modifier: { search: 'applied', order: 'applied' }
+                    },
+                    action: function (e, dt, button, config) {
+                        if ($('.rowCheckbox:checked').length === 0) {
+                            toastr.warning("Please select at least one row before exporting!");
+                        } else {
+                            $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, button, config);
+                        }
+                    },
+                    customize: function (doc) {
+                        var tableNode = doc.content && doc.content.find(n => n.table);
+                        if (!tableNode) return;
+
+                        // === Insert Generated Date below heading ===
+                        doc.content.splice(1, 0, {
+                            text: `Generated on: ${moment().format("YYYY-MM-DD")}`,
+                            alignment: 'center',
+                            margin: [0, 0, 0, 12],
+                            fontSize: 10,
+                            italics: true
+                        });
+
+                        // Insert "Sr No" header
+                        tableNode.table.body[0].unshift({
+                            text: 'Sr No',
+                            style: 'tableHeader',
+                            alignment: 'center'
+                        });
+
+                        // Insert Sr No values
+                        for (var r = 1; r < tableNode.table.body.length; r++) {
+                            tableNode.table.body[r].unshift({
+                                text: String(r),
+                                alignment: 'center',
+                                margin: [0, 4, 0, 4],
+                                fontSize: 10
+                            });
+                        }
+
+                        // === Force table to fit full A4 width ===
+                        let colCount = tableNode.table.body[0].length;
+                        tableNode.table.widths = Array(colCount).fill('*'); // distribute evenly
+
+                        // Header styling
+                        tableNode.table.body[0].forEach(function (cell) {
+                            cell.color = 'white';
+                            cell.fillColor = '#343a40';
+                            cell.bold = true;
+                            cell.fontSize = 11;
+                            cell.alignment = 'center';
+                            cell.margin = [4, 6, 4, 6];
+                        });
+
+                        // Body styling + zebra striping
+                        for (var i = 1; i < tableNode.table.body.length; i++) {
+                            var row = tableNode.table.body[i];
+                            row.forEach(function (cell) {
+                                cell.alignment = 'center';
+                                cell.fontSize = 10;
+                                cell.margin = [4, 4, 4, 4];
+                            });
+
+                            // Zebra striping
+                            if (i % 2 === 0) {
+                                row.forEach(cell => {
+                                    cell.fillColor = '#f9f9f9';
+                                });
+                            }
+                        }
+
+                        // Page layout
+                        doc.pageMargins = [40, 60, 40, 40];
+                        doc.defaultStyle.fontSize = 10;
+                        doc.styles.tableHeader = {
+                            bold: true,
+                            fontSize: 11,
+                            color: 'white',
+                            fillColor: '#343a40',
+                            alignment: 'center'
+                        };
+                        doc.styles.title = {
+                            fontSize: 16,
+                            bold: true,
+                            alignment: 'center',
+                            margin: [0, 0, 0, 6]
+                        };
+                    }
+                },
+
+
+                // ==== Excel ====
+                {
+                    extend: 'excelHtml5',
+                    text: '<i class="bi bi-file-earmark-excel text-success fs-5"></i>',
+                    title: `Rejected GRN Report - ${moment().format("YYYY-MM-DD")}`,
+                    exportOptions: {
+                        rows: function (idx, data, node) {
+                            return $(node).find('input.rowCheckbox').prop('checked');
+                        },
+                        columns: [2, 3, 4],
+                        modifier: { search: 'applied', order: 'applied' }
+                    },
+                    action: function (e, dt, button, config) {
+                        if ($('.rowCheckbox:checked').length === 0) {
+                            toastr.warning("Please select at least one row before exporting!");
+                        } else {
+                            $.fn.dataTable.ext.buttons.excelHtml5.action.call(this, e, dt, button, config);
+                        }
+                    },
+                    customizeData: function (data) {
+                        data.header.unshift('Sr No');
+                        for (var i = 0; i < data.body.length; i++) {
+                            data.body[i].unshift(i + 1);
+                        }
+                    }
+                },
+
+                // ==== CSV ====
+                {
+                    extend: 'csvHtml5',
+                    text: '<i class="bi bi-filetype-csv text-success fs-5"></i>',
+                    title: `Rejected_GRN_Report_${moment().format("YYYY-MM-DD")}`,
+                    exportOptions: {
+                        // export only data columns (skip checkbox and Action)
+                        rows: function (idx, data, node) {
+                            return $(node).find('input.rowCheckbox').prop('checked');
+                        },
+                        columns: [2, 3, 4],
+                        modifier: { search: 'applied', order: 'applied' }
+                    },
+                    action: function (e, dt, button, config) {
+                        if ($('.rowCheckbox:checked').length === 0) {
+                            toastr.warning("Please select at least one row before exporting!");
+                        } else {
+                            $.fn.dataTable.ext.buttons.csvHtml5.action.call(this, e, dt, button, config);
+                        }
+                    },
+                    // Insert Sr No column into csv data (header + rows)
+                    customizeData: function (data) {
+                        // Prepend header
+                        data.header.unshift('Sr No');
+
+                        // Prepend incrementing SrNo to each body row
+                        for (var i = 0; i < data.body.length; i++) {
+                            data.body[i].unshift(String(i + 1));
+                        }
+                    }
+                },
+
+            ],
+            responsive: true,
+            ajax: {
+                url: "/Inventory/getRecevieMaterialDRB",
+                type: "GET",
+                dataType: "json"
+            },
+            columns: [
+                {
+                    data: null,
+                    orderable: false,
+                    searchable: false,
+                    render: function (data, type, row) {
+                        return `<input type="checkbox" class="rowCheckbox" value="${row.GRNCode}" />`;
+                    }
+                },
+                {
+                    data: null,
+                    title: "Sr No",
+                    render: function (data, type, row, meta) {
+                        return meta.row + 1;
+                    },
+                    orderable: false
+                },
+                { data: "GRNCode", title: "GRNNO" },
+                { data: "AddedDate", title: "GRNDate" },
+                //{ data: "StatusName", title: "GRNstatus" },
+                {
+                    data: "StatusName",
+                    title: "Action",
+                    orderable: false,
+                    searchable: false,
+                    render: function (data, type, row) {
+                       
+                            return '<button type="button" class="btn btn-success btn-InStock square-pill d-inline-flex align-items-center px-3 shadow-InStock" data-bs-toggle="tooltip" title="In Stock"><i class="bi bi-box-seam fs-5"></i></button>';
+                       
+                      
+                    }
+                }
+            ],
+            language: { emptyTable: "No approved POs available" },
+
+            //  Only center table headers + body cells
+            columnDefs: [
+                { targets: "_all", className: "text-center align-middle" }
+            ]
+        });
+
+        // Re-init tooltips after every table draw
+        $('#ReturnGoods').on('draw.dt', function () {
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (el) {
+                return new bootstrap.Tooltip(el);
+            });
+        });
+
+        // Init tooltips once on page load
+        const tooltipTriggerListInit = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerListInit.map(function (el) {
+            return new bootstrap.Tooltip(el);
+        });
+
+        // Select All
+        $('#selectAll').on('change', function () {
+            var rows = table.rows({ search: 'applied' }).nodes();
+            $('input.rowCheckbox', rows).prop('checked', this.checked);
+        });
+
+        // Row checkbox updates SelectAll 
+        $('#ReturnGoods tbody').on('change', '.rowCheckbox', function () {
+            var rows = table.rows({ search: 'applied' }).nodes();
+            var total = $('input.rowCheckbox', rows).length;
+            var checked = $('input.rowCheckbox:checked', rows).length;
+            $('#selectAll').prop('checked', total > 0 && total === checked);
+        });
+
+        // View button
+        $('#ReturnGoods').on('click', '.btn-view', function () {
+            var rowData = table.row($(this).closest('tr')).data();
+            var grnCode = rowData.GRNCode;
+            $("#modalContainer").load("/Inventory/GetGRNDetailsPartialDRB?GRNCode=" + grnCode, function () {
+                $("#grnModal").modal('show');
+            });
+        });
+
+        // InStock button
+        $('#ReturnGoods').on('click', '.btn-InStock', function () {
+            var rowData = table.row($(this).closest('tr')).data();
+            var grnCode = rowData.GRNCode;
+            $("#modalContainer").load("/Inventory/InstockPartialDRB?GRNCode=" + grnCode, function () {
+                $("#InStockModal").modal('show');
+            });
+        });
+    });
+</script>

@@ -1,0 +1,124 @@
+﻿@model P2PLibray.Inventory.InventorySSG
+
+@{
+    var categoryNameAttrs = new Dictionary<string, object>
+{
+        { "class", "form-control" },
+        { "placeholder", "Enter category name" }
+    };
+
+    if (Model.ItemCategoryId > 0)
+    {
+        categoryNameAttrs.Add("readonly", "readonly");
+        categoryNameAttrs.Add("style", "background-color:#e9ecef;");
+    }
+    else
+    {
+        categoryNameAttrs.Add("required", "required");
+    }
+}
+
+<div class="modal-body">
+    <form id="categoryForm">
+        @Html.HiddenFor(m => m.ItemCategoryId)
+
+        <div class="mb-3">
+            <label class="form-label">Category Name <span class="text-danger">*</span></label>
+            @Html.TextBoxFor(m => m.ItemCategoryName, categoryNameAttrs)
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Description <span class="text-danger">*</span></label>
+            @Html.TextBoxFor(m => m.Description, new { @class = "form-control", placeholder = "Enter description", required = "required" })
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Tax Rate (HSN Code) <span class="text-danger">*</span></label>
+            <select id="cmbbxtaxrate" name="TaxRateId" class="form-control" style="cursor:pointer;" required>
+                <option value="0">--select HSNCode--</option>
+            </select>
+        </div>
+
+        <div class="text-end">
+            @if (Model.ItemCategoryId > 0)
+            {
+                <!-- Edit Mode -->
+                <button type="submit" class="btn btn-success btn-lg" id="btnUpdateCategory">
+                    <i class="bi bi-check-circle me-1"></i> Update Category
+                </button>
+            }
+            else
+            {
+                <!-- Add Mode -->
+                <button type="submit" class="btn btn-success btn-lg" id="btnSaveCategory">
+                    <i class="bi bi-check-circle me-1"></i> Save
+                </button>
+            }
+        </div>
+    </form>
+</div>
+
+<script>
+$(function () {
+    // --- Load Tax Rates ---
+    $.ajax({
+        url: '/Inventory/ALLTaxRatesSSG',
+        type: 'GET',
+        dataType: 'json',
+        success: function (data) {
+            var $ddl = $("#cmbbxtaxrate");
+            $ddl.empty().append('<option value="0">--select HSNCode--</option>');
+
+            $.each(data, function (i, item) {
+                var hsnFull = item.HSNCode ? item.HSNCode.toString() : "";
+                var hsnShort = hsnFull.substring(0, 4);
+                $ddl.append('<option value="' + item.TaxRateId + '" title="' + hsnFull + '">' + hsnShort + '</option>');
+            });
+
+            var selectedId = '@Model.TaxRateId';
+            if (selectedId && selectedId !== "0") $ddl.val(selectedId);
+        }
+    });
+
+    // --- Save /Update Category ---
+    $("#categoryForm").off("submit").on("submit", function (e) {
+        e.preventDefault();
+
+        var categoryName = $("input[name='ItemCategoryName']").val().trim();
+        var description = $("input[name='Description']").val().trim();
+        var taxId = $("#cmbbxtaxrate").val();
+
+        var isAdd = $("input[name='ItemCategoryId']").val() == 0;
+
+        if (isAdd) {
+            if (!categoryName) { Swal.fire('Error', 'Please enter Category Name.', 'error'); return; }
+            if (!description) { Swal.fire('Error', 'Please enter Description.', 'error'); return; }
+            if (!taxId || taxId == 0) { Swal.fire('Error', 'Please select HSN Code.', 'error'); return; }
+        }
+
+        var formData = $(this).serialize();
+        var id = $("input[name='ItemCategoryId']").val();
+        var url = (id && id > 0)
+            ? '@Url.Action("UpdateCategorySSG", "Inventory")'
+            : '@Url.Action("CreateCategoryySSG", "Inventory")';
+
+        $.post(url, formData, function (res) {
+            if (res.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: res.message,
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+                var modalEl = document.getElementById('categoryModal');
+                var modal = bootstrap.Modal.getInstance(modalEl);
+                modal.hide();
+                $('#categoryTable').DataTable().ajax.reload(null, false);
+            } else {
+                Swal.fire('Error', res.message, 'error');
+            }
+        });
+    });
+});
+</script>

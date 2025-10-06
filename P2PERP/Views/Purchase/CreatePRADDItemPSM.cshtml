@@ -1,0 +1,703 @@
+﻿@model P2PLibray.Purchase.Purchase
+@{
+    ViewBag.Title = " ";
+}
+
+<div class="container">
+    <div class="card shadow-lg border-0 rounded-4 p-4">
+        <h4 class="mb-4 text-primary fw-bold text-center">Items Request Management</h4>
+
+        <div class="row mb-3">
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Item Request:</label>
+                <select id="ItemReqStatus" class="form-select"></select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Select Plan:</label>
+                <select id="planname" class="form-select" disabled></select>
+            </div>
+        </div>
+
+        <div class="mb-2">
+            <div class="input-group" style="max-width: 340px;">
+                <span class="input-group-text bg-primary text-white">
+                    <i class="bi bi-calendar-date"></i>
+                </span>
+                <input type="text" id="FirstreportrangePSM" class="form-control" readonly placeholder="Select Date" />
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table id="itemsTable" class="table table-bordered table-striped w-100">
+                <thead class="table-dark">
+                    <tr>
+                        <th><input type="checkbox" id="selectAll" /></th>
+                        <th>SR No</th>
+                        <th>Item Code</th>
+                        <th>Item Name</th>
+                        <th>Description</th>
+                        <th>UOM</th>
+                        <th>Unit Rate</th>
+                        <th>Quantity</th>
+                        <th>Required Date</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div class="d-flex justify-content-end mt-3">
+            <button id="btnCreatePR" class="btn btn-success me-2" data-bs-toggle="modal" data-bs-target="#createPRModal">
+                <i class="bi bi-plus-circle"></i> Create PR
+            </button>
+            <button id="btnCancel" class="btn btn-secondary">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- Create PR Modal -->
+<div class="modal fade" id="createPRModal" tabindex="-1" aria-labelledby="createPRModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white pe-3 d-flex align-items-center justify-content-between">
+                <h5 class="modal-title fw-semibold text-white text-center flex-grow-1 m-0" id="createPRModalLabel">
+                    <i class="bi bi-cart-plus me-2 text-white"></i>
+                    Create Purchase Requisition For Stock Requirement and MRP Items
+                </h5>
+                <button type="button" class="btn-close btn-close-white ms-2" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="prForm">
+                    @Html.AntiForgeryToken()
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Purchase Requisition No:</label>
+                            <input type="text" id="PRcode" name="PRCode" class="form-control" readonly />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Description:</label>
+                            <textarea id="Description" name="Description" class="form-control"></textarea>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">PR Required Date:</label>
+                            <input type="date" id="ToDate" name="RequiredDate" class="form-control" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Priority Name:</label>
+                            <select id="priority" name="PriorityId" class="form-select"></select>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped" id="ItemTable">
+                            <thead class="table-dark text-center">
+                                <tr>
+                                    <th>SR No</th>
+                                    <th>Item Code</th>
+                                    <th>Item Name</th>
+                                    <th>Description</th>
+                                    <th>UOM</th>
+                                    <th>Unit Rate</th>
+                                    <th>Quantity</th>
+                                    <th>Required Date</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="modalTableBody"></tbody>
+                        </table>
+                    </div>
+
+                    <div class="d-flex justify-content-end mb-3">
+                        <button type="submit" class="btn btn-success px-5 me-2">
+                            <i class="bi bi-check-circle"></i> Save PR
+                        </button>
+                        <button type="reset" class="btn btn-danger px-5" id="prResetBtn">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    //Toastr configuration
+    toastr.options = {
+        closeButton: true,
+        progressBar: true,
+        newestOnTop: true,
+        positionClass: "toast-top-right",
+        preventDuplicates: true,
+        timeOut: 3000
+    };
+    // PDF customization
+    function buildDatetimeString() {
+        var now = new Date();
+        return now.getFullYear() + '-' +
+            ('0' + (now.getMonth() + 1)).slice(-2) + '-' +
+            ('0' + now.getDate()).slice(-2) + ' ' +
+            ('0' + now.getHours()).slice(-2) + ':' +
+            ('0' + now.getMinutes()).slice(-2) + ':' +
+            ('0' + now.getSeconds()).slice(-2);
+    }
+    function findTableNodeIndex(doc) {
+        for (var i = 0; i < doc.content.length; i++) {
+            if (doc.content[i] && doc.content[i].table) return i;
+        }
+        return -1;
+    }
+
+    function pdfCustomizeGeneric(doc, title, orientation) {
+        orientation = orientation || 'portrait';
+        try {
+            doc.pageOrientation = orientation;
+            doc.pageSize = 'A4';
+            doc.pageMargins = [30, 60, 30, 40];
+            doc.styles = doc.styles || {};
+            doc.styles.tableHeader = { fillColor: '#2c3e50', color: 'white', bold: true, fontSize: 11, alignment: 'center' };
+            doc.defaultStyle = doc.defaultStyle || { fontSize: 10 };
+
+            var tableIndex = findTableNodeIndex(doc);
+            var datetime = buildDatetimeString();
+
+            var headerBlock = [
+                { text: title || '', alignment: 'center', fontSize: 14, bold: true, margin: [0, 0, 0, 6] },
+                { text: 'Generated on: ' + datetime, alignment: 'center', bold: false, fontSize: 9, margin: [0, 0, 0, 8] },
+                { text: '\n' }
+            ];
+
+            if (tableIndex >= 0) {
+                doc.content.splice(tableIndex, 0, ...headerBlock);
+                tableIndex += headerBlock.length;
+                var tableObj = doc.content[tableIndex];
+                if (tableObj?.table?.body) {
+                    var body = tableObj.table.body;
+                    for (var r = 1; r < body.length; r++) body[r][0] = { text: r.toString(), alignment: 'center' };
+                    for (var c = 0; c < body[0].length; c++) {
+                        if (typeof body[0][c] === 'string') {
+                            body[0][c] = {
+                                text: body[0][c],
+                                style: 'tableHeader',
+                                bold: true,
+                                alignment: 'center',
+                                fillColor: '#2c3e50',
+                                color: 'white'
+                            };
+                        } else if (body[0][c].text) {
+                            body[0][c].fillColor = '#2c3e50';
+                            body[0][c].color = 'white';
+                            body[0][c].alignment = 'center';
+                            body[0][c].bold = true;
+                        }
+                    }
+
+                    tableObj.layout = {
+                        hLineWidth: function () { return 0.5; },
+                        vLineWidth: function () { return 0.5; },
+                        hLineColor: function () { return '#aaa'; },
+                        vLineColor: function () { return '#aaa'; },
+                        paddingLeft: function () { return 6; },
+                        paddingRight: function () { return 6; }
+                    };
+                }
+            } else doc.content.splice(0, 0, ...headerBlock);
+
+            doc.footer = function (currentPage, pageCount) {
+                return {
+                    columns: [
+                        { text: 'Generated on: ' + datetime, alignment: 'left', margin: [30, 0, 0, 0] },
+                        { text: 'Page ' + currentPage + ' of ' + pageCount, alignment: 'right', margin: [0, 0, 30, 0] }
+                    ],
+                    fontSize: 9
+                };
+            };
+        } catch (e) { console.error('pdfCustomizeGeneric error', e); }
+    }
+
+    // Excel customization
+    function excelCustomize(xlsx, title) {
+        try {
+            var sheet = xlsx.xl.worksheets['sheet1.xml'];
+            if (sheet) {
+                $('sheetData row:first', sheet).before(`<row r="1"><c t="inlineStr" r="A1"><is><t>${title}</t></is></c></row>`);
+                $('row:nth-child(2) c', sheet).attr('s', '2');
+            }
+        } catch (e) { console.error('excelCustomize error', e); }
+    }
+
+    // Print customization
+    function printCustomize(win, title) {
+        try {
+            $(win.document.body).css('font-size', '12pt').prepend(`<h3 class="text-center mb-3">${title}</h3>`);
+            $(win.document.body).find('table').addClass('compact table-bordered').css('font-size', 'inherit');
+        } catch (e) { console.error('printCustomize error', e); }
+    }
+
+    // Export buttons factory (improved selection scoping)
+    function makeExportButton(type, textHtml, selector, title, orientation) {
+        title = title || "Item Request Status with Items";
+        orientation = orientation || "portrait";
+        return {
+            extend: type,
+            text: textHtml,
+            titleAttr: title,
+            // When clicked, ensure at least one row selected if selector provided
+            action: function (e, dt, node, config) {
+                var api = dt;
+                // nodes for all pages
+                var nodesAll = api.rows({ page: 'all' }).nodes();
+                var selectedCount = 0;
+                if (selector) {
+                    selectedCount = $(nodesAll).find(selector + ":checked").length;
+                }
+                if (selector && selectedCount === 0) {
+                    toastr.warning("Please select at least one row!", "Warning");
+                    return;
+                }
+                // call default action
+                $.fn.dataTable.ext.buttons[type].action.call(this, e, dt, node, config);
+            },
+            exportOptions: {
+                // exclude the checkbox (first column)
+                columns: ':not(:first-child)',
+                // if selector is specified, restrict rows to those having checked selector in the node
+                rows: function (idx, data, node) {
+                    if (!selector) return true;
+                    return $(node).find(selector).is(':checked');
+                },
+                format: {
+                    body: function (data, row, column, node) {
+                        try {
+                            var div = document.createElement("div"); div.innerHTML = data;
+                            if (div.querySelector("i.bi-currency-rupee")) return "₹ " + div.textContent.trim();
+                            return div.textContent.trim() || data;
+                        } catch (e) { return data; }
+                    }
+                }
+            },
+            customize: function (doc) { if (type === 'pdfHtml5') pdfCustomizeGeneric(doc, title, orientation); },
+            customizeData: function (data) { if (type === 'excelHtml5') excelCustomize(data, title); },
+            customizePrint: function (win) { if (type === 'print') printCustomize(win, title); }
+        };
+    }
+
+    $(function () {
+        // Single set of shared variables
+        var table;
+        var prItems = [];
+        var dateFrom = "", dateTo = "";
+
+        // Initialize DataTable
+        table = $('#itemsTable').DataTable({
+            dom: '<"d-flex justify-content-between align-items-center mb-2"Bf>rt<"d-flex justify-content-between align-items-center"i p>',
+            responsive: true,
+            processing: true,
+            language: { emptyTable: "No data available", zeroRecords: "No matching items found" },
+            columns: [
+                {
+                    data: null,
+                    render: function () {
+                        return '<input type="checkbox" class="rowCheckbox"/>';
+                    },
+                    orderable: false,
+                    width: "1%"
+                },
+                {
+                    data: null,
+                    render: function (d, t, r, meta) {
+                        return meta.row + 1 + meta.settings._iDisplayStart;
+                    },
+                    orderable: false,
+                    width: "3%"
+                },
+                { data: "ItemCode" },
+                { data: "ItemName" },
+                {
+                    data: "Description",
+                    render: function (data, type, row) {
+                        if (!data) return "";
+                        let shortText = data.length > 20 ? data.substring(0, 20) + "..." : data;
+                        return `<span data-bs-toggle="tooltip" data-bs-placement="top" 
+                     data-bs-custom-class="tooltip-dark" 
+                     title="${data}">
+                    ${shortText}
+                </span>`;
+                    }
+                },
+                { data: "UOMName" },
+                { data: "UnitRates" },
+                { data: "Quantity" },
+                { data: "RequiredDate" }
+            ],
+            buttons: [
+                makeExportButton('print', '<i class="bi bi-printer-fill text-dark fs-5"></i>', ".rowCheckbox"),
+                makeExportButton('pdfHtml5', '<i class="bi bi-file-earmark-pdf-fill text-danger fs-5"></i>', ".rowCheckbox"),
+                makeExportButton('excelHtml5', '<i class="bi bi-file-earmark-excel text-success fs-5"></i>', ".rowCheckbox"),
+                makeExportButton('csvHtml5', '<i class="bi bi-filetype-csv text-success fs-5"></i>', ".rowCheckbox")
+            ],
+            rowCallback: function (row, data) {
+            }
+        });
+        $('#selectAll').on('click', function () {
+            var checked = this.checked;
+            $('#itemsTable tbody').find('.rowCheckbox').prop('checked', checked);
+        });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        // update selectAll if user interacts with single row checkbox
+        $('#itemsTable tbody').on('change', '.rowCheckbox', function () {
+            var total = $('#itemsTable tbody .rowCheckbox').length;
+            var checked = $('#itemsTable tbody .rowCheckbox:checked').length;
+            $('#selectAll').prop('checked', total > 0 && total === checked);
+        });
+        // Load Item Request Status (example endpoint)
+        $.getJSON('/Purchase/SelectItemReqStatusPSM', function (data) {
+            const $ddl = $('#ItemReqStatus');
+            $ddl.empty().append('<option value="">-- Select Status --</option>');
+            $.each(data, function (i, item) {
+                $ddl.append($('<option>', { value: item.Value, text: item.Text }));
+            });
+        });
+        // Status change
+        $('#ItemReqStatus').on('change', function () {
+            const selected = $(this).val();
+            if (selected === "13") {
+                $('#planname').prop('disabled', true).empty().append('<option>Loading plans...</option>');
+                $.getJSON('/Purchase/SelectPlanNamesPSM', function (data) {
+                    const $ddl = $('#planname');
+                    $ddl.empty().append('<option value="">-- Select Plan --</option>');
+                    $.each(data, function (i, item) {
+                        $ddl.append($('<option>', { value: item.Value, text: item.Text }));
+                    });
+                    $ddl.prop('disabled', false);
+                    table.clear().draw();
+                }).fail(function () {
+                    $('#planname').prop('disabled', true).empty();
+                });
+            } else if (selected === "8") {
+                $('#planname').prop('disabled', true).empty();
+                reloadItems();
+            } else {
+                $('#planname').prop('disabled', true).empty();
+                table.clear().draw();
+            }
+        });
+        // Plan change
+        $('#planname').on('change', function () {
+            const planCode = $(this).val();
+            if (planCode) loadItems('/Purchase/MRPItemsListPSM', { planCode: planCode, from: dateFrom, to: dateTo });
+            else table.clear().draw();
+        });
+        // DateRangePicker
+        $('#FirstreportrangePSM').daterangepicker({
+            autoUpdateInput: false,
+            opens: "right",
+            drops: "down",
+            locale: { cancelLabel: 'Clear' },
+            ranges: {
+                'Today': [moment(), moment()],
+                'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                'This Month': [moment().startOf('month'), moment().endOf('month')],
+                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+            }
+        }, function (start, end) {
+            $('#FirstreportrangePSM').val(start.format('YYYY-MM-DD') + ' - ' + end.format('YYYY-MM-DD'));
+            dateFrom = start.format('YYYY-MM-DD');
+            dateTo = end.format('YYYY-MM-DD');
+            reloadItems();
+        });
+
+        $('#FirstreportrangePSM').on('cancel.daterangepicker', function () {
+            $(this).val('');
+            dateFrom = ""; dateTo = "";
+            reloadItems();
+        });
+
+        function reloadItems() {
+            loadItems('/Purchase/GenerateStockRequirementPR', { from: dateFrom, to: dateTo });
+        }
+
+        function loadItems(url, params) {
+            $.getJSON(url, params)
+                .done(function (data) { table.clear().rows.add(data).draw(); })
+                .fail(function () { table.clear().draw(); });
+        }
+
+        // Generate PR Code
+        $.getJSON("/Purchase/GeneratePRCodePSM").done(function (res) {
+            if (res) {
+                if (res.success && res.prCode) $("#PRcode").val(res.prCode);
+                else if (res.prCode) $("#PRcode").val(res.prCode);
+            }
+        });
+
+        // Load Priority
+        $.getJSON('/Purchase/PriorityPSM').done(function (data) {
+            let ddl = $('#priority');
+            ddl.empty().append('<option value="">-- Select Priority --</option>');
+            $.each(data, (i, item) => ddl.append($('<option>').val(item.Value).text(item.Text)));
+        }).fail(function () {
+            $('#priority').empty().append('<option value="">-- No priorities --</option>');
+        });
+
+        // Add rows to modal - build prItems from checked rows
+        $('#btnCreatePR').on('click', function (e) {
+            prItems = [];
+            var modalTableBody = $('#modalTableBody');
+            modalTableBody.empty();
+
+            var earliestRequiredDate = null;
+            var srNo = 1;
+
+            table.rows().every(function (rowIdx, tableLoop, rowLoop) {
+                var node = this.node();
+                if ($(node).find('.rowCheckbox').is(':checked')) {
+                    var rowData = this.data();
+                    if (!rowData) return;
+                    prItems.push(rowData);
+
+                    var rd = rowData.RequiredDate ? new Date(rowData.RequiredDate) : null;
+                    if (rd && !isNaN(rd.getTime())) {
+                        if (earliestRequiredDate === null || rd < earliestRequiredDate) earliestRequiredDate = rd;
+                    }
+
+                    var newRow = `<tr>
+                                <td class="text-center">${srNo++}</td>
+                                <td>${rowData.ItemCode || ''}</td>
+                                <td>${rowData.ItemName || ''}</td>
+                                <td>${rowData.Description || ''}</td>
+                                <td>${rowData.UOMName || ''}</td>
+                                <td>${rowData.UnitRates || ''}</td>
+                                <td class="text-end">${rowData.Quantity || ''}</td>
+                                <td class="text-center">${rowData.RequiredDate || ''}</td>
+                                <td class="text-center">
+                                    <button type="button" class="btn btn-danger btn-sm btn-delete" data-itemcode="${rowData.ItemCode}">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>`;
+                    modalTableBody.append(newRow);
+                }
+            });
+
+            if (prItems.length === 0) {
+                toastr.warning("Please select at least one item to create PR!");
+                $('#createPRModal').modal('hide');
+                e.preventDefault();
+                return;
+            }
+
+            var minDateStr = earliestRequiredDate ? earliestRequiredDate.toISOString().split('T')[0] : '';
+            $('#ToDate').val(minDateStr);
+            if (minDateStr) {
+                $('#ToDate').attr('max', minDateStr);
+            } else {
+                $('#ToDate').removeAttr('max');
+            }
+        });
+        // Submit PR
+        $("#prForm").submit(function (e) {
+            e.preventDefault();
+            // Validation
+            if (!$("#PRcode").val()) {
+                Swal.fire("Error", "PR Code is missing.", "error");
+                return;
+            }
+            if (!$("#ToDate").val()) {
+                Swal.fire("Error", "Please select PR Required Date.", "error");
+                return;
+            }
+            if (!$("#Description").val()) {
+                Swal.fire("Error", "Please Enter a Description.", "error");
+                return;
+            }
+            if (!$("#priority").val()) {
+                Swal.fire("Error", "Please select a Priority.", "error");
+                return;
+            }
+            if (!prItems || prItems.length === 0) {
+                Swal.fire("Error", "Please add at least one item.", "error");
+                return;
+            }
+            var prDateVal = $("#ToDate").val();
+            var prRequiredDate = new Date(prDateVal);
+            if (isNaN(prRequiredDate.getTime())) {
+                Swal.fire("Error", "Invalid PR Required Date.", "error");
+                return;
+            }
+
+            var earliestRequiredDate = null;
+            prItems.forEach(function (item) {
+                var rd = item.RequiredDate ? new Date(item.RequiredDate) : null;
+                if (rd && !isNaN(rd.getTime())) {
+                    if (earliestRequiredDate === null || rd < earliestRequiredDate) earliestRequiredDate = rd;
+                }
+            });
+
+            if (earliestRequiredDate && prRequiredDate < earliestRequiredDate) {
+                Swal.fire("Error", "PR Required Date cannot be earlier than the earliest required date of the selected items (" + earliestRequiredDate.toISOString().split('T')[0] + ").", "error");
+                return;
+            }
+
+            var token = $('input[name="__RequestVerificationToken"]').val();
+            let payload = {
+                PRCode: $("#PRcode").val(),
+                RequiredDate: $("#ToDate").val(),
+                PriorityId: $("#priority").val(),
+                Description: $("#Description").val(),
+                Items: prItems.map(function (item) {
+                    return {
+                        PRCode: $("#PRcode").val(),
+                        ItemCode: item.ItemCode,
+                        RequiredQuantity: item.Quantity
+                    };
+                })
+            };
+
+            $.ajax({
+                url: '/Purchase/CreatePRADDItemPSM',
+                type: 'POST',
+                data: JSON.stringify(payload),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                headers: { '__RequestVerificationToken': token },
+                success: function (res) {
+                    if (res && res.success) {
+                        Swal.fire("Success", res.message || "PR saved successfully", "success").then(function () { location.reload(); });
+                    } else {
+                        Swal.fire("Error", (res && res.message) || "Failed to save PR", "error");
+                    }
+                },
+                error: function () {
+                    Swal.fire("Error", "Server error occurred. Please try again.", "error");
+                }
+            });
+        });
+
+        // Delete in modal
+        $('#modalTableBody').on('click', '.btn-delete', function () {
+            let itemCode = $(this).data('itemcode');
+            let row = $(this).closest('tr');
+            Swal.fire({
+                title: "Are you sure?",
+                text: "Do you really want to delete this item?",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#d33",
+                cancelButtonColor: "#3085d6",
+                confirmButtonText: "Yes, delete it!",
+                cancelButtonText: "Cancel"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    prItems = prItems.filter(function (x) { return x.ItemCode !== itemCode; });
+                    row.remove();
+                    Swal.fire("Deleted!", "The item has been removed.", "success");
+                    $('#modalTableBody tr').each(function (index) {
+                        $(this).find('td:first').text(index + 1);
+                    });
+                }
+            });
+        });
+        // Cancel main - uncheck all checkboxes in table body (visible)
+        $('#btnCancel').on('click', function () {
+            $('#itemsTable tbody .rowCheckbox').prop('checked', false);
+            $('#selectAll').prop('checked', false);
+        });
+        // Reset modal - clear modal content and close modal
+        $('#prResetBtn').on('click', function () {
+            $('#modalTableBody').empty();
+            prItems = [];
+            $('#createPRModal').modal('hide');
+        });
+        reloadItems();
+    });
+</script>

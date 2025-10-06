@@ -1,0 +1,419 @@
+﻿@model string
+
+<div class="container-fluid py-4">
+    <div class="row mb-3">
+        <div class="col-12">
+
+            <!-- Model Title -->
+            <div class="bg-gradient p-3 rounded shadow-sm text-white mb-4" style="background: linear-gradient(45deg, #0d6efd, #6c63ff);">
+                <h5 class="mb-0 fw-bold">
+                    <i class="bi bi-clipboard-list me-2"></i>Plan Code: @Model
+                </h5>
+            </div>
+
+            <!-- Plan Summary Section -->
+            <div class="row g-4">
+
+                <!-- From Date -->
+                <div class="col-md-6">
+                    <div class="border rounded-3 p-3 bg-light shadow-sm h-100">
+                        <h6 class="text-muted fw-semibold mb-2">
+                            <i class="bi bi-calendar-day text-primary me-2"></i> From Date
+                        </h6>
+                        <div id="dbFromDate" class="fs-5 fw-bold text-dark">
+                            Loading...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- To Date -->
+                <div class="col-md-6">
+                    <div class="border rounded-3 p-3 bg-light shadow-sm h-100">
+                        <h6 class="text-muted fw-semibold mb-2">
+                            <i class="bi bi-calendar-check text-success me-2"></i> To Date
+                        </h6>
+                        <div id="dbToDate" class="fs-5 fw-bold text-dark">
+                            Loading...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Plan Summary -->
+                <div class="col-12">
+                    <div id="planSummary" class="p-3 rounded shadow-sm bg-info bg-opacity-10 border border-info d-flex align-items-start" style="display: none;">
+                        <i class="bi bi-info-circle text-info me-2 mt-1"></i>
+                        <div>
+                            <h6 class="fw-bold text-info mb-1">Plan Summary</h6>
+                            <p id="summaryText" class="mb-0">Loading plan information...</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+
+    <table id="reqTable1" class="table table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th><input type="checkbox" id="selectAll1"></th>
+                <th>Sr.No.</th>
+                <th>Item Code</th>
+                <th>Item Name</th>
+                <th>Quantity Required</th>
+                <th>UOM</th>
+                <th>From Date</th>
+                <th>To Date</th>
+            </tr>
+        </thead>
+        <tbody id="tblRecent1">
+            <tr>
+                <td colspan="8" class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<script>
+$(document).ready(function () {
+   
+    loadPlanDetails();
+
+    $('#selectAll').on('change', function () {
+        $('#reqTable1 tbody input.row-select').prop('checked', this.checked);
+    });
+});
+
+function loadPlanDetails() {
+    var code = '@Model';
+
+    $.ajax({
+        url: "/Inventory/PlanDetailsRHK",
+        type: "GET",
+        data: { code: code },
+        success: function (response) {
+            $('#tblRecent1').empty();
+            if (response?.data?.length > 0) {
+                let i = 1;
+                response.data.forEach(d => {
+                    $('#tblRecent1').append(`
+                        <tr>
+                            <td><input type="checkbox" class="row-select" value="${d.ItemCode}"></td>
+                            <td>${i++}</td>
+                            <td>${d.ItemCode}</td>
+                            <td>${d.ItemName}</td>
+                            <td>${d.RequiredQuantity}</td>
+                            <td>${d.UOM}</td>
+                            <td>${formatDisplayDate(d.FromDate)}</td>
+                            <td>${formatDisplayDate(d.ToDate)}</td>
+                        </tr>
+                    `);
+                });
+
+                initDataTable();
+                // Display plan dates & summary using first item
+                displayPlanDates(response.data[0]);
+            } else {
+                showNoData();
+                clearDateDisplay();
+            }
+        },
+        error: function (xhr, status, error) {
+            console.error("Error loading PlanDetails:", error);
+            showError();
+            clearDateDisplay();
+        }
+    });
+}
+
+    function initDataTable() {
+        // Destroy existing DataTable if already initialized
+        if ($.fn.DataTable.isDataTable('#reqTable1')) {
+            $('#reqTable1').DataTable().clear().destroy();
+        }
+
+        dataTable = $('#reqTable1').DataTable({
+            pageLength: 10,
+            paging: true,
+            ordering: false,
+            searching: true,
+            dom: '<"d-flex justify-content-between align-items-center mt-1 mb-2"Bf>rt<"d-flex justify-content-between mt-2"<"datatable-info"i><"datatable-pagination"p>>',
+            buttons: [
+                // 🔹 Print
+                {
+                    extend: 'print',
+                    text: '<i class="bi bi-printer-fill text-dark fs-5"></i>',
+                    className: 'btn btn-sm btn-outline-dark',
+                    title: 'Plan Details',
+                    messageTop: function () {
+                        return '<h3 style="text-align:center">Generated Date: ' +
+                            new Date().toLocaleDateString('en-GB') + '</h3>';
+                    },
+                    action: function (e, dt, button, config) {
+                        if ($('#reqTable1 tbody input.row-select:checked').length === 0) {
+                            showExportToast();
+                            return;
+                        }
+                        $.fn.dataTable.ext.buttons.print.action.call(this, e, dt, button, config);
+                    },
+                    exportOptions: {
+                        rows: function (idx, data, node) {
+                            return $(node).find('.row-select').prop('checked');
+                        },
+                     columns: ':visible:not(:first-child)',
+
+                        format: {
+                            body: function (data, row, column, node) {
+                                if (column === 1)
+                                    return $('#reqTable1 tbody input.row-select:checked')
+                                        .index($(node).closest('tr').find('.row-select')) + 1;
+
+                                return typeof data === 'string'
+                                    ? data.replace(/<[^>]*>/g, '').trim()
+                                    : data;
+
+                            }
+                        }
+                    },
+                    customize: function (win) {
+                        var $body = $(win.document.body);
+
+                        $body.append(`
+        <style>
+            thead th {
+                background-color: black !important;
+                color: white !important;
+                text-align: center !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            table {
+                border-collapse: collapse !important;
+                width: 100% !important;
+            }
+            td, th {
+                border: 1px solid #000 !important;
+                padding: 6px !important;
+                 text-align: center !important;
+            }
+        </style>
+`);
+
+                        $body.find('h1').css('text-align', 'center');
+
+
+
+                        $body.find('table')
+                            .addClass('table table-bordered table-striped')
+                            .css('width', '100%');
+
+                        $body.css('font-size', '12pt');
+                    }
+                },
+                // 🔹 PDF
+                {
+                    extend: 'pdfHtml5',
+                    text: '<i class="bi bi-file-earmark-pdf text-danger fs-5"></i>',
+                    className: 'btn btn-sm btn-outline-danger',
+                    title: "Plan Details",
+                    orientation: 'landscape',
+                    pagesize: 'A4',
+                    customize: function (doc) {
+
+                        doc.content.splice(1, 0, {
+                            text: 'Generated Date: ' + new Date().toLocaleDateString('en-GB'),
+                            alignment: 'center',
+                            margin: [0, 0, 0, 12]
+                        });
+
+                        // Center table
+                        var table = doc.content[doc.content.length - 1].table;
+                        table.widths = new Array(table.body[0].length).fill('*'); // equal widths
+                        doc.content[doc.content.length - 1].alignment = 'center'; // ✅ Center table
+
+
+                        doc.styles.tableHeader = { fillColor: '#000000', color: 'white', alignment: 'center' };
+
+                        var objLayout = {};
+                        objLayout['hLineWidth'] = function () { return 1; };
+                        objLayout['vLineWidth'] = function () { return 1; };
+                        objLayout['hLineColor'] = function () { return '#000'; };
+                        objLayout['vLineColor'] = function () { return '#000'; };
+                        objLayout['paddingLeft'] = function () { return 4; };
+                        objLayout['paddingRight'] = function () { return 4; };
+                        doc.content[doc.content.length - 1].layout = objLayout;
+
+                        var tableBody = doc.content[doc.content.length - 1].table.body;
+                        tableBody.forEach(function (row) {
+                            row.forEach(function (cell) {
+                                cell.alignment = 'center';
+                            });
+                        });
+                    },
+                    action: function (e, dt, button, config) {
+                        if ($('#reqTable1 tbody input.row-select:checked').length === 0) {
+                            showExportToast();
+                            return;
+                        }
+                        $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, button, config);
+                    },
+                    exportOptions: {
+                        rows: function (idx, data, node) {
+                            return $(node).find('.row-select').prop('checked');
+                        },
+                        columns: ':visible:not(:first-child)',
+                        format: {
+                            body: function (data, row, column, node) {
+                                if (column === 1)
+                                    return $('#reqTable1 tbody input.row-select:checked')
+                                        .index($(node).closest('tr').find('.row-select')) + 1;
+                                return typeof data === 'string'
+                                    ? data.replace(/<[^>]*>/g, '').trim()
+                                    : data;
+                            }
+                        }
+                    }
+                },
+                // 🔹 Excel
+                {
+                    extend: 'excelHtml5',
+                    text: '<i class="bi bi-file-earmark-excel text-success fs-5"></i>',
+                    className: 'btn btn-sm btn-outline-success',
+                    title: "Plan Details",
+                    action: function (e, dt, button, config) {
+                        if ($('#reqTable1 tbody input.row-select:checked').length === 0) {
+                            showExportToast();
+                            return;
+                        }
+                        $.fn.dataTable.ext.buttons.excelHtml5.action.call(this, e, dt, button, config);
+                    },
+                    exportOptions: {
+                        rows: function (idx, data, node) {
+                            return $(node).find('.row-select').prop('checked');
+                        },
+                        columns: ':visible:not(:first-child)',
+                        format: {
+                            body: function (data, row, column, node) {
+                                if (column === 1)
+                                    return $('#reqTable1 tbody input.row-select:checked')
+                                        .index($(node).closest('tr').find('.row-select')) + 1;
+                                return typeof data === 'string'
+                                    ? data.replace(/<[^>]*>/g, '').trim()
+                                    : data;
+                            }
+                        }
+                    }
+                },
+                // 🔹 CSV
+                {
+                    extend: 'csvHtml5',
+                    text: '<i class="bi bi-filetype-csv text-primary fs-5"></i>',
+                    className: 'btn btn-sm btn-outline-primary',
+                    title: "Plan Details",
+                    action: function (e, dt, button, config) {
+                        if ($('#reqTable1 tbody input.row-select:checked').length === 0) {
+                            showExportToast();
+                            return;
+                        }
+                        $.fn.dataTable.ext.buttons.csvHtml5.action.call(this, e, dt, button, config);
+                    },
+                    exportOptions: {
+                        rows: function (idx, data, node) {
+                            return $(node).find('.row-select').prop('checked');
+                        },
+                        columns: ':visible:not(:first-child)',
+                        format: {
+                            body: function (data, row, column, node) {
+                                if (column === 1)
+                                    return $('#reqTable1 tbody input.row-select:checked')
+                                        .index($(node).closest('tr').find('.row-select')) + 1;
+                                return typeof data === 'string'
+                                    ? data.replace(/<[^>]*>/g, '').trim()
+                                    : data;
+                            }
+                        }
+                    }
+                }
+            ]
+
+        });
+
+        // Move buttons into export container
+        // dataTable.buttons().container().appendTo('#exportContainer');
+
+        // --- SelectAll toggle ---
+        $('#selectAll1').off('change').on('change', function () {
+            $('#reqTable1 tbody .row-select').prop('checked', $(this).prop('checked'));
+        });
+
+        // --- Update SelectAll state ---
+        $('#reqTable1').off('change', '.row-select').on('change', '.row-select', function () {
+            let total = $('#reqTable1 tbody .row-select').length;
+            let checked = $('#reqTable1 tbody .row-select:checked').length;
+            $('#selectAll1').prop('checked', total === checked);
+        });
+
+    }
+
+
+
+
+
+function displayPlanDates(item) {
+    $('#dbFromDate').html(item.FromDate ? `<i class="fas fa-calendar-start"></i> <span class="ms-2">${formatDisplayDate(item.FromDate)}</span>` : `<i class="fas fa-calendar-start"></i> <span class="ms-2 text-muted">Not specified</span>`);
+    $('#dbToDate').html(item.ToDate ? `<i class="fas fa-calendar-end"></i> <span class="ms-2">${formatDisplayDate(item.ToDate)}</span>` : `<i class="fas fa-calendar-end"></i> <span class="ms-2 text-muted">Not specified</span>`);
+    updatePlanSummary(item);
+}
+
+function formatDisplayDate(dateValue) {
+    if (!dateValue) return '';
+    let date = new Date(dateValue);
+    return isNaN(date) ? String(dateValue) : date.toLocaleDateString('en-GB');
+}
+
+function updatePlanSummary(item) {
+    let fromDate = item.FromDate ? new Date(item.FromDate) : null;
+    let toDate = item.ToDate ? new Date(item.ToDate) : null;
+    let today = new Date(); today.setHours(0,0,0,0);
+
+    let summaryText = '';
+    $('#planSummary').removeClass('alert-primary alert-success alert-danger');
+
+    if (fromDate && toDate) {
+        if (fromDate > toDate) {
+            summaryText = `⚠️ Invalid range: From Date is after To Date`;
+            $('#planSummary').addClass('alert-danger');
+        } else {
+            let diff = Math.floor((toDate - fromDate) / (1000*60*60*24)) + 1;
+            summaryText = `This plan covers ${diff} day(s) from ${formatDisplayDate(item.FromDate)} to ${formatDisplayDate(item.ToDate)}`;
+            $('#planSummary').addClass(today >= fromDate && today <= toDate ? 'alert-success' : 'alert-primary');
+        }
+    } else {
+        summaryText = 'No date range specified';
+        $('#planSummary').addClass('alert-primary');
+    }
+
+    $('#summaryText').text(summaryText);
+    $('#planSummary').show();
+}
+
+function clearDateDisplay() {
+    $('#dbFromDate').html(`<i class="fas fa-calendar-start"></i> <span class="ms-2 text-muted">Not available</span>`);
+    $('#dbToDate').html(`<i class="fas fa-calendar-end"></i> <span class="ms-2 text-muted">Not available</span>`);
+    $('#planSummary').hide();
+}
+
+function showNoData() {
+    $('#tblRecent1').html(`<tr><td colspan="8" class="text-center text-muted">No plan details found</td></tr>`);
+}
+
+function showError() {
+    $('#tblRecent1').html(`<tr><td colspan="8" class="text-center text-danger">Error loading plan details.</td></tr>`);
+}
+</script>

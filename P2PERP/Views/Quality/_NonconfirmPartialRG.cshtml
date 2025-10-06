@@ -1,0 +1,125 @@
+﻿<div class="container mt-3">
+    <div class="card-body">
+        <input type="hidden" id="itemcode" value="@ViewBag.itemcode" />
+
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label">GRN No</label>
+                <input type="text" class="form-control" id="grnno" name="GRNCode" value="@ViewBag.GRN" readonly />
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Failed QC Code</label>
+                <input type="text" class="form-control" id="Nccode" name="NCode" value="@ViewBag.NcCode" readonly />
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label">Inspection Type</label>
+                <input type="text" class="form-control" id="insptype" name="InspectionType" value="@ViewBag.InspType" readonly />
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Plan Name</label>
+                <input type="text" class="form-control" id="planname" name="PlanName" value="@ViewBag.planname" readonly />
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label">Item Name</label>
+                <input type="text" class="form-control" id="itemname" name="ItemName" value="@ViewBag.itemname" readonly />
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Sample Qty Checked</label>
+                <input type="text" class="form-control" id="sqc" name="SampleQualityCheck" value="@ViewBag.sqc" readonly />
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label">Inspection Frequency</label>
+                <input type="text" class="form-control" id="Inf" name="InspectionFrequency" value="@ViewBag.Inf" readonly />
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Item Tested Failed</label>
+                <input type="text" class="form-control" id="itf" name="ItFailed" placeholder="Enter failed qty" />
+            </div>
+
+            <div class="col-12">
+                <label class="form-label">Reason Of Rejection</label>
+                <textarea class="form-control" id="ROr" name="ReasonOfRejection" rows="2" placeholder="Enter reason"></textarea>
+            </div>
+        </div>
+
+        <!-- Hidden inputs -->
+        <input type="hidden" value="@ViewBag.GRICode" id="GRICode" />
+        <input type="hidden" value="@ViewBag.QCCode" id="QCCode" />
+    </div>
+
+    <div class="card-footer text-end">
+        <button type="button" class="btn btn-primary me-2" onclick="finalnc()">Initiate NC</button>
+       
+    </div>
+
+</div>
+
+
+
+<script>
+
+    //Validations for max number according to quantity and allow only number
+
+    $('#itf').on('input', function () {
+        this.value = this.value.replace(/[^0-9]/g, ''); // only digits
+
+        const maxVal = parseInt($('#sqc').val(), 10) || 9999;
+        if (parseInt(this.value, 10) > maxVal) {
+            Swal.fire("⚠️ Limit Exceeded", "Item Tested Failed cannot be greater than " + maxVal, "warning");
+            this.value = maxVal;
+        }
+    });
+
+
+    //validation for onlu text can be add no and symbols doesnt allow
+
+    $('#ROr').on('input', function () {
+        this.value = this.value.replace(/[^a-zA-Z\s]/g, ''); // remove numbers and symbols
+    });
+
+
+
+    function finalnc() {
+        const GRNICode = $('#GRICode').val(),
+            SQC = $('#sqc').val(),
+            STF = $('#itf').val();
+
+        if (!STF) {
+            Swal.fire("⚠️ Required", "Please enter Item Tested Failed.", "warning");
+            return;
+        }
+        if (isNaN(STF) || STF <= 0) {
+            Swal.fire("⚠️ Invalid", "Item Tested Failed must be a positive number.", "warning");
+            return;
+        }
+        if (parseInt(STF, 10) > parseInt(SQC, 10)) {
+            Swal.fire("⚠️ Invalid", "Item Tested Failed cannot exceed Sample Qty Checked.", "warning");
+            return;
+        }
+
+
+        INF = $('#Inf').val(),
+            FQC = $('#Nccode').val(),
+            ROR = $('#ROr').val(),
+            QC = $('#QCCode').val(),
+            GRNCode = $('#grnno').val();
+
+
+
+        $.post('/Quality/finalNCRG', { GRNICode, SQC, INF, FQC, ROR, QC, STF, GRNCode })
+            .done(() => {
+                Swal.fire({ icon: 'success', title: 'NC Added', text: 'NC has been added successfully!', showConfirmButton: false, timer: 1500 });
+
+                setTimeout(() => {
+                    bootstrap.Modal.getInstance(document.getElementById('ncModal'))?.hide();
+                    window.parent.closeModal?.();
+                    window.parent.openTask?.(GRNCode,"completed");
+                
+                }, 1600);
+            })
+            .fail(() => Swal.fire({ icon: 'error', title: 'Failed', text: 'Something went wrong. Please try again!', showConfirmButton: false, timer: 2000 }));
+    }
+</script>

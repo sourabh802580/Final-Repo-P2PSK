@@ -1,0 +1,799 @@
+﻿
+<style>
+    /* Hover animation for cards */
+    .hover-shadow {
+        transition: all 0.3s ease-in-out;
+    }
+        .hover-shadow:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
+        }
+    /* Gradient helpers */
+    .bg-gradient-primary {
+        background: linear-gradient(45deg, #4e73df, #224abe) !important;
+    }
+
+    .bg-gradient-success {
+        background: linear-gradient(45deg, #1cc88a, #13855c) !important;
+    }
+
+    .bg-gradient-warning {
+        background: linear-gradient(45deg, #f6c23e, #dda20a) !important;
+    }
+    .modal-backdrop.show {
+        --bs-backdrop-bg: #000; /* backdrop color */
+        --bs-backdrop-opacity: 0.7; /* backdrop opacity */
+    }
+
+</style>
+<div class="container-fluid pb-4">
+
+    <!-- Floating Button -->
+    <button id="dateFilterBtn"
+            class="btn btn-primary btn-lg rounded-circle shadow-lg position-fixed d-flex align-items-center justify-content-center ripple"
+            style="top: 70px; right: 20px; width: 65px; height: 65px; z-index: 1050;">
+        <i class="bi bi-calendar-date fs-3"></i>
+    </button>
+
+    <!-- Hidden input just to trigger daterangepicker -->
+    <input type="text" id="reportrange" style="display:none;" />
+
+    <!-- Stats Cards -->
+    <div class="py-4">
+        <div class="row g-4">
+
+            <!-- Warehouse -->
+            <div class="col-md-4">
+                <div class="card border-0 shadow-lg rounded-4 hover-shadow transition">
+                    <div class="card-body bg-gradient-primary text-white rounded-4 text-center py-4">
+                        <div class="mb-3">
+                            <span class="d-inline-flex align-items-center justify-content-center bg-white text-primary rounded-circle p-3 shadow">
+                                <i class="bi bi-building fs-2"></i>
+                            </span>
+                        </div>
+                        <h3 class="fw-bold mb-1" id="WareHouse">25</h3>
+                        <p class="mb-0 text-uppercase small">Warehouses</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rack -->
+            <div class="col-md-4">
+                <div class="card border-0 shadow-lg rounded-4 hover-shadow transition">
+                    <div class="card-body bg-gradient-success text-white rounded-4 text-center py-4">
+                        <div class="mb-3">
+                            <span class="d-inline-flex align-items-center justify-content-center bg-white text-success rounded-circle p-3 shadow">
+                                <i class="bi bi-columns-gap fs-2"></i>
+                            </span>
+                        </div>
+                        <h3 class="fw-bold mb-1" id="Rack">120</h3>
+                        <p class="mb-0 text-uppercase small">Racks</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bin -->
+            <div class="col-md-4">
+                <div class="card border-0 shadow-lg rounded-4 hover-shadow transition">
+                    <div class="card-body bg-gradient-warning text-dark rounded-4 text-center py-4">
+                        <div class="mb-3">
+                            <span class="d-inline-flex align-items-center justify-content-center bg-white text-warning rounded-circle p-3 shadow">
+                                <i class="bi bi-box-seam fs-2"></i>
+                            </span>
+                        </div>
+                        <h3 class="fw-bold mb-1" id="Bins">2,450</h3>
+                        <p class="mb-0 text-uppercase small">Bins</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="row g-4">
+
+        <!-- Receive Material -->
+        @*<div class="col-lg-12">
+            <div class="card shadow-sm border-0 rounded-4 hover-shadow">
+                <div class="card-body p-3">
+                    <h6 class="fw-bold mb-3 text-primary"><i class="bi bi-download me-2"></i>Receive Material</h6>
+                    <div id="receiveMaterial" style="height:300px;"></div>
+                </div>
+            </div>
+        </div>*@
+
+        <!-- Inventory Stocks -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 rounded-4 hover-shadow">
+                <div class="card-body p-3">
+                    <h6 class="fw-bold mb-3 text-success"><i class="bi bi-bar-chart-fill me-2"></i>Inventory Stocks</h6>
+                    <div id="inventoryStocks" style="height:350px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Inventory Breakdown -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 rounded-4 hover-shadow">
+                <div class="card-body p-3">
+                    <h6 class="fw-bold mb-3 text-warning"><i class="bi bi-pie-chart-fill me-2"></i>Inventory Breakdown</h6>
+                    <div id="inventoryBreakdown" style="height:350px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Issue in House -->
+        <div class="col-lg-12">
+            <div class="card shadow-sm border-0 rounded-4 hover-shadow">
+                <div class="card-body p-3">
+                    <h6 class="fw-bold mb-3 text-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i>Issue in House</h6>
+                    <div id="issueHouse" style="height:300px;"></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+
+<!-- Modal -->
+<div class="modal" id="chartModal" tabindex="-1" aria-labelledby="chartModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+
+            <!-- Header -->
+            <div class="modal-header bg-primary text-white justify-content-center">
+                <h5 class="modal-title fw-bold text-uppercase text-center text-white w-100" id="chartModalLabel"></h5>
+                <button type="button" class="btn-close btn-close-white position-absolute end-0 me-3"
+                        data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <!-- Body -->
+            <div class="modal-body">
+                <table id="chartDataTable" class="table table-striped table-bordered" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>Item Name</th>
+                            <th>Item Code</th>
+                            <th>BinCode</th>
+                            <th>ItemsCounts</th>
+                            <th>Added Date</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<script>
+
+
+    let startDate = null;  // keep null until user selects
+    let endDate = null;
+
+    function cb(start, end) {
+        $('#reportrange').val(start.format('YYYY-MM-DD') + ' - ' + end.format('YYYY-MM-DD'));
+        startDate = start;
+        endDate = end;
+
+        // refresh charts automatically
+        loadAllCharts();
+    }
+
+    $(function () {
+        $('#dateFilterBtn').daterangepicker({
+            autoUpdateInput: false,
+            locale: { cancelLabel: 'Clear' },// keep input empty at first
+            opens: 'left',
+            drops: 'down',     // show below button
+            parentEl: 'body',  // attach to body to avoid overflow
+            ranges: {
+                'Today': [moment(), moment()],
+                'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                'This Month': [moment().startOf('month'), moment().endOf('month')],
+                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+            }
+        }, cb);
+
+        //cb(startDate, endDate);
+        loadAllCharts();
+    });
+
+    // Clear date range on cancel
+    $('#dateFilterBtn').on('cancel.daterangepicker', function (ev, picker) {
+        startDate = null;
+        endDate = null;
+
+        // Reset the hidden input
+        $('#reportrange').val('');
+
+        // Reset button text to default
+        $(this).html('<i class="bi bi-calendar-date fs-3"></i>');
+
+        // Reload all charts without filters
+        loadAllCharts();
+    });
+
+
+
+
+    function getFilterParams() {
+        return {
+            fromDate: startDate ? startDate.format("YYYY-MM-DD") : "", // empty = no filter
+            toDate: endDate ? endDate.format("YYYY-MM-DD") : ""
+        };
+    }
+
+
+    // Helper for export validation
+    function exportWithValidation(type) {
+        return function (e, dt, button, config) {
+            let selected = dt.$('.row-select:checked', { page: 'all' }).length;
+            if (!selected) {
+                showToast("⚠ Please select at least one row before exporting.");
+                return;
+            }
+            $.fn.dataTable.ext.buttons[type].action.call(this, e, dt, button, config);
+        };
+    }
+
+    // Inventory Modal Table Init
+    function openModalWithData(chartType, filterValue) {
+        let modal = new bootstrap.Modal(document.getElementById('chartModal'));
+
+        // Map headings for dynamic title
+        let headingMap = {
+            "InventoryStocks": "Inventory Stocks",
+            "InventoryBreakdown": "Inventory Breakdown",
+            "IssueHouse": "Issue in House"
+        };
+
+        // Set dynamic modal heading
+        $("#chartModalLabel").text(headingMap[chartType] || "Details");
+
+        modal.show();
+
+        // Map chartType to API URLs
+        let urlMap = {
+            "InventoryStocks": "/Inventory/GetInventoryStockDetailsHSB",
+            "InventoryBreakdown": "/Inventory/GetCategoryDetailsHSB",
+            "IssueHouse": "/Inventory/getIssueInHouseDetailsHSB"
+        };
+        let url = urlMap[chartType] || "";
+
+        // Destroy old DataTable
+        if ($.fn.DataTable.isDataTable('#chartDataTable')) {
+            $('#chartDataTable').DataTable().clear().destroy();
+            $('#chartDataTable thead').empty();
+        }
+
+        // Filters
+        let filterParams = getFilterParams();
+        let params = {
+            filter: filterValue,
+            fromDate: filterParams.fromDate,
+            toDate: filterParams.toDate,
+            category: filterParams.category || ""
+        };
+
+        // Common Columns
+        let columns = [
+            {
+                data: null,
+                orderable: false,
+                className: "select-checkbox",
+                title: `<input type="checkbox" id="selectAll">`,
+                render: (data, type, row) =>
+                    `<input type="checkbox" class="row-select" value="${row.ItemCode || row.GRNCode}">`
+            },
+            {
+                data: null,
+                title: "SR.NO",
+                orderable: false,
+                render: (data, type, row, meta) => meta.row + 1
+            }
+        ];
+
+
+        // Dynamic columns per chart
+        if (chartType === "InventoryStocks") {
+            columns.push(
+                { data: "ItemName", title: "Item Name" },
+                { data: "ItemCode", title: "Item Code" },
+                { data: "ItemsCounts", title: "Items Count" },
+                { data: "ReorderQuantity", title: "Reorder Count" },
+                { data: "BinCode", title: "Bins" }
+            );
+        } else if (chartType === "InventoryBreakdown") {
+            columns.push(
+                { data: "ItemName", title: "Item Name" },
+                { data: "ItemCode", title: "Item Code" },
+                { data: "QuantityStored", title: "Quantity" },
+                { data: "CreatedDate", title: "Receive Date" }
+            );
+        }  else if (chartType === "IssueHouse") {
+            columns.push(
+                { data: "ItemName", title: "Item Name" },
+                //{ data: "BinCode", title: "Bin" },
+                { data: "ItemsCounts", title: "Quantity" },
+                { data: "AddedDate", title: "Issue Date" }
+            );
+        }
+
+        //  Init Inventory Table
+        let exportRowIndex = 0;
+
+        let table = $('#chartDataTable').DataTable({
+            dom: '<"d-flex justify-content-between align-items-center mb-2"Bf>rt<"d-flex justify-content-between align-items-center mt-2"ip>',
+            responsive: true,
+            columnDefs: [
+                { targets: "_all", className: "text-center" } // center all columns
+            ],
+            ajax: {
+                url: url,
+                type: "GET",
+                data: params,
+                dataSrc: function (json) {
+                    if (filterValue === "TotalStock") return json.TotalStock || [];
+                    if (filterValue === "LowStock") return json.LowStock || [];
+                    if (filterValue === "MostStock") return json.MostStock || [];
+                    if (filterValue === "FinishedGoods") return json.FinishedGoods || [];
+                    if (filterValue === "SemiFinishedGoods") return json.SemiFinishedGoods || [];
+                    if (filterValue === "RawMaterial") return json.RawMaterial || [];
+                    if (filterValue === "DeadStock") return json.DeadStock || [];
+
+                    if (chartType === "IssueHouse") return json.IssueHouse || json || [];
+
+                    return json || [];
+                }
+            },
+            columns: columns,
+            buttons: [
+                // PRINT
+                {
+                    extend: 'print',
+                    text: '<i class="bi bi-printer-fill text-dark fs-5"></i>',
+                    title: '',
+                    exportOptions: {
+                        rows: function (idx, data, node) {
+                            return $(node).find('.row-select').prop('checked');
+                        },
+                        columns: [1, 2, 3, 4, 5],
+                        format: {
+                            body: function (data, row, column, node) {
+                                if (column === 1) return ++exportRowIndex;
+                                return data;
+                            }
+                        }
+                    },
+                    action: function (e, dt, button, config) {
+                        let selected = dt.$('.row-select:checked', { page: 'all' }).length;
+                        if (!selected) {
+                            showExportToast(); 
+                            return;
+                        }
+                        exportRowIndex = 0;
+                        $.fn.dataTable.ext.buttons.print.action.call(this, e, dt, button, config);
+                    },
+                    customize: function (win) {
+                        $(win.document.body).css({
+                            'font-size': '12px',
+                            'font-family': 'Arial, sans-serif'
+                        });
+                        $(win.document.body).prepend(
+                            `<h3 style="text-align:center;">Inventory Report</h3>
+       <p style="text-align:center;">Generated on: ${moment().format("YYYY-MM-DD")}</p>`
+                        );
+                        $(win.document.body).find('table')
+                            .addClass('compact')
+                            .css({
+                                'font-size': '12px',
+                                'border': '1px solid black',
+                                'width': '100%',
+                                'border-collapse': 'collapse'
+                            });
+                        $(win.document.body).find('thead').css({
+                            'background-color': '#343a40',
+                            'color': 'white'
+                        });
+                        $(win.document.body).find('table td, table th').css({
+                            'text-align': 'center',
+                            'padding': '4px'
+                        });
+                    }
+                },
+
+                // PDF
+                {
+                    extend: 'pdf',
+                    text: '<i class="bi bi-file-earmark-pdf text-danger fs-5"></i>',
+                    title: 'Inventory Report',
+                    exportOptions: {
+                        rows: function (idx, data, node) {
+                            return $(node).find('.row-select').prop('checked');
+                        },
+                        columns: [1, 2, 3, 4, 5],
+                        format: {
+                            body: function (data, row, column, node) {
+                                if (column === 1) return ++exportRowIndex;
+                                return data;
+                            }
+                        }
+                    },
+                    action: function (e, dt, button, config) {
+                        let selected = dt.$('.row-select:checked', { page: 'all' }).length;
+                        if (!selected) {
+                            showExportToast(); 
+                            return;
+                        }
+                        exportRowIndex = 0;
+                        $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, button, config);
+                    },
+                    customize: function (doc) {
+                        doc.pageMargins = [40, 60, 40, 40];
+                        doc.styles.title = {
+                            fontSize: 16,
+                            bold: true,
+                            alignment: 'center',
+                            margin: [0, 0, 0, 15]
+                        };
+                        doc.content.splice(1, 0, {
+                            text: `Generated on: ${moment().format("YYYY-MM-DD")}`,
+                            alignment: 'center',
+                            margin: [0, 0, 0, 10],
+                            fontSize: 10,
+                            italics: true
+                        });
+
+                        var tableNode = doc.content.find(n => n.table);
+                        if (tableNode) {
+                            tableNode.table.widths = [50, 120, 120, 100, 100];
+                            tableNode.layout = {
+                                fillColor: rowIndex => rowIndex === 0 ? '#343a40' : null,
+                                hLineColor: () => '#ccc',
+                                vLineColor: () => '#ccc',
+                                hLineWidth: () => 0.5,
+                                vLineWidth: () => 0.5
+                            };
+                            tableNode.table.body[0].forEach(cell => {
+                                cell.color = 'white';
+                                cell.alignment = 'center';
+                                cell.bold = true;
+                                cell.fontSize = 11;
+                            });
+                            tableNode.table.body.slice(1).forEach((row, idx) => {
+                                row.forEach(cell => {
+                                    cell.fontSize = 10;
+                                    cell.margin = [5, 3, 5, 3];
+                                    cell.alignment = 'center';
+                                });
+                                if (idx % 2 === 0) {
+                                    row.forEach(cell => { cell.fillColor = '#f9f9f9'; });
+                                }
+                            });
+                        }
+                    }
+                },
+                // EXCEL
+                {
+                    extend: 'excel',
+                    text: '<i class="bi bi-file-earmark-excel text-success fs-5"></i>',
+                    title: `Inventory_Report_${moment().format("YYYY-MM-DD")}`,
+                    exportOptions: {
+                        rows: function (idx, data, node) {
+                            return $(node).find('.row-select').prop('checked');
+                        },
+                        columns: [1, 2, 3, 4, 5],
+                        format: {
+                            body: function (data, row, column, node) {
+                                if (column === 1) return ++exportRowIndex;
+                                return data;
+                            }
+                        }
+                    },
+                    action: function (e, dt, button, config) {
+                        let selected = dt.$('.row-select:checked', { page: 'all' }).length;
+                        if (!selected) {
+                            showExportToast(); 
+                            return;
+                        }
+                        exportRowIndex = 0;
+                        $.fn.dataTable.ext.buttons.excelHtml5.action.call(this, e, dt, button, config);
+                    }
+                },
+                // CSV
+                {
+                    extend: 'csv',
+                    text: '<i class="bi bi-filetype-csv text-success fs-5"></i>',
+                    title: `Inventory_Report_${moment().format("YYYY-MM-DD")}`,
+                    exportOptions: {
+                        rows: function (idx, data, node) {
+                            return $(node).find('.row-select').prop('checked');
+                        },
+                        columns: [1, 2, 3, 4, 5],
+                        format: {
+                            body: function (data, row, column, node) {
+                                if (column === 1) return ++exportRowIndex;
+                                return data;
+                            }
+                        }
+                    },
+                    action: function (e, dt, button, config) {
+                        // validation: any selected rows?
+                        let selected = dt.$('.row-select:checked', { page: 'all' }).length;
+                        if (!selected) {
+                            showExportToast(); 
+                            return;
+                        }
+                        exportRowIndex = 0; // reset counter
+                        $.fn.dataTable.ext.buttons.csvHtml5.action.call(this, e, dt, button, config);
+                    }
+                },
+
+            ]
+        });
+
+        // Configure toastr once
+        toastr.options = {
+            closeButton: true,
+            progressBar: true,
+            preventDuplicates: true,
+            newestOnTop: true,
+            positionClass: "toast-top-right",
+            timeOut: "3000" // 3 seconds
+        };
+
+        // Helper function for warning toast
+        function showExportToast() {
+            toastr.warning("Please select at least one row before exporting.");
+        }
+
+
+        //  Apply header background
+        $('#chartDataTable thead').addClass("table-dark text-white");
+
+        // Select All handler
+        $('#chartDataTable thead').off('change', '#selectAll').on('change', '#selectAll', function () {
+            let isChecked = $(this).is(':checked');
+            $('#chartDataTable .row-select').prop('checked', isChecked);
+        });
+    }
+
+
+    Highcharts.setOptions({
+        chart: {
+            animation: { duration: 1200, easing: 'easeOutBounce' }
+        },
+        plotOptions: {
+            series: {
+                animation: { duration: 1200, easing: 'easeOutBounce' },
+                dataLabels: {
+                    enabled: true,
+                    style: { fontWeight: 'bold', fontSize: '13px' }
+                }
+            }
+        }
+    });
+
+    // Inventory Stocks - Column Chart
+    const inventoryChart = Highcharts.chart('inventoryStocks', {
+        chart: { type: 'column', backgroundColor: 'transparent' },
+        credits: { enabled: false },
+        title: { text: '' },
+        xAxis: { categories: ['Total Item', 'Low In Stock', 'Most In Stock'] },
+        yAxis: { min: 0, title: { text: 'Count' } },
+        plotOptions: {
+            column: {
+                borderRadius: 8,
+                pointPadding: 0.2,
+                groupPadding: 0.1,
+                cursor: 'pointer',
+                point: {
+                    events: {
+                        click: function () {
+                            let filterValue = "";
+                            if (this.category === "Total Item") filterValue = "TotalStock";
+                            if (this.category === "Low In Stock") filterValue = "LowStock";
+                            if (this.category === "Most In Stock") filterValue = "MostStock";
+                            openModalWithData("InventoryStocks", filterValue);
+                        }
+                    }
+                }
+            }
+        },
+        tooltip: {
+            backgroundColor: '#fff', borderColor: '#ddd', borderRadius: 8, shadow: true,
+            style: { color: '#333', fontSize: '13px' },
+            formatter: function () { return `<b>${this.x}</b><br/>Count: <span style="color:${this.color}">${this.y}</span>`; }
+        },
+        series: [{
+            name: 'Items',
+            data: [0, 0, 0],
+            colorByPoint: true,
+            colors: [
+                { linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 }, stops: [[0, '#42a5f5'], [1, '#1e88e5']] },
+                { linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 }, stops: [[0, '#ffb74d'], [1, '#f57c00']] },
+                { linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 }, stops: [[0, '#81c784'], [1, '#388e3c']] }
+            ]
+        }]
+    });
+
+    // Inventory Breakdown - Doughnut Pie
+    const inventoryBreakdownChart = Highcharts.chart('inventoryBreakdown', {
+        chart: { type: 'pie', backgroundColor: 'transparent' },
+        credits: { enabled: false },
+        title: { text: '' },
+        plotOptions: {
+            pie: {
+                cursor: 'pointer',
+                innerSize: '50%',
+                dataLabels: { enabled: true, format: '{point.name}: {point.y}' },
+                point: {
+                    events: {
+                        click: function () {
+                            let filterValue = "";
+                            if (this.name === "Finished Goods") filterValue = "FinishedGoods";
+                            if (this.name === "SemiFinished Goods") filterValue = "SemiFinishedGoods";
+                            if (this.name === "Raw Material") filterValue = "RawMaterial";
+                            if (this.name === "Dead Stock") filterValue = "DeadStock";
+                            openModalWithData("InventoryBreakdown", filterValue);
+                        }
+                    }
+                }
+            }
+        },
+        tooltip: {
+            backgroundColor: '#fff', borderColor: '#ddd', borderRadius: 8, shadow: true,
+            style: { color: '#333', fontSize: '13px' },
+            pointFormat: '{point.name}: <b>{point.y}</b>'
+        },
+        series: [{
+            name: 'Count',
+            innerSize: '50%',
+            data: [
+                { name: 'Finished Goods', y: 0, color: { linearGradient: [0, 0, 0, 150], stops: [[0, '#66bb6a'], [1, '#388e3c']] } },
+                { name: 'SemiFinished Goods', y: 0, color: { linearGradient: [0, 0, 0, 150], stops: [[0, '#44bb6a'], [1, '#388e3c']] } },
+                { name: 'Raw Material', y: 0, color: { linearGradient: [0, 0, 0, 150], stops: [[0, '#ffa726'], [1, '#fb8c00']] } },
+                { name: 'Dead Stock', y: 0, color: { linearGradient: [0, 0, 0, 150], stops: [[0, '#ef5350'], [1, '#c62828']] } }
+            ]
+        }]
+    });
+
+    // Issue in House - Line Chart
+    const issueHouseChart = Highcharts.chart('issueHouse', {
+        chart: { type: 'line', backgroundColor: 'transparent' },
+        credits: { enabled: false },
+        title: { text: '' },
+        xAxis: { categories: [] },
+        yAxis: { title: { text: 'Issues' } },
+        plotOptions: {
+            series: {
+                cursor: 'pointer',
+                point: {
+                    events: {
+                        click: function () {
+                            // Send the clicked month as filter but fetch all months data
+                            openModalWithData("IssueHouse", null, this.category);
+                        }
+                    }
+                }
+            }
+        },
+        tooltip: {
+            backgroundColor: '#fff', borderColor: '#ddd', borderRadius: 8, shadow: true,
+            style: { color: '#333', fontSize: '13px' },
+            pointFormat: '<b>{point.y}</b> Issues'
+        },
+        series: [{ name: 'IssuesMonth', data: [], color: '#ab47bc' }]
+    });
+
+
+   
+
+
+
+
+    // Backend Data Injection
+    function loadInventoryStocks() {
+        $.get("/Inventory/GetInventoryStockHSB", getFilterParams(), function (data) {
+            $("#TotalCount").text(data.TotalCount);
+            $("#LowCount").text(data.LowInStocks);
+            $("#MostInStocks").text(data.MostInStocks);
+            inventoryChart.series[0].setData([data.TotalCount, data.LowInStocks, data.MostInStocks]);
+        });
+    }
+
+    function loadInventoryBreakdown() {
+        $.get("/Inventory/GetItemsCategoryHSB", getFilterParams(), function (data) {
+            inventoryBreakdownChart.series[0].setData([
+                { name: 'Finished Goods', y: data.FinishedGoods, color: '#66bb6a' },
+                { name: 'SemiFinished Goods', y: data.SemiFinishedGoods, color: '#44bb6a' },
+                { name: 'Raw Material', y: data.RawMaterial, color: '#ffa726' },
+                { name: 'Dead Stock', y: data.DeadStock, color: '#ef5350' }
+            ]);
+        });
+    }
+
+   
+
+
+
+    function loadIssueHouse() {
+        $.get("/Inventory/GetIssueInHouseHSB", getFilterParams(), function (data) {
+            let IssueMonth = data.map(item => item.IssueMonth);
+            let Issue = data.map(item => item.Issue);
+            issueHouseChart.xAxis[0].setCategories(IssueMonth);
+            issueHouseChart.series[0].setData(Issue);
+        });
+    }
+
+    function loadAllCharts() {
+        loadInventoryStocks();
+        loadInventoryBreakdown();
+        loadIssueHouse();
+    }
+
+
+
+    $(document).ready(function () {
+        loadAllCharts();
+    });
+
+    $(document).ready(function () {
+        // Make floating button draggable
+        $("#dateFilterBtn").draggable({
+            containment: "window", // restrict movement inside the window
+            scroll: false
+        });
+    });
+
+    //Toaster show
+
+    function showToast(message, type = "danger") {
+        let toastId = "toast-" + Date.now();
+        let bgClass = (type === "success") ? "bg-success" :
+            (type === "info") ? "bg-info" : "bg-warning";
+
+        let toastHtml = `
+    <div id="${toastId}" class="toast align-items-center text-white ${bgClass} border-0"
+         role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="d-flex">
+        <div class="toast-body">${message}</div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+    </div>`;
+        $("#toastContainer").append(toastHtml);
+        let toastEl = new bootstrap.Toast(document.getElementById(toastId), { delay: 3000 });
+        toastEl.show();
+    }
+
+
+    $.get("/Inventory/getTotalBinHSB", function (data) {
+
+        var bin = $("#Bins");
+        var Rack = $("#Rack");
+        var WareHouse = $("#WareHouse");
+
+        bin.text(data.Bin);
+        Rack.text(data.Rack);
+        WareHouse.text(data.WareHouse);
+
+    });
+
+
+
+
+</script>
+
+
+

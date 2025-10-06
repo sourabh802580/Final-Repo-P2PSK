@@ -1,0 +1,37 @@
+﻿
+
+<!-- Small Tabs -->
+<ul class="nav nav-pills ps-3 m-3" id="inventoryTabs" role="tablist">
+    <li class="nav-item">
+        <button class="nav-link active small-tab" data-bs-toggle="tab" data-bs-target="#itemmaster" type="button">
+            Item Master
+        </button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link small-tab" data-bs-toggle="tab" data-bs-target="#itemcategory" type="button">
+            Item Category
+        </button>
+    </li>
+</ul>
+
+<!-- Tab Content -->
+<div class="tab-content ">
+    <div class="tab-pane fade show active" id="itemmaster" role="tabpanel">
+        @Html.Partial("_ItemMasterOJ")
+    </div>
+
+    <div class="tab-pane fade" id="itemcategory" role="tabpanel">
+        @Html.Partial("_CategoryListSSG")
+    </div>
+</div>
+
+<style>
+    .nav-pills ~ .tab-content {
+        border: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+    }
+    .content-wrapper {
+        justify-content: start !important;
+    }
+</style>

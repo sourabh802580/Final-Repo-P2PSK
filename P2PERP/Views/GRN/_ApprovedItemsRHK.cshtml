@@ -1,0 +1,50 @@
+﻿@model IEnumerable<P2PLibray.GRN.GRN>
+
+<div class="table-responsive">
+    <table class="table table-striped table-bordered" id="ListTable">
+        <thead class="table-dark">
+            <tr>
+                <th><input type="checkbox" id="selectAll"></th>
+                <th>Sr.No.</th>
+                <th>QC Code</th>
+                <th>GRN Code</th>
+                <th>Item Name</th>
+                <th>Quantity</th>
+
+                <th>Checked By</th>
+                <th>Date</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model != null && Model.Any())
+                        {
+                            var i = 1;
+                            foreach (var item in Model)
+                            {
+                                var statusClass = item.Status == "Confirmed" ? "badge bg-success" : "badge bg-danger";
+                    <tr>
+
+                        <td><input type="checkbox" class="row-select" value="@i"></td>
+                        <td>@i</td>
+                        <td>@item.QualityCheckCode</td>
+                        <td>@item.GRNCode</td>
+                        <td>@item.ItemName</td>
+                        <td>@item.Quantity</td>
+
+                        <td>@item.AddedBy</td>
+                        <td>@(item.AddedDate.HasValue? item.AddedDate.Value.ToString("dd'/'MM'/'yyyy", System.Globalization.CultureInfo.InvariantCulture): "")</td>
+                        <td><span class="@statusClass">@item.Status</span></td>
+                    </tr>
+                    i++;
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="7" class="text-center">No items found.</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

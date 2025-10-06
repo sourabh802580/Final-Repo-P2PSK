@@ -1,0 +1,496 @@
+﻿
+
+<style>
+
+    #reqTable th,
+    #reqTable td {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    #reqTable1 th,
+    #reqTable1 td {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+ 
+</style>
+
+<div class="container-fluid py-4 main-content">
+
+    <div class="card mt-3">
+        <div class="card-body">
+
+            <div class="text-center mb-3">
+                <h3 class="text-primary fw-bold">  Requirement Master</h3>
+            </div>
+
+
+        
+
+            <div class="table-responsive">
+
+                <!-- 🔹 Header Row inside Card -->
+                <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
+                    <div class="input-group" style="height: 40px; max-width: 280px;">
+                        <span class="input-group-text bg-primary text-white" style="height: 100%;">
+                            <i class="bi bi-calendar-date"></i>
+                        </span>
+                        <input type="text" id="reportrange" class="form-control" placeholder="Select date range" readonly style="height: 100%;" />
+                    </div>
+                    <!-- Right: Date Range Picker + Export -->
+                    <div class="d-flex align-items-center gap-3 ms-auto">
+                        <!-- Export Buttons -->
+                        <div id="exportContainer" class="d-flex" style="height: 40px; align-items: center;">
+                            <!-- DataTable export buttons will be injected here -->
+                        </div>
+                    </div>
+                </div>
+
+                <table id="reqTable" class="table table-striped table-bordered">
+                    <thead class="table-dark">
+                        <tr>
+                            <th><input type="checkbox" id="selectAll"></th>
+                            <th>Sr. No.</th>
+                            <th>Stock RequirementId</th>
+                            <th>Added Date</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tblRecent"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🔹 Modal for Viewing -->
+
+
+    <div class="modal fade" id="viewPlanModal" data-bs-backdrop="true" tabindex="-1" aria-labelledby="viewPlanModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white position-relative">
+                    <div class="w-100 text-center">
+                        <h5 class="modal-title text-white fw-bold mb-0" id="viewPlanModalLabel">Requirement Details</h5>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white position-absolute end-0 me-3" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="viewPlanContent">
+
+                    <!--
+                      Modal content area - dynamically loaded with partial views
+                      Shows detailed information when KPI cards or chart segments are clicked
+                    -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let tableStartDate = null; // Start date for table filtering
+    let tableEndDate = null;   // End date for table filtering
+    let dataTable; // Declare dataTable variable globally
+
+    $(document).ready(function () {
+
+
+        // Handle View button click → load modal partial
+        $(document).off('click', '.btn-view-plan').on('click', '.btn-view-plan', function () {
+            let id = $(this).data("id");
+
+            $("#viewPlanContent").html(`
+                <div class="text-center my-5">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="mt-2">Loading...</p>
+                </div>`);
+
+            $.get("/Inventory/ReqMasterViewPartialRHK", { id: id }, function (html) {
+                $("#viewPlanContent").html(html);
+                $("#viewPlanModal").modal("show");
+            }).fail(function () {
+                $("#viewPlanContent").html(`<div class="text-danger">❌ Failed to load plan details.</div>`);
+            });
+        });
+
+
+
+        // Load data and initialize table
+        loadTableData();
+
+        // ✅ Configure toastr once
+        toastr.options = {
+            closeButton: true,
+            progressBar: true,
+            newestOnTop: true,
+            positionClass: "toast-top-right",
+            preventDuplicates: true,
+            timeOut: 3000,
+            extendedTimeOut: 1000,
+            showDuration: 300,
+            hideDuration: 300,
+            showMethod: "slideDown",
+            hideMethod: "fadeOut"
+        };
+    });
+
+    function loadTableData() {
+        $.ajax({
+            url: "/Inventory/ReqMasterListRHK",
+            type: "GET",
+            success: function (response) {
+                console.log(response);
+
+                // Destroy existing DataTable if already initialized
+                if ($.fn.DataTable.isDataTable("#reqTable")) {
+                    $('#reqTable').DataTable().clear().destroy();
+                }
+
+
+                // Populate table rows
+                $('#tblRecent').empty();
+
+                if (response?.data?.length > 0) {
+                    let i = 1;
+                    response.data.forEach(item => {
+                        // Fix: Determine status class based on d.Status
+                        let statusClass = item.Status == "Approved" ? "badge bg-success" : "badge bg-danger";
+
+                        $('#tblRecent').append(`
+                            <tr>
+                                <td><input type="checkbox" class="row-select" value="${item.StockRequirementId}"></td>
+                                <td>${i++}</td>
+                                <td>${item.StockRequirementId}</td>
+                                <td>${moment(item.AddedDate).format('DD/MM/YYYY')}</td>
+                               <td><span class="${statusClass}">${item.Status || 'N/A'}</span></td>
+                                <td>
+                                <button class="btn btn-sm btn-primary btn-view-plan"
+                                 data-id="${item.StockRequirementId}"
+                                 data-bs-toggle="tooltip"
+                                 data-bs-placement="top"
+                                 title="View">
+                                <i class="bi bi-eye-fill"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        `);
+
+                        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+                        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                            return new bootstrap.Tooltip(tooltipTriggerEl)
+                        })
+                    });
+                } else {
+                    $('#tblRecent').html(`<tr><td colspan="6" class="text-center text-muted">No stock plans found</td></tr>`);
+                }
+
+                // Initialize DataTable
+                initDataTable();
+
+                // Initialize date range picker after table is created
+                initDateRangePicker();
+            },
+            error: function (xhr, status, error) {
+                console.error("Error loading table data:", error);
+                $('#tblRecent').html(`<tr><td colspan="6" class="text-center text-danger">Error loading data</td></tr>`);
+            }
+        });
+    }
+
+    function initDataTable() {
+        dataTable = $('#reqTable').DataTable({
+            pageLength: 10,
+            paging: true,
+            ordering:false,
+            searching: true,
+            dom: '<"d-flex justify-content-between align-items-center mt-1 mb-2"Bf>rt<"d-flex justify-content-between mt-2"<"datatable-info"i><"datatable-pagination"p>>',
+            buttons: [
+                // 🔹 Print
+                {
+                    extend: 'print',
+                    text: '<i class="bi bi-printer-fill text-dark fs-5"></i>',
+                    className: 'btn btn-sm btn-outline-dark',
+                    title: 'Requirement Master',
+                    messageTop: function () {
+                        return '<h3 style="text-align:center">Generated Date: ' +
+                            new Date().toLocaleDateString('en-GB') + '</h3>';
+                    },
+                    action: function (e, dt, button, config) {
+                        if ($('#reqTable tbody input.row-select:checked').length === 0) {
+                            showExportToast();
+                            return;
+                        }
+                        $.fn.dataTable.ext.buttons.print.action.call(this, e, dt, button, config);
+                    },
+                    exportOptions: {
+                        rows: function (idx, data, node) {
+                            return $(node).find('.row-select').prop('checked');
+                        },
+                        columns: ':visible:not(:first-child):not(:last-child)',
+                        format: {
+                            body: function (data, row, column, node) {
+                                if (column === 1)
+                                    return $('#reqTable tbody input.row-select:checked')
+                                        .index($(node).closest('tr').find('.row-select')) + 1;
+
+                                return typeof data === 'string'
+                                    ? data.replace(/<[^>]*>/g, '').trim()
+                                    : data;
+
+                            }
+                        }
+                    },
+                    customize: function (win) {
+                        var $body = $(win.document.body);
+
+                        $body.append(`
+        <style>
+            thead th {
+                background-color: black !important;
+                color: white !important;
+                text-align: center !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            table {
+                border-collapse: collapse !important;
+                width: 100% !important;
+            }
+            td, th {
+                border: 1px solid #000 !important;
+                padding: 6px !important;
+                 text-align: center !important;
+            }
+        </style>
+`);
+
+                        $body.find('h1').css('text-align', 'center');
+
+
+
+                        $body.find('table')
+                            .addClass('table table-bordered table-striped')
+                            .css('width', '100%');
+
+                        $body.css('font-size', '12pt');
+                    }
+                },
+                // 🔹 PDF
+                {
+                    extend: 'pdfHtml5',
+                    text: '<i class="bi bi-file-earmark-pdf text-danger fs-5"></i>',
+                    className: 'btn btn-sm btn-outline-danger',
+                    title: "Requirement Master",
+                    orientation: 'landscape',
+                    pagesize: 'A4',
+                    customize: function (doc) {
+
+                        doc.content.splice(1, 0, {
+                            text: 'Generated Date: ' + new Date().toLocaleDateString('en-GB'),
+                            alignment: 'center',
+                            margin: [0, 0, 0, 12]
+                        });
+
+                        // Center table
+                        var table = doc.content[doc.content.length - 1].table;
+                        table.widths = new Array(table.body[0].length).fill('*'); // equal widths
+                        doc.content[doc.content.length - 1].alignment = 'center'; // ✅ Center table
+
+
+                        doc.styles.tableHeader = { fillColor: '#000000', color: 'white', alignment: 'center' };
+
+                        var objLayout = {};
+                        objLayout['hLineWidth'] = function () { return 1; };
+                        objLayout['vLineWidth'] = function () { return 1; };
+                        objLayout['hLineColor'] = function () { return '#000'; };
+                        objLayout['vLineColor'] = function () { return '#000'; };
+                        objLayout['paddingLeft'] = function () { return 4; };
+                        objLayout['paddingRight'] = function () { return 4; };
+                        doc.content[doc.content.length - 1].layout = objLayout;
+
+                        var tableBody = doc.content[doc.content.length - 1].table.body;
+                        tableBody.forEach(function (row) {
+                            row.forEach(function (cell) {
+                                cell.alignment = 'center';
+                            });
+                        });
+                    },
+                    action: function (e, dt, button, config) {
+                        if ($('#reqTable tbody input.row-select:checked').length === 0) {
+                            showExportToast();
+                            return;
+                        }
+                        $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, button, config);
+                    },
+                    exportOptions: {
+                        rows: function (idx, data, node) {
+                            return $(node).find('.row-select').prop('checked');
+                        },
+                        columns: ':visible:not(:first-child):not(:last-child)',
+                        format: {
+                            body: function (data, row, column, node) {
+                                if (column === 1)
+                                    return $('#reqTable tbody input.row-select:checked')
+                                        .index($(node).closest('tr').find('.row-select')) + 1;
+                                return typeof data === 'string'
+                                    ? data.replace(/<[^>]*>/g, '').trim()
+                                    : data;
+                            }
+                        }
+                    }
+                },
+                // 🔹 Excel
+                {
+                    extend: 'excelHtml5',
+                    text: '<i class="bi bi-file-earmark-excel text-success fs-5"></i>',
+                    className: 'btn btn-sm btn-outline-success',
+                    title: "Requirement Master",
+                    action: function (e, dt, button, config) {
+                        if ($('#reqTable tbody input.row-select:checked').length === 0) {
+                            showExportToast();
+                            return;
+                        }
+                        $.fn.dataTable.ext.buttons.excelHtml5.action.call(this, e, dt, button, config);
+                    },
+                    exportOptions: {
+                        rows: function (idx, data, node) {
+                            return $(node).find('.row-select').prop('checked');
+                        },
+                        columns: ':visible:not(:first-child):not(:last-child)',
+                        format: {
+                            body: function (data, row, column, node) {
+                                if (column === 1)
+                                    return $('#reqTable tbody input.row-select:checked')
+                                        .index($(node).closest('tr').find('.row-select')) + 1;
+                                return typeof data === 'string'
+                                    ? data.replace(/<[^>]*>/g, '').trim()
+                                    : data;
+                            }
+                        }
+                    }
+                },
+                // 🔹 CSV
+                {
+                    extend: 'csvHtml5',
+                    text: '<i class="bi bi-filetype-csv text-primary fs-5"></i>',
+                    className: 'btn btn-sm btn-outline-primary',
+                    title: "Requirement Master",
+                    action: function (e, dt, button, config) {
+                        if ($('#reqTable tbody input.row-select:checked').length === 0) {
+                            showExportToast();
+                            return;
+                        }
+                        $.fn.dataTable.ext.buttons.csvHtml5.action.call(this, e, dt, button, config);
+                    },
+                    exportOptions: {
+                        rows: function (idx, data, node) {
+                            return $(node).find('.row-select').prop('checked');
+                        },
+                        columns: ':visible:not(:first-child):not(:last-child)',
+                        format: {
+                            body: function (data, row, column, node) {
+                                if (column === 1)
+                                    return $('#reqTable tbody input.row-select:checked')
+                                        .index($(node).closest('tr').find('.row-select')) + 1;
+                                return typeof data === 'string'
+                                    ? data.replace(/<[^>]*>/g, '').trim()
+                                    : data;
+                            }
+                        }
+                    }
+                }
+            ]
+        });
+
+        // --- SelectAll toggle ---
+        $('#selectAll').off('change').on('change', function () {
+            $('#reqTable tbody .row-select').prop('checked', $(this).prop('checked'));
+        });
+
+        // --- Update SelectAll state ---
+        $('#reqTable').off('change', '.row-select').on('change', '.row-select', function () {
+            let total = $('#reqTable tbody .row-select').length;
+            let checked = $('#reqTable tbody .row-select:checked').length;
+            $('#selectAll').prop('checked', total === checked);
+        });
+
+    }
+
+
+
+
+
+
+
+
+
+
+    function initDateRangePicker() {
+        $('#reportrange').daterangepicker({
+            autoUpdateInput: false,
+            locale: {
+                cancelLabel: 'Clear',
+                format: 'YYYY-MM-DD'
+            },
+            ranges: {
+                'Today': [moment(), moment()],
+                'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                'This Month': [moment().startOf('month'), moment().endOf('month')],
+                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+            }
+        });
+
+        // Apply date range when user selects
+        $('#reportrange').on('apply.daterangepicker', function (ev, picker) {
+            tableStartDate = picker.startDate;
+            tableEndDate = picker.endDate;
+            $(this).val(tableStartDate.format('YYYY-MM-DD') + ' - ' + tableEndDate.format('YYYY-MM-DD'));
+
+            // Filter the table based on date range
+            filterTableByDate();
+        });
+
+        // Clear date range on cancel
+        $('#reportrange').on('cancel.daterangepicker', function (ev, picker) {
+            tableStartDate = null;
+            tableEndDate = null;
+            $(this).val('');
+            dataTable.draw(); // Reset filtering
+        });
+    }
+
+    function filterTableByDate() {
+        if (tableStartDate && tableEndDate) {
+            // Custom filtering function for date range
+            $.fn.dataTable.ext.search.push(
+                function (settings, data, dataIndex) {
+                    var date = moment(data[3], 'YYYY-MM-DD'); // Assuming date is in 4th column (index 3)
+
+                    if ((tableStartDate === null && tableEndDate === null) ||
+                        (tableStartDate === null && date <= tableEndDate) ||
+                        (tableStartDate <= date && tableEndDate === null) ||
+                        (tableStartDate <= date && date <= tableEndDate)) {
+                        return true;
+                    }
+                    return false;
+                }
+            );
+        }
+
+        dataTable.draw();
+
+        // Remove the custom filter function after drawing
+        $.fn.dataTable.ext.search.pop();
+    }
+
+
+
+    // ✅ Helper function for warning toast
+    function showExportToast() {
+        toastr.warning("Please select at least one row before exporting.");
+    }
+</script>

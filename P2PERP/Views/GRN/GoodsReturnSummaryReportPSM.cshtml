@@ -1,0 +1,317 @@
+﻿@{
+    ViewBag.Title = "Goods Return Report";
+}
+
+<div class="container">
+    <div class="card shadow-lg border-0 rounded-4 p-4">
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
+            <div class="mb-2">
+                <div class="input-group" style="max-width: 280px;">
+                    <span class="input-group-text bg-primary text-white">
+                        <i class="bi bi-calendar-date"></i>
+                    </span>
+                    <input type="text" id="SecondreportrangePSM" class="form-control" readonly placeholder="Select Date" />
+                </div>
+            </div>
+            <div class="flex-grow-1 text-center">
+                <h4 class="text-primary fw-bold mb-0">
+                    <i class="bi bi-bar-chart-fill me-2"></i> Goods Return Report
+                </h4>
+            </div>
+            <div class="mb-2" style="width:280px;"></div>
+        </div>
+
+        <!-- Chart -->
+        <div class="position-relative border rounded-3 p-3 shadow-sm mb-4">
+            <div id="GoodsReturnChartsPSM" style="height:400px;"></div>
+        </div>
+
+        <!-- DataTable -->
+        <h5 class="text-primary fw-bold text-center mb-3">Goods Return Detailed Records</h5>
+        <div class="table-responsive">
+            <table id="GoodsReturntablePSM" class="table table-striped table-bordered w-100">
+                <thead class="table-dark">
+                    <tr>
+                        <th><input type="checkbox" id="selectAll" /></th>
+                        <th>S.No</th>
+                        <th>Goods Return Code</th>
+                        <th>Transporter Name</th>
+                        <th>Transport Contact No</th>
+                        <th>Vehicle No</th>
+                        <th>Vehicle Type</th>
+                        <th>Reason</th>
+                        <th>Added Date</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+let table;
+let selectedStatus = null; // store clicked status filter
+
+// -------------------- Toastr Options --------------------
+toastr.options = {
+    closeButton: true,
+    progressBar: true,
+    newestOnTop: true,
+    positionClass: "toast-top-right",
+    preventDuplicates: true,
+    timeOut: 3000
+};
+
+// -------------------- Date Range Picker --------------------
+    $('#SecondreportrangePSM').daterangepicker({
+        autoUpdateInput: false,
+        opens: 'right',
+        drops: 'down',
+        locale: { cancelLabel: 'Clear' },
+        ranges: {
+            'Today': [moment(), moment()],
+            'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+            'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+            'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+            'This Month': [moment().startOf('month'), moment().endOf('month')],
+            'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+        }
+    }, function (start, end) {
+        $('#SecondreportrangePSM').val(start.format('YYYY-MM-DD') + ' - ' + end.format('YYYY-MM-DD'));
+        $(document).trigger('dateRangeChanged', [start.format('YYYY-MM-DD'), end.format('YYYY-MM-DD')]);
+    });
+    $('#SecondreportrangePSM').on('cancel.daterangepicker', function (ev, picker) {
+        $(this).val('');
+        $(document).trigger('dateRangeChanged', ['', '']); 
+    });
+// -------------------- Highcharts --------------------
+async function loadChart(fromDate, toDate) {
+    let url = '@Url.Action("GoodsReturnChartsPSM", "GRN")';
+    if (fromDate && toDate) url += `?fromDate=${fromDate}&toDate=${toDate}`;
+
+    const res = await fetch(url);
+    const data = await res.json();
+
+    const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+    const assignData = new Array(7).fill(0);
+    const dispatchData = new Array(7).fill(0);
+
+    if (Array.isArray(data)) {
+        data.forEach(d => {
+            const idx = days.indexOf(d.DayName);
+            if (idx !== -1) {
+                if (d.StatusName === "Assign") assignData[idx] += d.Count;
+                if (d.StatusName === "Dispatch") dispatchData[idx] += d.Count;
+            }
+        });
+    }
+    const totalCount = assignData.reduce((a, b) => a + b, 0) + dispatchData.reduce((a, b) => a + b, 0);
+    if (totalCount === 0) {
+        document.getElementById("GoodsReturnChartsPSM").innerHTML =
+            "<div class='text-center fw-bold text-muted p-4'>No Data Available</div>";
+        return;
+    }
+    Highcharts.chart('GoodsReturnChartsPSM', {
+        chart: { type: 'column', height: 400 },
+        title: { text: '' },
+        xAxis: { categories: days, title: { text: 'Day of Week' } },
+        yAxis: { min: 0, title: { text: 'Count' } },
+        tooltip: { shared: true },
+        plotOptions: {
+            series: {
+                cursor: 'pointer',
+                point: {
+                    events: {
+                        click: function () {
+                            selectedStatus = this.series.name;
+                            initTable(fromDate, toDate);
+                        }
+                    }
+                }
+            }
+        },
+        series: [
+            { name: 'Assign', data: assignData, color: '#36A2EB' },
+            { name: 'Dispatch', data: dispatchData, color: '#FF6384' }
+        ],
+        credits: { enabled: false }
+    });
+}
+    // -------------------- Export Helpers --------------------
+    function getSelectedData() {
+        let selected = [];
+        table.rows().every(function () {
+            let node = this.node();
+            if ($(node).find('.rowCheckbox').prop('checked')) {
+                selected.push(this.data());
+            }
+        });
+        return selected;
+    }
+
+    function makeExportButton(type, text) {
+        return {
+            extend: type,
+            text: text,
+            exportOptions: { columns: ':visible:not(:first-child)' },
+            action: function (e, dt, button, config) {
+                let selected = getSelectedData();
+                if (selected.length === 0) {
+                    toastr.warning("Please select at least one row to export.");
+                    return;
+                }
+
+                // PDF
+                if (type === 'pdfHtml5') {
+                    config.customize = function (doc) {
+                        let datetime = moment().format("DD/MM/YYYY HH:mm");
+
+                        let header = [
+                            { text: "S.No", style: 'tableHeader' },
+                            { text: "Goods Return Code", style: 'tableHeader' },
+                            { text: "Transporter Name", style: 'tableHeader' },
+                            { text: "Transport Contact No", style: 'tableHeader' },
+                            { text: "Vehicle No", style: 'tableHeader' },
+                            { text: "Vehicle Type", style: 'tableHeader' },
+                            { text: "Reason", style: 'tableHeader' },
+                            { text: "Added Date", style: 'tableHeader' },
+                            { text: "Status", style: 'tableHeader' }
+                        ];
+
+                        let body = [header];
+                        selected.forEach((row, i) => {
+                            body.push([
+                                (i + 1).toString(),
+                                row.GoodsReturnCode,
+                                row.TransporterName,
+                                row.TransportContactNo,
+                                row.VehicleNo,
+                                row.VehicleTypeName,
+                                row.Reason,
+                                moment(row.AddedDate).format("DD/MM/YYYY"),
+                                row.StatusName
+                            ]);
+                        });
+
+                        doc.content = [
+                            { text: "Goods Return Report", alignment: "center", fontSize: 14, bold: true, margin: [0, 0, 0, 4] },
+                            { text: "Generated on: " + datetime, alignment: "center", fontSize: 10, margin: [0, 0, 0, 8] },
+                            {
+                                table: { headerRows: 1, body: body },
+                                layout: {
+                                    fillColor: function (rowIndex) {
+                                        return rowIndex === 0 ? '#343a40' : null;
+                                    }
+                                }
+                            }
+                        ];
+                        doc.styles.tableHeader = { bold: true, fontSize: 11, color: 'white' };
+                    };
+                }
+
+                // Print
+                if (type === 'print') {
+                    let newBody = '<h3 class="text-center">Goods Return Report</h3>';
+                    newBody += '<p class="text-center">Generated on: ' + moment().format("DD/MM/YYYY HH:mm") + '</p>';
+                    newBody += '<table border="1" cellspacing="0" cellpadding="5" style="width:100%; border-collapse:collapse;"><thead><tr style="background-color:#343a40; color:white;">';
+                    newBody += "<th>S.No</th><th>Goods Return Code</th><th>Transporter Name</th><th>Transport Contact No</th><th>Vehicle No</th><th>Vehicle Type</th><th>Reason</th><th>Added Date</th><th>Status</th></tr></thead><tbody>";
+
+                    selected.forEach((row, i) => {
+                        newBody += "<tr>" +
+                            "<td>" + (i + 1) + "</td>" +
+                            "<td>" + row.GoodsReturnCode + "</td>" +
+                            "<td>" + row.TransporterName + "</td>" +
+                            "<td>" + row.TransportContactNo + "</td>" +
+                            "<td>" + row.VehicleNo + "</td>" +
+                            "<td>" + row.VehicleTypeName + "</td>" +
+                            "<td>" + row.Reason + "</td>" +
+                            "<td>" + moment(row.AddedDate).format("DD/MM/YYYY") + "</td>" +
+                            "<td>" + row.StatusName + "</td>" +
+                            "</tr>";
+                    });
+                    newBody += "</tbody></table>";
+
+                    let printWin = window.open('', '', 'height=600,width=900');
+                    printWin.document.write(newBody);
+                    printWin.document.close();
+                    printWin.print();
+                    return;
+                }
+
+                $.fn.dataTable.ext.buttons[type].action.call(this, e, dt, button, config);
+            }
+        };
+    }
+// -------------------- Init DataTable --------------------
+function initTable(fromDate,toDate){
+    if (table) { table.destroy(); $('#GoodsReturntablePSM tbody').empty(); }
+
+    table = $('#GoodsReturntablePSM').DataTable({
+        dom: '<"d-flex justify-content-between align-items-center mb-2"Bf>rt<"d-flex justify-content-between align-items-center"i p>',
+        responsive: true,
+        processing: true,
+        buttons: [
+            makeExportButton('print', '<i class="bi bi-printer-fill text-dark fs-5"></i>'),
+            makeExportButton('pdfHtml5', '<i class="bi bi-file-earmark-pdf text-danger fs-5"></i>'),
+            makeExportButton('excelHtml5', '<i class="bi bi-file-earmark-excel text-success fs-5"></i>'),
+            makeExportButton('csvHtml5', '<i class="bi bi-filetype-csv text-success fs-5"></i>')
+        ],
+        ajax:{
+            url:'@Url.Action("GetGoodsReturnSummaryPSM", "GRN")',
+            type:'GET',
+            data: d => {
+                d.fromDate = fromDate ?? null;
+                d.toDate = toDate ?? null;
+                d.status = selectedStatus ?? null;
+            },
+            dataSrc: json => json?.data ?? []
+        },
+        columns:[
+            { data:null, orderable:false, render:d=>`<input type="checkbox" class="rowCheckbox" value="${d.GoodsReturnCode}" />` },
+            { data:null, render:(d,t,r,meta)=>meta.row+1 },
+            { data:"GoodsReturnCode" },
+            { data:"TransporterName" },
+            { data:"TransportContactNo" },
+            { data:"VehicleNo" },
+            { data:"VehicleTypeName" },
+            { data:"Reason" },
+            { data:"AddedDate", render:(d,t,r)=>{
+                if(!d) return "";
+                if(t==="display"||t==="filter") return new Date(d).toLocaleDateString("en-GB");
+                if(t==="sort") return moment(d).format("YYYYMMDD");
+                return d;
+            }},
+            { data:"StatusName", render:data=>{
+                if (data === "Assign") return `<span class="badge bg-danger fw-semibold">${data}</span>`;
+                if (data === "Dispatch") return `<span class="badge bg-success fw-semibold">${data}</span>`;
+                return data? `<span class="fw-semibold">${data}</span>`:"";
+            }}
+        ],
+        order:[[8,'asc']],
+        drawCallback:function(){
+            $("#selectAll").prop("checked", $(".rowCheckbox:checked").length === $(".rowCheckbox").length);
+        }
+    });
+
+    // Select All
+    $(document).on("change","#selectAll",function(){
+        $(".rowCheckbox").prop("checked", this.checked);
+    });
+    $(document).on("change",".rowCheckbox",function(){
+        $("#selectAll").prop("checked", $(".rowCheckbox:checked").length === $(".rowCheckbox").length);
+    });
+}
+
+// -------------------- Ready --------------------
+$(document).ready(function () {
+    initTable(null, null);
+    loadChart(null, null);
+
+    $(document).on("dateRangeChanged", function (e, fromDate, toDate) {
+        initTable(fromDate, toDate);
+        loadChart(fromDate, toDate);
+    });
+});
+</script>

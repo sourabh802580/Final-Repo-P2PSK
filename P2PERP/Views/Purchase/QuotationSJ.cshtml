@@ -1,0 +1,2476 @@
+﻿
+@{
+    ViewBag.Title = "QuotationSJ";
+}
+<style>
+    .dtpicker {
+        max-width: 200px !important;
+    }
+</style>
+
+
+<div id="pageContent" class="main-content">
+    <div class="container mt-5">
+        <div class="text-start mb-3">
+            <button id="btnAllPR" class="btn btn-primary active">All Approved PR</button>
+            <button id="btnAllRFQ" class="btn btn-light">All RFQ</button>
+        </div>
+
+
+        <!-- PR List -->
+        <div id="quotationList" class="card mt-3">
+            <div class="card-body">
+                <h3 class="text-center text-primary">All Approved PR</h3>
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <div class="input-group">
+                            <span class="input-group-text bg-primary text-white">
+                                <i class="bi bi-calendar-event"></i>
+                            </span>
+                            <input type="text" id="dateRange" class="form-control dtpicker" placeholder="Select Date Range" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table id="tblRecent" class="table table-striped">
+                        <thead class="table-dark">
+                            <tr>
+                                <th><input type="checkbox" id="selectAllPR"></th>
+                                <th>Sr.NO.</th>
+                                <th>PRCode</th>
+                                <th>Required Date</th>
+                                <th>Added Date</th>
+                                <th>Added By</th>
+                                <th>Priority</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <!-- RFQ Table (hidden initially) -->
+        <div id="rfqList" class="card mt-3" style="display:none;">
+            <div class="card-body">
+                <h3 class="text-center text-primary">All RFQs</h3>
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <div class="input-group">
+                            <span class="input-group-text bg-primary text-white">
+                                <i class="bi bi-calendar-event"></i>
+                            </span>
+                            <input type="text" id="rfqDateRange" class="form-control dtpicker" placeholder="Select Date Range" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table id="tblRFQ" class="table table-bordered table-striped">
+                        <thead class="table-dark">
+                            <tr>
+                                <th class="text-center">Sr.No.</th>
+                                <th class="text-center">PR Code</th>
+                                <th class="text-center">RFQ Code</th>
+                                <th class="text-center">Required Date</th>
+                                <th class="text-center">Description</th>
+                                <th class="text-center">Status</th>
+                                <th class="text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+
+                </div>
+            </div>
+        </div>
+
+        <div id="vendorContainer" class="card mt-3" style="display:none;">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h5 class="text-primary">Send RFQ to Vendors</h5>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-3">
+                        <div>
+                            <select id="industryFilter" class="form-select form-select-sm">
+                                <option value="">--Select Industry Type--</option>
+                            </select>
+                        </div>
+                        <button type="button" class="btn btn-primary" id="btnAddVendor">Add Vendor</button>
+                        <button id="btnBackToDetails" class="btn btn-secondary">Back</button>
+                    </div>
+                </div>
+
+
+                <!-- Autofilled fields -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">PR Code</label>
+                        <input type="text" id="vendorPRCode" class="form-control" readonly />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">RFQ Code</label>
+                        <input type="text" id="vendorRFQCode" class="form-control" readonly />
+                    </div>
+                </div>
+                <table id="vendorsTable" class="table table-striped table-bordered">
+                    <thead class="table-dark">
+                        <tr>
+                            <th class="text-center"><input type="checkbox" id="selectAllVendors" /></th>
+                            <th class="text-center">Sr.No.</th>
+                            <th class="text-center">Vendor Name</th>
+                            <th class="text-center">Company Name</th>
+                            <th class="text-center">Phone</th>
+                            <th class="text-center">Email</th>
+                            <th class="text-center">Address</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tblVendors"></tbody>
+                </table>
+
+
+
+                <div class="text-end mt-3">
+                    <button id="btnSendToSelected" class="btn btn-success">Send RFQ to Selected Vendors</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- RFQ Modal -->
+<div class="modal fade" data-bs-backdrop="true" id="rfqModal" tabindex="-1" aria-labelledby="rfqModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+
+            <!-- Modal Header -->
+            <div class="modal-header bg-primary text-white d-flex justify-content-center">
+                <h5 class="modal-title mb-0 text-white" id="rfqModalLabel">Purchase Requisition</h5>
+            </div>
+
+            <div class="modal-body">
+                <form id="rfqForm" method="post" action="/RFQ/CreateRFQ">
+
+                    <!-- RFQ Information Card -->
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-header bg-light fw-bold">Requisition Information</div>
+                        <div class="card-body">
+
+                            <!-- Hidden section (Step 2 fields) -->
+                            <div id="rfqExtraFields" class="d-none">
+                                <div class="row mb-3">
+                                    <div class="col-md-3">
+                                        <label class="form-label fw-bold">RFQ NO</label>
+                                        <input type="text" id="RfqCodeInput" class="form-control" name="RFQCode" readonly />
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label fw-bold text-danger">Contact Person</label>
+                                        <select class="form-select" id="ContactPerson" name="ContactPerson" required></select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label fw-bold">Contact No</label>
+                                        <input id="ContactNo" type="text" class="form-control" name="ContactNo" readonly required />
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label fw-bold">Email</label>
+                                        <input id="ContactEmail" type="email" class="form-control" name="Email" readonly required />
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-md-3">
+                                        <label class="form-label fw-bold">Warehouse</label>
+                                        <select id="Warehouse" name="Warehouse" class="form-select" required></select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">Delivery Address</label>
+                                        <textarea id="DeliveryAddress" class="form-control" name="DeliveryAddress" rows="3" readonly required></textarea>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">Note</label>
+                                        <textarea class="form-control" name="Note" rows="3" required></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Always visible section -->
+                            <div class="row mb-3">
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold">Purchase Requisition No.</label>
+                                    <input type="text" id="PRCodeInput" class="form-control" name="PRCode" readonly />
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold">Expected Date</label>
+                                    <input type="date" id="ExpectedDate" name="ExpectedDate" class="form-control" readonly />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PR Items Card -->
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-light fw-bold">PR Items</div>
+                        <div class="card-body table-responsive">
+                            <table class="table table-striped table-bordered">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th class="text-center">Sr.No.</th>
+                                        <th class="text-center">Item Name</th>
+                                        <th class="text-center">Description</th>
+                                        <th class="text-center">Required Quantity</th>
+                                        <th class="text-center">UOM</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tblPRItems"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" id="btnCreateRFQ" class="btn btn-primary">Create RFQ</button>
+                <button type="submit" id="btnSubmitRFQ" form="rfqForm" class="btn btn-success d-none">Submit</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+
+
+<!-- RFQ Details Modal -->
+<div class="modal fade" data-bs-backdrop="true" id="rfqDetailsModal" tabindex="-1" aria-labelledby="rfqDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+
+            <!-- Modal Header -->
+            <div class="modal-header bg-primary text-white d-flex justify-content-center">
+                <h5 class="modal-title mb-0 text-white text-center" id="rfqDetailsTitle">RFQ Details</h5>
+            </div>
+
+            <div class="modal-body">
+
+                <!-- RFQ Information Card -->
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-light fw-bold">RFQ Information</div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">PR Code:</label>
+                                <input type="text" class="form-control" id="rfqPRCode" readonly />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Created Date:</label>
+                                <input type="text" class="form-control" id="rfqCreatedDate" readonly />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Created By:</label>
+                                <input type="text" class="form-control" id="rfqCreatedBy" readonly />
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Contact Person:</label>
+                                <input type="text" class="form-control" id="rfqContactPerson" readonly />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Contact No:</label>
+                                <input type="text" class="form-control" id="rfqContactNo" readonly />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Email:</label>
+                                <input type="text" class="form-control" id="rfqEmail" readonly />
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Required Date:</label>
+                                <input type="text" class="form-control" id="rfqRequiredDate" readonly />
+                            </div>
+                            <div class="col-md-8">
+                                <label class="form-label fw-bold">Delivery Address:</label>
+                                <input type="text" class="form-control" id="rfqDeliveryAddress" readonly />
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <label class="form-label fw-bold">Note:</label>
+                                <textarea class="form-control" id="rfqNote" rows="2" readonly></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RFQ Items Card -->
+                <div class="card shadow-sm">
+                    <div class="card-header bg-light fw-bold">RFQ Items</div>
+                    <div class="card-body table-responsive">
+                        <table class="table table-bordered table-striped" id="RFQitems">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th class="text-center">Sr.No.</th>
+                                    <th class="text-center">Item Name</th>
+                                    <th class="text-center">Description</th>
+                                    <th class="text-center">Quantity</th>
+                                    <th class="text-center">UOM</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tblRFQDetails"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+                <button id="btnSendRFQ" class="btn btn-success btn-sm">Send To Vendor</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Vendor Registration Modal -->
+<div class="modal fade" data-bs-backdrop="true" id="vendorModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+
+            <!-- Modal Header -->
+            <div class="modal-header bg-primary text-white d-flex justify-content-center align-items-center">
+                <h5 class="modal-title mb-0 text-white text-center">Vendor Registration</h5>
+            </div>
+
+
+            <!-- Modal Body -->
+            <div class="modal-body">
+                <!-- Vendor Registration Form -->
+                <form id="Vendorform" class="row g-3 needs-validation" novalidate>
+
+                    <!-- Personal Details -->
+                    <div class="form-section">
+                        <h5>Personal Details</h5>
+                        <div class="row">
+                            <!-- Full Name -->
+                            <div class="col-md-6">
+                                <div class="input-group input-group-merge mb-3">
+                                    <span class="input-group-text"><i class="ri-user-line"></i></span>
+                                    <div class="form-floating form-floating-outline">
+                                        <input type="text" class="form-control" id="fullName" name="VendorName" placeholder="Full Name" required>
+                                        <label for="fullName">Full Name</label>
+                                        <div class="invalid-feedback">Full Name is required.</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Mobile -->
+                            <div class="col-md-6">
+                                <div class="input-group input-group-merge mb-3">
+                                    <span class="input-group-text"><i class="ri-phone-fill"></i></span>
+                                    <div class="form-floating form-floating-outline">
+                                        <input type="tel" class="form-control" id="mobile" name="MobileNo" placeholder="Mobile Number" required>
+                                        <label for="mobile">Mobile Number</label>
+                                        <div class="invalid-feedback">Mobile Number is required.</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Alternate Mobile -->
+                            <div class="col-md-6">
+                                <div class="input-group input-group-merge mb-3">
+                                    <span class="input-group-text"><i class="ri-phone-line"></i></span>
+                                    <div class="form-floating form-floating-outline">
+                                        <input type="tel" class="form-control" id="altMobile" name="AlternateNo" placeholder="Alternate Mobile">
+                                        <label for="altMobile">Alternate Mobile</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Personal Email -->
+                            <div class="col-md-6">
+                                <div class="input-group input-group-merge mb-3">
+                                    <span class="input-group-text"><i class="ri-mail-line"></i></span>
+                                    <div class="form-floating form-floating-outline">
+                                        <input type="email" class="form-control" id="personalEmail" name="Email" placeholder="Email" required>
+                                        <label for="personalEmail">Personal Email</label>
+                                        <div class="invalid-feedback">Valid email is required.</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Address -->
+                            <div class="col-12">
+                                <div class="input-group input-group-merge mb-3">
+                                    <span class="input-group-text"><i class="ri-map-pin-line"></i></span>
+                                    <div class="form-floating form-floating-outline">
+                                        <textarea class="form-control" id="address" name="Address" placeholder="Address" rows="2" required></textarea>
+                                        <label for="address">Address</label>
+                                        <div class="invalid-feedback">Address is required.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-section">
+                        <h5>Communication Details</h5>
+                        <div class="row">
+                            <!-- Company Email -->
+                            <div class="col-md-6">
+                                <div class="input-group input-group-merge mb-3">
+                                    <span class="input-group-text"><i class="ri-mail-line"></i></span>
+                                    <div class="form-floating form-floating-outline">
+                                        <input type="text" class="form-control" id="CompanyEmail" name="CompanyEmail" placeholder="Company Email" required>
+                                        <label for="CompanyEmail">Company Email</label>
+                                        <div class="invalid-feedback">CompanyEmail is required.</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Contact Mobile -->
+                            <div class="col-md-6">
+                                <div class="input-group input-group-merge mb-3">
+                                    <span class="input-group-text"><i class="ri-phone-fill"></i></span>
+                                    <div class="form-floating form-floating-outline">
+                                        <input type="tel" class="form-control" name="CompanyMobileNo" id="CompanyMobileNo" placeholder="Mobile Number" required>
+                                        <label for="contactMobile">Mobile Number</label>
+                                        <div class="invalid-feedback">Mobile Number is required.</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Alternate Mobile -->
+                            <div class="col-md-6">
+                                <div class="input-group input-group-merge mb-3">
+                                    <span class="input-group-text"><i class="ri-phone-fill"></i></span>
+                                    <div class="form-floating form-floating-outline">
+                                        <input type="tel" class="form-control" id="CompanyAlternateNo" name="CompanyAlternateNo" placeholder="AlternateMobile Number">
+                                        <label for="contactMobile">AlternateMobile Number</label>
+                                        @*<div class="invalid-feedback">Mobile Number is required.</div>*@
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Company Name -->
+                            <div class="col-md-6">
+                                <div class="input-group input-group-merge mb-3">
+                                    <span class="input-group-text"><i class="ri-building-4-line"></i></span>
+                                    <div class="form-floating form-floating-outline">
+                                        <input type="text" class="form-control" id="companyName" name="CompanyName" placeholder="Company Name" required>
+                                        <label for="companyName">Company Name</label>
+                                        <div class="invalid-feedback">Company Name is required.</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Company Address -->
+                            <div class="col-12">
+                                <div class="input-group input-group-merge mb-3">
+                                    <span class="input-group-text"><i class="ri-map-pin-2-line"></i></span>
+                                    <div class="form-floating form-floating-outline">
+                                        <textarea class="form-control" name="CompanyAddress" id="companyAddress" placeholder="Company Address" rows="2" required></textarea>
+                                        <label for="companyAddress">Company Address</label>
+                                        <div class="invalid-feedback">Company Address is required.</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row g-3">
+
+                                <!-- Industry Type -->
+                                <div class="col-md-4">
+                                    <div class="input-group input-group-merge mb-3">
+                                        <span class="input-group-text"><i class="bi bi-briefcase-fill"></i></span>
+                                        <div class="form-floating form-floating-outline flex-grow-1">
+                                            <select class="form-select" id="industryType" name="IndustryTypeId" required>
+                                            </select>
+                                            <label for="industryType">Industry Type</label>
+                                            <div class="invalid-feedback">Industry Type is required.</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Country -->
+                                <div class="col-md-4">
+                                    <div class="input-group input-group-merge mb-3">
+                                        <span class="input-group-text"><i class="bi bi-globe2"></i></span>
+                                        <div class="form-floating form-floating-outline flex-grow-1">
+                                            <select class="form-select" id="country" required></select>
+                                            <label for="country">Country</label>
+                                            <div class="invalid-feedback">Country is required.</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- State -->
+                                <div class="col-md-4">
+                                    <div class="input-group input-group-merge mb-3">
+                                        <span class="input-group-text"><i class="bi bi-map-fill"></i></span>
+                                        <div class="form-floating form-floating-outline flex-grow-1">
+                                            <select class="form-select" id="state" required></select>
+                                            <label for="state">State</label>
+                                            <div class="invalid-feedback">State is required.</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- City -->
+                                <div class="col-md-6">
+                                    <div class="input-group input-group-merge mb-3">
+                                        <span class="input-group-text"><i class="bi bi-building-fill"></i></span>
+                                        <div class="form-floating form-floating-outline flex-grow-1">
+                                            <select class="form-select" id="city" name="CityId" required></select>
+                                            <label for="city">City</label>
+                                            <div class="invalid-feedback">City is required.</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                        </div>
+                    </div>
+                    <!-- Payment Details -->
+                    <div class="form-section">
+                        <h5>Payment Details</h5>
+                        <div class="row">
+
+                            <!-- Bank Name -->
+                            <div class="col-md-6">
+                                <div class="input-group input-group-merge mb-3">
+                                    <span class="input-group-text"><i class="ri-bank-line"></i></span>
+                                    <div class="form-floating form-floating-outline flex-grow-1">
+                                        <select class="form-select" id="bankName" required>
+                                        </select>
+                                        <label for="bankName">Bank Name</label>
+                                        <div class="invalid-feedback">Please select a bank.</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Branch -->
+                            <div class="col-md-6">
+                                <div class="input-group input-group-merge mb-3">
+                                    <span class="input-group-text"><i class="ri-map-pin-line"></i></span>
+                                    <div class="form-floating form-floating-outline flex-grow-1">
+                                        <select class="form-select" id="branchName" name="BranchId" required>
+                                        </select>
+                                        <label for="branchName">Branch</label>
+                                        <div class="invalid-feedback">Please select a branch.</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Account Number -->
+                            <div class="col-md-6">
+                                <div class="input-group input-group-merge mb-3">
+                                    <span class="input-group-text"><i class="ri-file-text-line"></i></span>
+                                    <div class="form-floating form-floating-outline">
+                                        <input type="text" class="form-control" name="AccountNumber" id="accountNumber" placeholder="Account Number" required>
+                                        <label for="accountNumber">Account Number</label>
+                                        <div class="invalid-feedback">Account Number is required.</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- IFSC -->
+                            <div class="col-md-6">
+                                <div class="input-group input-group-merge mb-3">
+                                    <span class="input-group-text"><i class="ri-key-2-line"></i></span>
+                                    <div class="form-floating form-floating-outline">
+                                        <input type="text" class="form-control" name="IFSCCode" id="ifsc" placeholder="IFSC Code" required>
+                                        <label for="ifsc">IFSC Code</label>
+                                        <div class="invalid-feedback">IFSC is required.</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Swift -->
+                            <div class="col-md-6">
+                                <div class="input-group input-group-merge mb-3">
+                                    <span class="input-group-text"><i class="ri-exchange-dollar-line"></i></span>
+                                    <div class="form-floating form-floating-outline">
+                                        <input type="text" class="form-control" id="swift" name="SwiftCode" placeholder="Swift Code" required>
+                                        <label for="swift">Swift Code</label>
+                                        <div class="invalid-feedback">Swift Code is required.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Buttons -->
+                    <div class="d-flex justify-content-end gap-2 mt-3">
+                        <button type="button" class="btn btn-lg btn-danger" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-lg btn-success">Save</button>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<style>
+
+    #tblRFQ th,
+    #tblRFQ td,
+    #tblRecent th,
+    #tblRecent td,
+    #tblPRItems td,
+    #tblRFQDetails td,
+    #tblVendors td {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    #rfqList h6 {
+        text-align: center;
+    }
+</style>
+
+
+
+
+
+
+<script>
+    $(document).ready(function () {
+
+        // PDF/Print customization function
+        function customizeDoc(doc) {
+            // Title Styling
+            doc.styles.title = {
+                color: '#000000',
+                fontSize: 16,
+                bold: true,
+                alignment: 'center'
+            };
+
+            // Generated on date
+            doc.content.splice(1, 0, {
+                text: 'Generated on: ' + new Date().toISOString().split('T')[0],
+                fontSize: 10,
+                italics: true,
+                alignment: 'center',
+                margin: [0, 0, 0, 12]
+            });
+
+            // Table Header Styling
+            doc.styles.tableHeader = {
+                fillColor: '#000000',
+                color: 'white',
+                bold: true,
+                fontSize: 11,
+                alignment: 'center'
+            };
+
+            // Table Border + Padding
+            var objLayout = {};
+            objLayout['hLineWidth'] = function () { return .5; };
+            objLayout['vLineWidth'] = function () { return .5; };
+            objLayout['hLineColor'] = function () { return '#aaa'; };
+            objLayout['vLineColor'] = function () { return '#aaa'; };
+            objLayout['paddingLeft'] = function () { return 6; };
+            objLayout['paddingRight'] = function () { return 6; };
+
+            var tableNode = doc.content[doc.content.length - 1];
+            tableNode.layout = objLayout;
+
+            var colCount = tableNode.table.body[0].length;
+            tableNode.table.widths = Array(colCount).fill('*');
+
+            tableNode.alignment = 'center';
+            tableNode.margin = [0, 0, 0, 0];
+        }
+
+        // Store original button actions if not already stored
+        if (!$.fn.dataTable.ext.buttons.pdfHtml5.__originalAction) {
+            $.fn.dataTable.ext.buttons.pdfHtml5.__originalAction =
+                $.fn.dataTable.ext.buttons.pdfHtml5.action;
+        }
+        if (!$.fn.dataTable.ext.buttons.print.__originalAction) {
+            $.fn.dataTable.ext.buttons.print.__originalAction =
+                $.fn.dataTable.ext.buttons.print.action;
+        }
+        if (!$.fn.dataTable.ext.buttons.excelHtml5.__originalAction) {
+            $.fn.dataTable.ext.buttons.excelHtml5.__originalAction =
+                $.fn.dataTable.ext.buttons.excelHtml5.action;
+        }
+        if (!$.fn.dataTable.ext.buttons.csvHtml5.__originalAction) {
+            $.fn.dataTable.ext.buttons.csvHtml5.__originalAction =
+                $.fn.dataTable.ext.buttons.csvHtml5.action;
+        }
+
+
+        console.log("Form Active");
+            $(document).on("click", "#btnBackToDetails", function () {
+                $("#vendorContainer").hide();
+                $("#rfqList").show();
+            });
+
+        $(document).on("click", "#btnAllPR, #btnAllRFQ", function () {
+            // Remove active state from both
+            $("#btnAllPR, #btnAllRFQ")
+                .removeClass("btn-primary active")
+                .addClass("btn-light");
+
+            // Set active state to the clicked button
+            $(this)
+                .removeClass("btn-light")
+                .addClass("btn-primary active");
+        });
+
+        let PRTable;
+        let startDate = null;
+        let endDate = null;
+
+        //  Configure toastr once
+        toastr.options = {
+            closeButton: true,
+            progressBar: true,
+            preventDuplicates: true,
+            newestOnTop: true,
+            positionClass: "toast-top-right",
+            timeOut: "3000",
+            toastClass: "toastr-warning"
+        };
+        function showExportToast() {
+            toastr.warning("Please select at least one row before exporting.", "Warning");
+        }
+
+        // Load PR List
+        function loadPRList() {
+            $.ajax({
+                url: "/Purchase/GETQUATIONLISTSJ",
+                type: "GET",
+                success: function (response) {
+                    let data = response.data || response || [];
+
+                    if ($.fn.DataTable.isDataTable("#tblRecent")) {
+                        $("#tblRecent").DataTable().clear().destroy();
+                    }
+
+                    $("#tblRecent tbody").empty();
+
+                    data.forEach(item => {
+                        let status = item.StatusName ?? "";
+                        let statusClass = "";
+
+                        switch (status.toLowerCase()) {
+                            case "cold":
+                                statusClass = "badge bg-success";
+                                break;
+                            case "warm":
+                                statusClass = "badge bg-warning ";
+                                break;
+                            case "hot":
+                                statusClass = "badge bg-danger";
+                                break;
+                            default:
+                                statusClass = "badge bg-secondary";
+                        }
+
+                        $("#tblRecent tbody").append(`
+                                <tr>
+                                    <td><input type="checkbox" class="row-select" value="${item.PRCode}"></td>
+                                    <td></td>
+                                    <td>${item.PRCode ?? ""}</td>
+                                    <td>${moment(item.RequiredDate).format('D/M/YYYY')}</td>
+                                    <td>${moment(item.AddedDate).format('D/M/YYYY')}</td>
+                                    <td>${item.AddedBy ?? ""}</td>
+                                    <td><span class="${statusClass}">${status}</span></td>
+                                    <td>
+                                        <button
+                                            class="btn btn-sm btn-primary viewPR"
+                                            data-id="${item.PRCode}"
+                                            data-bs-toggle="tooltip"
+                                            data-bs-placement="top"
+                                            title="View PR Details">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            `);
+                    });
+                    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+                    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                        return new bootstrap.Tooltip(tooltipTriggerEl)
+                    })
+
+
+                    PRTable = $("#tblRecent").DataTable({
+                        pageLength: 10,
+                        responsive: true,
+                        lengthChange: false,
+                        columnDefs: [
+                            { orderable: false, targets: [0, 6] },
+                            {
+                                targets: 1,
+                                render: function (data, type, row, meta) {
+                                    return meta.row + 1;
+                                }
+                            }
+                        ],
+
+                        dom: '<"row mb-3"<"col-md-6"B l><"col-md-6 text-end"f>>' +
+                            'rt' +
+                            '<"row mt-3"<"col-md-6"i><"col-md-6 text-end"p>>',
+                        buttons: [
+                            // Print button
+                            {
+                                extend: 'print',
+                                text: '<i class="bi bi-printer-fill text-dark fs-5"></i>',
+                                titleAttr: 'Print',
+                                title: 'PR List',
+                                exportOptions: {
+                                    columns: [1, 2, 3, 4, 5, 6],
+                                    rows: function (idx) {
+                                        return $(PRTable.row(idx).node()).find('input.row-select').prop('checked');
+                                    },
+                                    format: {
+                                        body: function (data, rowIdx, colIdx) {
+                                            if (colIdx === 1) return getExportSrNo(rowIdx, PRTable);
+                                            return data;
+                                        }
+                                    }
+                                },
+                                customize: function (win) {
+                                    var $body = $(win.document.body);
+
+                                    $body.append(`
+                                        <style>
+                                            thead th {
+                                                background-color: black !important;
+                                                color: white !important;
+                                                text-align: center !important;
+                                                -webkit-print-color-adjust: exact !important;
+                                                print-color-adjust: exact !important;
+                                            }
+                                            table {
+                                                border-collapse: collapse !important;
+                                                width: 100% !important;
+                                            }
+                                            td, th {
+                                                border: 1px solid #000 !important;
+                                                padding: 6px !important;
+                                            }
+                                        </style>
+                                `);
+
+                                    $body.find('h1').css('text-align', 'center');
+
+                                    $body.find('h1').after(
+                                        '<div style="text-align:center;font-style:italic;font-size:10pt;margin-bottom:12px;">Generated on: '
+                                        + new Date().toISOString().split('T')[0] + '</div>'
+                                    );
+
+                                    $body.find('table')
+                                        .addClass('table table-bordered table-striped')
+                                        .css('width', '100%');
+
+                                    $body.css('font-size', '12pt');
+                                },
+                                action: function (e, dt, button, config) {
+                                    var selected = dt.rows().nodes().to$().find('input.row-select:checked').length;
+                                    var btnApi = dt.button(button);
+
+                                    if (selected === 0) {
+                                        showExportToast();
+                                        try { btnApi.processing(false); } catch (err) { }
+                                        return;
+                                    }
+
+                                    try { btnApi.processing(true); } catch (err) { }
+
+                                    try {
+                                        $.fn.dataTable.ext.buttons.print.__originalAction.call(this, e, dt, button, config);
+                                    } catch (err) {
+                                        setTimeout(function () { try { btnApi.processing(false); } catch (e) { } }, 300);
+                                        throw err;
+                                    }
+
+                                    setTimeout(function () { try { btnApi.processing(false); } catch (err) { } }, 2000);
+                                }
+                            },
+
+                            // PDF Export button
+                            {
+                                extend: 'pdfHtml5',
+                                text: '<i class="bi bi-file-earmark-pdf-fill text-danger fs-5"></i>',
+                                titleAttr: 'PDF',
+                                title: 'PR List',
+                                orientation: 'landscape',
+                                pageSize: 'A4',
+                                exportOptions: {
+                                    columns: [1, 2, 3, 4, 5, 6],
+                                    rows: function (idx) {
+                                        return $(PRTable.row(idx).node()).find('input.row-select').prop('checked');
+                                    },
+                                    format: {
+                                        body: function (data, rowIdx, colIdx) {
+                                            if (colIdx === 1) return getExportSrNo(rowIdx, PRTable);
+
+                                            return typeof data === 'string'
+                                                ? data.replace(/<[^>]*>/g, '').trim()
+                                                : data;
+                                        }
+                                    }
+                                },
+
+                                action: function (e, dt, button, config) {
+                                    var selected = dt.rows().nodes().to$().find('input.row-select:checked').length;
+                                    var btnApi = dt.button(button);
+
+                                    if (selected === 0) {
+                                        showExportToast();
+                                        btnApi.processing(false);
+                                        return;
+                                    }
+
+                                    btnApi.processing(true);
+
+                                    if (window.pdfMake && pdfMake.createPdf && !pdfMake._patchedForDT) {
+                                        (function () {
+                                            var origCreate = pdfMake.createPdf;
+                                            pdfMake.createPdf = function (docDefinition) {
+                                                var pdfDoc = origCreate.call(pdfMake, docDefinition);
+                                                var origDownload = pdfDoc.download;
+                                                pdfDoc.download = function (filename, cb) {
+                                                    origDownload.call(pdfDoc, filename, function () {
+                                                        try { btnApi.processing(false); } catch (err) { }
+                                                        if (typeof cb === 'function') cb();
+                                                    });
+                                                };
+                                                return pdfDoc;
+                                            };
+                                            pdfMake._patchedForDT = true;
+                                        })();
+                                    }
+
+                                    $.fn.dataTable.ext.buttons.pdfHtml5.__originalAction.call(this, e, dt, button, config);
+
+                                    setTimeout(function () {
+                                        try { btnApi.processing(false); } catch (err) { }
+                                    }, 1500);
+
+                                },
+                                customize: customizeDoc
+                            },
+
+                            // Excel Export button
+                            {
+                                extend: 'excelHtml5',
+                                text: '<i class="bi bi-file-earmark-excel-fill text-success fs-5"></i>',
+                                titleAttr: 'Excel',
+                                title: 'PR List',
+                                exportOptions: {
+                                    columns: [1, 2, 3, 4, 5, 6],
+                                    rows: function (idx) {
+                                        return $(PRTable.row(idx).node()).find('input.row-select').prop('checked');
+                                    },
+                                    format: {
+                                        body: function (data, rowIdx, colIdx) {
+                                            if (colIdx === 1) return getExportSrNo(rowIdx, PRTable);
+
+                                            return typeof data === 'string'
+                                                ? data.replace(/<[^>]*>/g, '').trim()
+                                                : data;
+                                        }
+                                    }
+                                },
+                                action: function (e, dt, button, config) {
+                                    var selected = dt.rows().nodes().to$().find('input.row-select:checked').length;
+                                    var btnApi = dt.button(button);
+
+                                    if (selected === 0) {
+                                        showExportToast();
+                                        try { btnApi.processing(false); } catch (err) { }
+                                        return;
+                                    }
+
+                                    try { btnApi.processing(true); } catch (err) { }
+
+                                    $.fn.dataTable.ext.buttons.excelHtml5.__originalAction.call(this, e, dt, button, config);
+
+                                    setTimeout(function () { try { btnApi.processing(false); } catch (err) { } }, 300);
+                                }
+                            },
+
+                            // CSV Export button
+                            {
+                                extend: 'csvHtml5',
+                                text: '<i class="bi bi-filetype-csv text-success fs-5"></i>',
+                                titleAttr: 'CSV',
+                                title: 'PR List',
+                                exportOptions: {
+                                    columns: [1, 2, 3, 4, 5, 6],
+                                    rows: function (idx) {
+                                        return $(PRTable.row(idx).node()).find('input.row-select').prop('checked');
+                                    },
+                                    format: {
+                                        body: function (data, rowIdx, colIdx) {
+                                            if (colIdx === 1) return getExportSrNo(rowIdx, PRTable);
+                                            return data;
+                                        }
+                                    }
+                                },
+                                action: function (e, dt, button, config) {
+                                    var selected = dt.rows().nodes().to$().find('input.row-select:checked').length;
+                                    var btnApi = dt.button(button);
+
+                                    if (selected === 0) {
+                                        showExportToast();
+                                        try { btnApi.processing(false); } catch (err) { }
+                                        return;
+                                    }
+
+                                    try { btnApi.processing(false); } catch (err) { }
+
+                                    $.fn.dataTable.ext.buttons.csvHtml5.__originalAction.call(this, e, dt, button, config);
+
+                                    setTimeout(function () {
+                                        try { btnApi.processing(false); } catch (err) { }
+                                    }, 300);
+                                }
+                            }
+                        ],
+                        drawCallback: function (settings) {
+                            var api = this.api();
+                            api.column(1, { page: 'current' }).nodes().each(function (cell, i) {
+                                cell.innerHTML = i + 1 + settings._iDisplayStart;
+                            });
+                        }
+
+                    });
+                },
+                error: function (xhr) {
+                    console.error("Error fetching PR list:", xhr.responseText);
+                }
+            });
+        }
+
+
+        loadPRList();
+
+        $(document).on("change", "#selectAllPR", function () {
+            $(".row-select").prop("checked", $(this).prop("checked"));
+        });
+
+        $(document).on("click", ".viewPR", function () {
+            var prCode = $(this).data("id");
+            initRFQForm(prCode);
+        });
+
+        // Contact & Warehouse dropdown updates
+        $(document).on("change", "#ContactPerson", function () {
+            var selected = $(this).find(':selected');
+            $('#ContactNo').val(selected.data('phone') || '');
+            $('#ContactEmail').val(selected.data('email') || '');
+        });
+
+        $(document).on("change", "#Warehouse", function () {
+            var selected = $(this).find(':selected');
+            $('#DeliveryAddress').val(selected.data('address') || '');
+        });
+
+        function initRFQForm(PRCode) {
+            console.log("Active RQFform");
+            $("#PRCodeInput, #RfqCodeInput, #ContactPerson, #ContactNo, #ContactEmail, #ExpectedDate, #Warehouse, #DeliveryAddress").val("");
+            $("#tblPRItems").empty();
+
+            $("#PRCodeInput").val(PRCode);
+
+            $.ajax({
+                url: '/Purchase/GenRFQSJ',
+                type: 'GET',
+                success: function (data) {
+                    $('#RfqCodeInput').val(data.data ?? data);
+                }
+            });
+
+            $.ajax({
+                url: "/Purchase/GETPRSJ",
+                type: "GET",
+                data: { id: PRCode },
+                success: function (response) {
+                    let items = response.data || [];
+
+                    if ($.fn.DataTable.isDataTable($("#tblPRItems").closest("table"))) {
+                        $("#tblPRItems").closest("table").DataTable().clear().destroy();
+                    }
+
+
+
+
+                    $('#tblPRItems').empty();
+
+                    $.each(items, function (i, item) {
+                        let desc = item.Description ?? "";
+
+                        $('#tblPRItems').append(`
+                            <tr>
+                                <td class="text-center">${i + 1}</td>
+                                <td>${item.ItemName ?? ""}</td>
+                                <td>
+                                    <span data-bs-toggle="tooltip"
+                                          data-bs-placement="top"
+                                          title="${desc}">
+                                        ${desc}
+                                    </span>
+                                </td>
+                                <td class="text-center">${item.RequiredQuantity ?? ""}</td>
+                                <td class="text-center">${item.UOMNamee ?? ""}</td>
+                            </tr>
+                        `);
+                    });
+
+                    $('[data-bs-toggle="tooltip"]').tooltip();
+
+
+
+                    $("#tblPRItems").closest('table').DataTable({
+                        paging: true,
+                        searching: true,
+                        ordering: true,
+                        info: true,
+                        lengthChange: false,
+                        pageLength: 5,
+                        columnDefs: [
+                            { orderable: false, targets: 0 }
+                        ]
+                    });
+
+                    if (items.length > 0 && items[0].RequiredDate) {
+                        let rawDate = items[0].RequiredDate;
+
+                        let timestamp = rawDate.includes("/Date")
+                            ? parseInt(rawDate.replace(/[^0-9]/g, ''))
+                            : Date.parse(rawDate);
+
+                        if (!isNaN(timestamp)) {
+                            let formatted = moment(timestamp).format('YYYY-DD-MM');
+                            $('#ExpectedDate').val(formatted);
+                        }
+                    }
+
+                    $("#rfqModal").modal("show");
+
+                }
+            });
+
+
+            // Reload dropdowns
+            $.ajax({
+                url: '/Purchase/GetContactPersonsSJ',
+                type: 'GET',
+                dataType: 'json',
+                success: function (res) {
+                    var $ddl = $('#ContactPerson').empty().append('<option value="">-- Select --</option>');
+                    if (res.data) {
+                        res.data.forEach(p => $ddl.append(`<option value="${p.Id}" data-phone="${p.Phone}" data-email="${p.Email}">${p.Name}</option>`));
+                    }
+                }
+            });
+
+            $.ajax({
+                url: '/Purchase/GetwareSJ',
+                type: 'GET',
+                dataType: 'json',
+                success: function (res) {
+                    var $ddl = $('#Warehouse').empty().append('<option value="">-- Select Warehouse --</option>');
+                    if (res.data) {
+                        res.data.forEach(wh => $ddl.append(`<option value="${wh.Id}" data-address="${wh.Address}">${wh.Name}</option>`));
+                    }
+                }
+            });
+        }
+
+        const rfqModalEl = document.getElementById('rfqModal');
+        const rfqModal = new bootstrap.Modal(rfqModalEl);
+
+
+
+        // Create RFQ button click
+        $(document).on("click", "#btnCreateRFQ", function () {
+            $("#rfqExtraFields").removeClass("d-none");
+            $("#btnCreateRFQ").addClass("d-none");
+            $("#btnSubmitRFQ").removeClass("d-none");
+
+            $.ajax({
+                url: '/Purchase/GenRFQ',
+                type: 'GET',
+                success: function (data) {
+                    $('#RfqCodeInput').val(data.data ?? data);
+                }
+            });
+        });
+
+        $('#rfqModal').on('hidden.bs.modal', function () {
+            $("#rfqExtraFields").addClass("d-none");
+            $("#btnCreateRFQ").removeClass("d-none");
+            $("#btnSubmitRFQ").addClass("d-none");
+            $("#rfqForm")[0].reset();
+            $("#tblPRItems").empty();
+        });
+
+        $("#rfqForm").on("submit", function (e) {
+            console.log("Active Submit Form Function");
+            e.preventDefault();
+
+
+            var formData = {
+                RFQCode: $("#RfqCodeInput").val(),
+                ContactPerson: $("#ContactPerson").val(),
+                PRCode: $("#PRCodeInput").val(),
+                ExpectedDate: $("#ExpectedDate").val(),
+                Warehouse: $("#Warehouse").val(),
+                Note: $("textarea[name='Note']").val()
+            };
+
+            if (!formData.RFQCode || !formData.PRCode || !formData.ContactPerson || !formData.Warehouse) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Missing Data',
+                    text: 'Please fill all required fields.'
+                });
+                return;
+
+            }
+            console.log("Formdata", formData);
+            $.ajax({
+                url: '/Purchase/SaveRFQSJ',
+                type: 'POST',
+                data: formData,
+                success: function (response) {
+                    if (response.success) {
+                        console.log("Save RQ", response);
+                        rfqModal.hide();
+                        loadPRList();
+
+                        $("#rfqForm")[0].reset();
+                        $("#rfqExtraFields").addClass("d-none");
+                        $("#btnSubmitRFQ").addClass("d-none");
+                        $("#btnCreateRFQ").removeClass("d-none");
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success!',
+                            text: 'RFQ saved successfully!',
+                            confirmButtonText: 'OK'
+                        });
+
+                        toastr.success("RFQ saved successfully!");
+
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error!',
+                            text: response.error || 'Something went wrong while saving RFQ.'
+                        });
+                    }
+                },
+                error: function (xhr) {
+                    console.error(xhr.responseText);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Server Error',
+                        text: 'An error occurred while saving RFQ. Check console for details.'
+                    });
+                }
+            });
+        });
+
+
+        $(document).on("click", "#btnCreateRFQ", function () {
+            $("#rfqExtraFields").removeClass("d-none");
+            $(this).addClass("d-none");
+            $("#btnSubmitRFQ").removeClass("d-none");
+
+            // Generate RFQ code
+            $.ajax({
+                url: '/Purchase/GenRFQ',
+                type: 'GET',
+                success: function (data) {
+                    $('#RfqCodeInput').val(data.data ?? data);
+                }
+            });
+        });
+
+
+        // Date range picker
+        $('#dateRange').daterangepicker({
+            autoUpdateInput: false,
+            locale: { cancelLabel: 'Clear', format: 'DD-MM-YYYY' },
+            ranges: {
+                'Today': [moment(), moment()],
+                'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                'Last 1 Month': [moment().subtract(1, 'months'), moment()],
+                'Last 3 Months': [moment().subtract(3, 'months'), moment()],
+                'Last 1 Year': [moment().subtract(12, 'months'), moment()]
+            }
+        }, function (start, end) {
+            startDate = start.clone().startOf('day');
+            endDate = end.clone().endOf('day');
+            $('#dateRange').val(start.format('DD-MM-YYYY') + ' - ' + end.format('DD-MM-YYYY'));
+            if (PRTable) PRTable.draw();
+        });
+
+        $('#dateRange').on('cancel.daterangepicker', function () {
+            $(this).val('Select Date Range');
+            startDate = null;
+            endDate = null;
+            if (PRTable) PRTable.draw();
+        });
+
+        $('#dateRange').val('Select Date Range');
+
+        $.fn.dataTable.ext.search.push(function (settings, data) {
+            if (settings.nTable.id !== 'tblRecent') return true;
+            let addedDateStr = data[4];
+            if (!addedDateStr) return true;
+
+            let m = moment(addedDateStr, "D/M/YYYY", true);
+            if (!m.isValid()) return true;
+
+            let rowDate = m.startOf("day");
+            if (startDate && rowDate.isBefore(startDate, "day")) return false;
+            if (endDate && rowDate.isAfter(endDate, "day")) return false;
+            return true;
+        });
+
+
+        let rfqTable;
+
+        // ==============================
+        // Load RFQ List
+        // ==============================
+        function loadAllRFQ() {
+            $.ajax({
+                url: "/Purchase/GETALLRFQSJ",
+                type: "GET",
+                success: function (response) {
+                    let data = response.data || response || [];
+
+                    if ($.fn.DataTable.isDataTable("#tblRFQ")) {
+                        $("#tblRFQ").DataTable().clear().destroy();
+                    }
+
+                    $("#tblRFQ thead").html(`
+                        <tr>
+                            <th><input type="checkbox" id="selectAllRFQ"></th>
+                            <th>Sr.No.</th>
+                            <th>PR Code</th>
+                            <th>RFQ Code</th>
+                            <th>Required Date</th>
+                            <th>Description</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    `);
+
+                    $("#tblRFQ tbody").empty();
+
+                    data.forEach((item, i) => {
+                        let desc = item.Description ?? "";
+
+                        $("#tblRFQ tbody").append(`
+                            <tr>
+                                <td><input type="checkbox" class="row-select" value="${item.RFQCode}"></td>
+                                <td></td>
+                                <td>${item.PRCode ?? ""}</td>
+                                <td>${item.RFQCode ?? ""}</td>
+                                <td>${moment(item.RequiredDate).format('D/M/YYYY')}</td>
+                                <td>
+                                    <span data-bs-toggle="tooltip" data-bs-placement="top" title="${desc}">
+                                        ${desc}
+                                    </span>
+                                </td>
+                                <td>${item.Status ?? ""}</td>
+                                <td>${item.RFQCode}</td>
+                            </tr>
+                        `);
+                    });
+
+                    $('[data-bs-toggle="tooltip"]').tooltip();
+
+
+
+                    let exportRowCounter = 0;
+
+                    rfqTable = $("#tblRFQ").DataTable({
+                        pageLength: 10,
+                        responsive: true,
+                        lengthChange: false,
+                        columnDefs: [
+                            { orderable: false, targets: [0, 7] },
+                            {
+                                targets: 1,
+                                render: function (data, type, row, meta) {
+                                    return meta.row + 1;
+                                }
+                            },
+                            {
+                                targets: 6, // Status column
+                                render: function (data, type, row) {
+                                    let status = data || "";
+                                    let badgeClass = status.toLowerCase() === "pending"
+                                        ? "bg-warning text-white"
+                                        : "bg-success text-white";
+
+                                    return `<span class="badge ${badgeClass}">${status}</span>`;
+                                }
+                            },
+                            {
+                                targets: 7,
+                                render: function (data, type, row, meta) {
+                                    let rfqCode = row[3];
+                                    let status = row[6];
+
+                                    if (status === "Pending") {
+                                        return `
+                        <button class="btn btn-success btnViewRFQ btn-sm"
+                                data-id="${rfqCode}"
+                                data-action="send"
+                                data-bs-toggle="tooltip"
+                                data-bs-placement="top"
+                                title="Send RFQ">
+                            <i class="bi bi-send-fill"></i>
+                        </button>`;
+                                    } else {
+                                        return `
+                        <button class="btn btn-primary btnViewRFQ btn-sm"
+                                data-id="${rfqCode}"
+                                data-action="view"
+                                data-bs-toggle="tooltip"
+                                data-bs-placement="top"
+                                title="View RFQ">
+                            <i class="bi bi-eye"></i>
+                        </button>`;
+                                    }
+                                }
+                            }
+                        ],
+                        dom:
+                            '<"row mb-3"<"col-md-6"B><"col-md-6 text-end"f>>' +
+                            "rt" +
+                            '<"row mt-3"<"col-md-6"i><"col-md-6 text-end"p>>',
+                        buttons: [
+                            // Print
+                            {
+                                extend: "print",
+                                text: '<i class="bi bi-printer-fill text-dark fs-5"></i>',
+                                title: "RFQ List",
+                                exportOptions: {
+                                    columns: [1, 2, 3, 4, 5, 6],
+                                    rows: function (idx) {
+                                        return $(rfqTable.row(idx).node())
+                                            .find("input.row-select")
+                                            .prop("checked");
+                                    },
+                                    format: {
+                                        body: function (data, rowIdx, colIdx) {
+                                            if (colIdx === 1) return getExportSrNo(rowIdx, rfqTable);
+                                            return data;
+                                        }
+                                    }
+                                },
+                                customize: function (win) {
+                                    var $body = $(win.document.body);
+
+                                    $body.append(`
+                                <style>
+                                    thead th {
+                                        background-color: black !important;
+                                        color: white !important;
+                                        text-align: center !important;
+                                        -webkit-print-color-adjust: exact !important;
+                                        print-color-adjust: exact !important;
+                                    }
+                                    table {
+                                        border-collapse: collapse !important;
+                                        width: 100% !important;
+                                    }
+                                    td, th {
+                                        border: 1px solid #000 !important;
+                                        padding: 6px !important;
+                                    }
+                                </style>
+                            `);
+
+                                    $body.find('h1').css('text-align', 'center');
+
+                                    $body.find('h1').after(
+                                        '<div style="text-align:center;font-style:italic;font-size:10pt;margin-bottom:12px;">Generated on: '
+                                        + new Date().toISOString().split('T')[0] + '</div>'
+                                    );
+
+                                    $body.find('table')
+                                        .addClass('table table-bordered table-striped')
+                                        .css('width', '100%');
+
+                                    $body.css('font-size', '12pt');
+                                },
+                                action: function (e, dt, button, config) {
+                                    var selected = dt.rows().nodes().to$().find("input.row-select:checked").length;
+                                    var btnApi = dt.button(button);
+
+                                    if (selected === 0) {
+                                        toastr.warning("Please select at least one RFQ to export.");
+                                        try { btnApi.processing(false); } catch (err) { }
+                                        return;
+                                    }
+
+                                    try { btnApi.processing(true); } catch (err) { }
+
+                                    try {
+                                        $.fn.dataTable.ext.buttons.print.__originalAction.call(this, e, dt, button, config);
+                                    } catch (err) {
+                                        setTimeout(() => { try { btnApi.processing(false); } catch (e) { } }, 300);
+                                        throw err;
+                                    }
+
+                                    setTimeout(() => { try { btnApi.processing(false); } catch (err) { } }, 2000);
+                                }
+                            },
+
+                            // PDF
+                            {
+                                extend: "pdfHtml5",
+                                text: '<i class="bi bi-file-earmark-pdf-fill text-danger fs-5"></i>',
+                                title: "RFQ List",
+                                orientation: "landscape",
+                                pageSize: "A4",
+                                exportOptions: {
+                                    columns: [1, 2, 3, 4, 5, 6],
+                                    rows: function (idx) {
+                                        return $(rfqTable.row(idx).node())
+                                            .find("input.row-select")
+                                            .prop("checked");
+                                    },
+                                    format: {
+                                        body: function (data, rowIdx, colIdx) {
+                                            if (colIdx === 1) return getExportSrNo(rowIdx, rfqTable);
+
+                                            return typeof data === 'string'
+                                                ? data.replace(/<[^>]*>/g, '').trim()
+                                                : data;
+                                        }
+                                    }
+                                },
+                                action: function (e, dt, button, config) {
+                                    var selected = dt.rows().nodes().to$().find("input.row-select:checked").length;
+                                    var btnApi = dt.button(button);
+
+                                    if (selected === 0) {
+                                        toastr.warning("Please select at least one RFQ to export.");
+                                        btnApi.processing(false);
+                                        return;
+                                    }
+
+                                    btnApi.processing(true);
+
+                                    if (window.pdfMake && pdfMake.createPdf && !pdfMake._patchedForRFQ) {
+                                        (function () {
+                                            var origCreate = pdfMake.createPdf;
+                                            pdfMake.createPdf = function (docDefinition) {
+                                                var pdfDoc = origCreate.call(pdfMake, docDefinition);
+                                                var origDownload = pdfDoc.download;
+                                                pdfDoc.download = function (filename, cb) {
+                                                    origDownload.call(pdfDoc, filename, function () {
+                                                        try { btnApi.processing(false); } catch (err) { }
+                                                        if (typeof cb === "function") cb();
+                                                    });
+                                                };
+                                                return pdfDoc;
+                                            };
+                                            pdfMake._patchedForRFQ = true;
+                                        })();
+                                    }
+
+                                    $.fn.dataTable.ext.buttons.pdfHtml5.__originalAction.call(this, e, dt, button, config);
+
+                                    setTimeout(() => { try { btnApi.processing(false); } catch (err) { } }, 1500);
+                                },
+                                customize: customizeDoc
+                            },
+
+                            // Excel
+                            {
+                                extend: "excelHtml5",
+                                text: '<i class="bi bi-file-earmark-excel-fill text-success fs-5"></i>',
+                                title: "RFQ List",
+                                exportOptions: {
+                                    columns: [1, 2, 3, 4, 5, 6],
+                                    rows: function (idx) {
+                                        return $(rfqTable.row(idx).node())
+                                            .find("input.row-select")
+                                            .prop("checked");
+                                    },
+                                    format: {
+                                        body: function (data, rowIdx, colIdx) {
+                                            if (colIdx === 1) return getExportSrNo(rowIdx, rfqTable);
+
+                                            return typeof data === 'string'
+                                                ? data.replace(/<[^>]*>/g, '').trim()
+                                                : data;
+                                        }
+                                    }
+                                },
+                                action: function (e, dt, button, config) {
+                                    var selected = dt.rows().nodes().to$().find("input.row-select:checked").length;
+                                    var btnApi = dt.button(button);
+
+                                    if (selected === 0) {
+                                        toastr.warning("Please select at least one RFQ to export.");
+                                        try { btnApi.processing(false); } catch (err) { }
+                                        return;
+                                    }
+
+                                    try { btnApi.processing(true); } catch (err) { }
+                                    $.fn.dataTable.ext.buttons.excelHtml5.__originalAction.call(this, e, dt, button, config);
+                                    setTimeout(() => { try { btnApi.processing(false); } catch (err) { } }, 300);
+                                }
+                            },
+
+                            // CSV
+                            {
+                                extend: "csvHtml5",
+                                text: '<i class="bi bi-filetype-csv text-success fs-5"></i>',
+                                title: "RFQ List",
+                                exportOptions: {
+                                    columns: [1, 2, 3, 4, 5, 6],
+                                    rows: function (idx) {
+                                        return $(rfqTable.row(idx).node())
+                                            .find("input.row-select")
+                                            .prop("checked");
+                                    },
+                                    format: {
+                                        body: function (data, rowIdx, colIdx) {
+                                            if (colIdx === 1) return getExportSrNo(rowIdx, rfqTable);
+
+                                            return typeof data === 'string'
+                                                ? data.replace(/<[^>]*>/g, '').trim()
+                                                : data;
+                                        }
+                                    }
+                                },
+                                action: function (e, dt, button, config) {
+                                    var selected = dt.rows().nodes().to$().find("input.row-select:checked").length;
+                                    var btnApi = dt.button(button);
+
+                                    if (selected === 0) {
+                                        toastr.warning("Please select at least one RFQ to export.");
+                                        try { btnApi.processing(false); } catch (err) { }
+                                        return;
+                                    }
+
+                                    try { btnApi.processing(true); } catch (err) { }
+                                    $.fn.dataTable.ext.buttons.csvHtml5.__originalAction.call(this, e, dt, button, config);
+                                    setTimeout(() => { try { btnApi.processing(false); } catch (err) { } }, 300);
+                                }
+                            }
+                        ],
+                        drawCallback: function (settings) {
+                            var api = this.api();
+                            api.column(1, { page: "current" }).nodes().each(function (cell, i) {
+                                cell.innerHTML = i + 1 + settings._iDisplayStart;
+                            });
+                        }
+                    });
+
+                    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+                    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                        return new bootstrap.Tooltip(tooltipTriggerEl);
+                    });
+
+
+                    $(document).off("click", "#selectAllRFQ").on("click", "#selectAllRFQ", function () {
+                        $("#tblRFQ .row-select").prop("checked", $(this).prop("checked"));
+                    });
+
+                    $(document).off("change", ".row-select").on("change", ".rfqRowCheckbox", function () {
+                        let total = $("#tblRFQ .row-select").length;
+                        let checked = $("#tblRFQ .rfqRowCheckbox:checked").length;
+                        $("#selectAllRFQ").prop("checked", total === checked && total > 0);
+                    });
+                },
+                error: function (xhr) {
+                    console.error("Error fetching RFQs:", xhr.responseText);
+                    toastr.error("Failed to load RFQ list. Please try again.");
+                }
+            });
+        }
+
+
+
+        // ==============================
+        // View RFQ Details
+        // ==============================
+        $(document).on("click", ".btnViewRFQ", function () {
+            var rfqCode = $(this).data("id");
+            var actionType = $(this).data("action");
+
+            $.ajax({
+                url: "/Purchase/GetRFQDetailsSJ",
+                type: "GET",
+                data: { id: rfqCode },
+                success: function (response) {
+                    var header = response.header || {};
+                    var items = response.items || [];
+
+                    $("#rfqPRCode").val(header.PRCode || "");
+
+                    // Format CreatedDate if it exists
+                    if (header.CreatedDate) {
+                        let ts = header.CreatedDate.toString();
+                        let timestamp = ts.includes("/Date")
+                            ? parseInt(ts.replace(/[^0-9]/g, ''))
+                            : Date.parse(ts);
+
+                        if (!isNaN(timestamp)) {
+                            $("#rfqCreatedDate").val(moment(timestamp).format("D/M/YYYY"));
+                        }
+                    }
+
+                    // Format RequiredDate if it exists
+                    if (header.RequiredDate) {
+                        let ts = header.RequiredDate.toString();
+                        let timestamp = ts.includes("/Date")
+                            ? parseInt(ts.replace(/[^0-9]/g, ''))
+                            : Date.parse(ts);
+
+                        if (!isNaN(timestamp)) {
+                            $("#rfqRequiredDate").val(moment(timestamp).format("D/M/YYYY"));
+                        }
+                    }
+
+                    $("#rfqCreatedBy").val(header.CreatedBy || "");
+                    $("#rfqContactPerson").val(header.ContactPerson || "");
+                    $("#rfqContactNo").val(header.ContactNo || "");
+                    $("#rfqEmail").val(header.Email || "");
+                    $("#rfqDeliveryAddress").val(header.DeliveryAddress || "");
+                    $("#rfqNote").val(header.Note || "");
+
+
+                    $("#rfqDetailsModal").data("rfqCode", header.RFQCode || "");
+
+                    if ($.fn.DataTable.isDataTable("#RFQitems")) {
+                        $("#RFQitems").DataTable().clear().destroy();
+                    }
+
+                    $("#tblRFQDetails").empty();
+
+                    if (items.length > 0) {
+                        $.each(items, function (i, item) {
+                            let desc = item.Description ?? "";
+
+                                                $("#tblRFQDetails").append(`
+                                <tr>
+                                    <td>${i + 1}</td>
+                                    <td>${item.ItemName ?? ""}</td>
+                                    <td>
+                                        <span data-bs-toggle="tooltip" data-bs-placement="top" title="${desc}">
+                                            ${desc}
+                                        </span>
+                                    </td>
+                                    <td>${item.Quantity ?? ""}</td>
+                                    <td>${item.UOM ?? ""}</td>
+                                </tr>
+                            `);
+                        });
+
+                        $('[data-bs-toggle="tooltip"]').tooltip();
+                    }
+
+
+                    else {
+                        $("#tblRFQDetails").append(
+                            `<tr><td colspan="5" class="text-center">No items found</td></tr>`
+                        );
+                    }
+
+                    $("#RFQitems").DataTable({
+                        paging: true,
+                        searching: true,
+                        ordering: true,
+                        info: true,
+                        lengthChange: false,
+                        pageLength: 5,
+                        destroy: true,
+                        columnDefs: [
+                            { orderable: false, targets: 0 }
+                        ]
+                    });
+
+                    $("#rfqDetailsTitle").text("RFQ Details – " + (header.RFQCode || ""));
+
+                    if (actionType === "send") {
+                        $("#btnSendRFQ").show();
+                    } else {
+                        $("#btnSendRFQ").hide();
+                    }
+
+                    var modal = new bootstrap.Modal(document.getElementById("rfqDetailsModal"));
+                    modal.show();
+                }
+            });
+
+
+        });
+
+        // ==============================
+        // Back to RFQ List
+        // ==============================
+        $(document).on("click", "#btnBackToRFQ", function () {
+            $("#rfqDetailsContainer").hide();
+            $("#rfqList").show();
+        });
+
+        // ==============================
+        // Toggle Buttons (PR vs RFQ)
+        // ==============================
+        $(document).on("click", "#btnAllPR", function () {
+            $("#quotationList").show();
+            $("#rfqList").hide();
+            $("#rfqDetailsContainer").hide();
+            $("#vendorContainer").hide();
+
+        });
+
+        $(document).on("click", "#btnAllRFQ", function () {
+            $("#rfqList").show();
+            $("#quotationList").hide();
+            $("#rfqDetailsContainer").hide();
+            $("#vendorContainer").hide();
+
+            loadAllRFQ();
+        });
+        let rfqStartDate = null;
+        let rfqEndDate = null;
+
+        // ==============================
+        // Date Range Picker for RFQ
+        // ==============================
+        $('#rfqDateRange').daterangepicker({
+            autoUpdateInput: false,
+            locale: { cancelLabel: 'Clear', format: 'DD-MM-YYYY' },
+            ranges: {
+                'Today': [moment(), moment()],
+                'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                'Last 1 Month': [moment().subtract(1, 'months'), moment()],
+                'Last 3 Months': [moment().subtract(3, 'months'), moment()],
+                'Last 1 Year': [moment().subtract(12, 'months'), moment()]
+            }
+        }, function (start, end) {
+            rfqStartDate = start.clone().startOf('day');
+            rfqEndDate = end.clone().endOf('day');
+            $('#rfqDateRange').val(start.format('DD-MM-YYYY') + ' - ' + end.format('DD-MM-YYYY'));
+
+            if (rfqTable) rfqTable.draw();
+        });
+
+        $('#rfqDateRange').on('cancel.daterangepicker', function () {
+            $(this).val('Select Date Range');
+            rfqStartDate = null;
+            rfqEndDate = null;
+
+            if (rfqTable) rfqTable.draw();
+        });
+
+        $('#rfqDateRange').val('Select Date Range');
+
+        // ==============================
+        // Custom DataTable date filter for RFQ
+        // ==============================
+        $.fn.dataTable.ext.search.push(function (settings, data) {
+            if (settings.nTable.id !== 'tblRFQ') return true;
+
+            let requiredDateStr = data[4];
+            if (!requiredDateStr) return true;
+
+            let m = moment(requiredDateStr, "D/M/YYYY", true);
+            if (!m.isValid()) return true;
+
+            let rowDate = m.startOf("day");
+            if (rfqStartDate && rowDate.isBefore(rfqStartDate, "day")) return false;
+            if (rfqEndDate && rowDate.isAfter(rfqEndDate, "day")) return false;
+            return true;
+        });
+
+
+        // ==============================
+        // Open Vendor Table on Send RFQ
+        // ==============================
+
+
+        $(document).on("click", "#btnSendRFQ", function () {
+
+            $("#vendorContainer").show();
+            $("#rfqDetailsModal").modal("hide");
+            $("#rfqDetailsContainer").hide();
+            $("#rfqList").hide();
+
+            loadVendors();
+
+
+
+            $("#vendorPRCode").val($("#rfqPRCode").val());
+            $("#vendorRFQCode").val($("#rfqDetailsModal").data("rfqCode"));
+
+            // Load industry types into dropdown only once
+            if ($("#industryFilter option").length === 1) {
+                $.getJSON("/Purchase/GetIndustryTypesSJ", function (res) {
+                    if (res.data) {
+                        $.each(res.data, function (i, industry) {
+                            $("#industryFilter").append($("<option>", {
+                                value: industry.Id,
+                                text: industry.Name
+                            }));
+                        });
+                    }
+                });
+            }
+
+
+            $("#industryFilter").off("change").on("change", function () {
+                let industryId = $(this).val();
+                loadVendors(industryId);
+            });
+        });
+
+        // ==============================
+        // Load Vendors Function
+        // ==============================
+
+        function loadVendors(industryId) {
+            let url = "/Purchase/GetVendorsSJ";
+            if (industryId) url += "?industryTypeId=" + industryId;
+
+            $.ajax({
+                url: url,
+                type: "GET",
+                success: function (response) {
+                    if ($.fn.DataTable.isDataTable("#vendorsTable")) {
+                        $("#vendorsTable").DataTable().clear().destroy();
+                    }
+
+                    $("#tblVendors").empty();
+
+                    if (response.data && response.data.length > 0) {
+                        $.each(response.data, function (i, vendor) {
+                            $("#tblVendors").append(`
+                        <tr>
+                            <td><input type="checkbox" class="row-select" value="${vendor.Id}" /></td>
+                            <td>${i + 1}</td>
+                            <td>${vendor.Name ?? ""}</td>
+                            <td>${vendor.CompanyName ?? ""}</td>
+                            <td>${vendor.Phone ?? ""}</td>
+                            <td>${vendor.Email ?? ""}</td>
+                            <td>${vendor.Address ?? ""}</td>
+                        </tr>
+                    `);
+                        });
+                    } else {
+                        $("#tblVendors").append(`
+                    <tr>
+                        <td></td>
+                        <td colspan="6" class="text-center">No vendors available</td>
+                    </tr>
+                `);
+                    }
+
+                   Tablevendor = $("#vendorsTable").DataTable({
+                        autoWidth: false,
+                        paging: true,
+                        searching: true,
+                        ordering: true,
+                        pageLength: 5,
+                        lengthMenu: [5, 10, 25, 50],
+                        order: [],
+                        columnDefs: [
+                            { orderable: false, targets: 0 }
+                        ],
+                        dom: '<"row mb-3"<"col-md-6"B><"col-md-6 text-end"f>>rt<"row mt-3"<"col-md-6"i><"col-md-6 text-end"p>>',
+                        buttons: [
+                            // PRINT
+                            {
+                                extend: "print",
+                                text: '<i class="bi bi-printer-fill text-dark fs-5"></i>',
+                                title: "Vendors List",
+                                exportOptions: {
+                                    columns: [1, 2, 3, 4, 5, 6],
+                                    rows: function (idx) {
+                                        return $(Tablevendor.row(idx).node())
+                                            .find("input.row-select")
+                                            .prop("checked");
+                                    },
+                                    format: {
+                                        body: function (data, rowIdx, colIdx) {
+                                            if (colIdx === 1) return getExportSrNo(rowIdx, Tablevendor);
+                                            return data;
+                                        }
+                                    }
+                                },
+                                customize: function (win) {
+                                    $(win.document.body).prepend(`
+                                <h3 style="text-align:center;">Vendors List</h3>
+                                <p style="text-align:center;">Export Date: ${moment().format("DD/MM/YYYY")}</p>
+                            `);
+                                },
+                                customize: function (win) {
+                                    var $body = $(win.document.body);
+
+                                    $body.append(`
+                                    <style>
+                                        thead th {
+                                            background-color: black !important;
+                                            color: white !important;
+                                            text-align: center !important;
+                                            -webkit-print-color-adjust: exact !important;
+                                            print-color-adjust: exact !important;
+                                        }
+                                        table {
+                                            border-collapse: collapse !important;
+                                            width: 100% !important;
+                                        }
+                                        td, th {
+                                            border: 1px solid #000 !important;
+                                            padding: 6px !important;
+                                        }
+                                    </style>
+                                `);
+
+                                    $body.find('h1').css('text-align', 'center');
+
+                                    $body.find('h1').after(
+                                        '<div style="text-align:center;font-style:italic;font-size:10pt;margin-bottom:12px;">Generated on: '
+                                        + new Date().toISOString().split('T')[0] + '</div>'
+                                    );
+
+                                    $body.find('table')
+                                        .addClass('table table-bordered table-striped')
+                                        .css('width', '100%');
+
+                                    $body.css('font-size', '12pt');
+                                },
+                                action: function (e, dt, button, config) {
+                                    var selected = dt.rows().nodes().to$().find("input.row-select:checked").length;
+                                    var btnApi = dt.button(button);
+
+                                    if (selected === 0) {
+                                        toastr.warning("Please select at least one vendor to export.");
+                                        try { btnApi.processing(false); } catch (err) { }
+                                        return;
+                                    }
+
+                                    try { btnApi.processing(true); } catch (err) { }
+
+                                    try {
+                                        $.fn.dataTable.ext.buttons.print.__originalAction.call(this, e, dt, button, config);
+                                    } catch (err) {
+                                        setTimeout(() => { try { btnApi.processing(false); } catch (e) { } }, 300);
+                                        throw err;
+                                    }
+
+                                    setTimeout(() => { try { btnApi.processing(false); } catch (err) { } }, 2000);
+                                }
+                            },
+
+                            // PDF
+                            {
+                                extend: "pdfHtml5",
+                                text: '<i class="bi bi-file-earmark-pdf-fill text-danger fs-5"></i>',
+                                title: "Vendors List",
+                                filename: "Vendors_List",
+                                orientation: "landscape",
+                                pageSize: "A4",
+                                exportOptions: {
+                                    columns: [1, 2, 3, 4, 5, 6],
+                                    rows: function (idx) {
+                                        return $(Tablevendor.row(idx).node())
+                                            .find("input.row-select")
+                                            .prop("checked");
+                                    },
+                                    format: {
+                                        body: function (data, rowIdx, colIdx) {
+                                            if (colIdx === 1) return getExportSrNo(rowIdx, Tablevendor);
+                                            return data;
+                                        }
+                                    }
+                                },
+                                action: function (e, dt, button, config) {
+                                    var selected = dt.rows().nodes().to$().find("input.row-select:checked").length;
+                                    var btnApi = dt.button(button);
+
+                                    if (selected === 0) {
+                                        toastr.warning("Please select at least one vendor to export.");
+                                        btnApi.processing(false);
+                                        return;
+                                    }
+
+                                    btnApi.processing(true);
+
+                                    if (window.pdfMake && pdfMake.createPdf && !pdfMake._patchedForVendors) {
+                                        (function () {
+                                            var origCreate = pdfMake.createPdf;
+                                            pdfMake.createPdf = function (docDefinition) {
+                                                var pdfDoc = origCreate.call(pdfMake, docDefinition);
+                                                var origDownload = pdfDoc.download;
+                                                pdfDoc.download = function (filename, cb) {
+                                                    origDownload.call(pdfDoc, filename, function () {
+                                                        try { btnApi.processing(false); } catch (err) { }
+                                                        if (typeof cb === "function") cb();
+                                                    });
+                                                };
+                                                return pdfDoc;
+                                            };
+                                            pdfMake._patchedForVendors = true;
+                                        })();
+                                    }
+
+                                    $.fn.dataTable.ext.buttons.pdfHtml5.__originalAction.call(this, e, dt, button, config);
+
+                                    setTimeout(() => { try { btnApi.processing(false); } catch (err) { } }, 1500);
+                                },
+                                 customize: customizeDoc
+
+                            },
+
+                            // EXCEL
+                            {
+                                extend: "excelHtml5",
+                                text: '<i class="bi bi-file-earmark-excel-fill text-success fs-5"></i>',
+                                title: "Vendors List",
+                                filename: "Vendors_List",
+                                exportOptions: {
+                                    columns: [1, 2, 3, 4, 5, 6],
+                                    rows: function (idx) {
+                                        return $(Tablevendor.row(idx).node())
+                                            .find("input.row-select")
+                                            .prop("checked");
+                                    }
+                                },
+                                action: function (e, dt, button, config) {
+                                    var selected = dt.rows().nodes().to$().find("input.row-select:checked").length;
+                                    var btnApi = dt.button(button);
+
+                                    if (selected === 0) {
+                                        toastr.warning("Please select at least one vendor to export.");
+                                        try { btnApi.processing(false); } catch (err) { }
+                                        return;
+                                    }
+
+                                    try { btnApi.processing(true); } catch (err) { }
+                                    $.fn.dataTable.ext.buttons.excelHtml5.__originalAction.call(this, e, dt, button, config);
+                                    setTimeout(() => { try { btnApi.processing(false); } catch (err) { } }, 300);
+                                }
+                            },
+
+                            // CSV
+                            {
+                                extend: "csvHtml5",
+                                text: '<i class="bi bi-filetype-csv text-success fs-5"></i>',
+                                title: "Vendors List",
+                                filename: "Vendors_List",
+                                exportOptions: {
+                                    columns: [1, 2, 3, 4, 5, 6],
+                                    rows: function (idx) {
+                                        return $(Tablevendor.row(idx).node())
+                                            .find("input.row-select")
+                                            .prop("checked");
+                                    }
+                                },
+                                action: function (e, dt, button, config) {
+                                    var selected = dt.rows().nodes().to$().find("input.row-select:checked").length;
+                                    var btnApi = dt.button(button);
+
+                                    if (selected === 0) {
+                                        toastr.warning("Please select at least one vendor to export.");
+                                        try { btnApi.processing(false); } catch (err) { }
+                                        return;
+                                    }
+
+                                    try { btnApi.processing(true); } catch (err) { }
+                                    $.fn.dataTable.ext.buttons.csvHtml5.__originalAction.call(this, e, dt, button, config);
+                                    setTimeout(() => { try { btnApi.processing(false); } catch (err) { } }, 300);
+                                }
+                            }
+                       ],
+                           drawCallback: function (settings) {
+                           var api = this.api();
+                           api.column(1, { page: 'current' }).nodes().each(function (cell, i) {
+                               cell.innerHTML = i + 1 + settings._iDisplayStart;
+                           });
+                       }
+                    });
+
+                    $("#selectAllVendors").off("click").on("click", function () {
+                        $(".row-select").prop("checked", $(this).prop("checked"));
+                    });
+                },
+                error: function (xhr) {
+                    toastr.error("Failed to load vendors. Please try again.");
+                }
+            });
+        }
+
+
+
+
+        // Handle Send button
+            $(document).on("click", "#btnSendToSelected", function () {
+                var selectedVendors = [];
+                $(".row-select:checked").each(function () {
+                    selectedVendors.push($(this).val());
+                });
+
+                if (selectedVendors.length === 0) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'No Vendors Selected',
+                        text: 'Please select at least one vendor.',
+                        confirmButtonText: 'OK'
+                    });
+                    return;
+                }
+
+                console.log("Selected Vendors:", selectedVendors);
+
+                Swal.fire({
+                    title: 'Sending RFQ...',
+                    text: 'Please wait while emails are being sent to selected vendors.',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                $.ajax({
+                    url: "/Purchase/SendRFQToVendorsSJ",
+                    type: "POST",
+                    data: JSON.stringify({
+                        rfqCode: $("#vendorRFQCode").val(),
+                        PRCode: $("#vendorPRCode").val(),
+                        vendors: selectedVendors
+                    }),
+                    contentType: "application/json",
+                    success: function (res) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success!',
+                            text: 'RFQ sent successfully to selected vendors!',
+                            confirmButtonText: 'OK'
+                        }).then(() => {
+                            $("#vendorContainer").hide();
+                            $("#rfqList").show();
+                        });
+                    },
+                    error: function (xhr) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error!',
+                            text: 'Something went wrong while sending RFQ. Please try again.',
+                            confirmButtonText: 'OK'
+                        });
+                        console.error(xhr.responseText);
+                    }
+                });
+            });
+
+
+
+            // Load Country
+         $.getJSON('@Url.Action("GetCountriesSJ", "Purchase")', function (countrieslst) {
+             console.log("Country Data", countrieslst);
+
+             $('#country').empty().append('<option value="">Select Country</option>');
+             $.each(countrieslst, function (i, country) {
+                 $('#country').append(`<option value="${country.iso2}">${country.name}</option>`);
+             });
+         });
+
+         // Load Industry Types
+         $.getJSON('@Url.Action("FetchIndustryTypeSJ","Purchase")', function (data) {
+             console.log("Industry Types : ", data.lsttype);
+             $('#industryType').empty().append(`<option value="0">Select IndustryType</option>`);
+             $.each(data.lsttype, function (i, type) {
+                 $('#industryType').append(`<option value="${type.IndustryTypeId}">${type.IndustryType}</option>`);
+             });
+         });
+
+         // Load Banks
+         var bankList = [];
+         $.getJSON('@Url.Action("FetchBankAndSwiftCodeSJ","Purchase")', function (data) {
+             console.log("Bank Data : ", data.banks);
+             bankList = data.banks;
+
+             // clear textboxes PRoperly
+             $('#ifsc').val('');
+             $('#swift').val('');
+
+             // load bank dropdown
+             $('#bankName').empty().append('<option value="0">Select Bank</option>');
+             $.each(bankList, function (i, bank) {
+                 $('#bankName').append(`<option value="${bank.BankId}">${bank.BankName}</option>`);
+             });
+         });
+
+         // Set Specific Bank SwiftCode in TextBox
+         $('#bankName').change(function () {
+             var bankid = $(this).val();
+             console.log("BankId Is : ", bankid);
+
+             // clear fields before setting
+             $('#swift').val('');
+             $('#ifsc').val('');
+             $('#branchName').empty().append('<option value="0">Select Branch</option>');
+
+             var bank = bankList.find(b => b.BankId == bankid);
+             $('#swift').val(bank ? bank.SwiftCode : '');
+         });
+
+         // Load Branch And IFSCCode
+         var BranchList = [];
+         $('#bankName').change(function () {
+             var Bankid = $(this).val();
+             $.getJSON('@Url.Action("FetchBranchAndIFSCCodeSJ","Purchase")', { BankId: Bankid }, function (data) {
+                 BranchList = data.Branch;
+                 console.log("Branch Data : ", data.Branch);
+                 $('#branchName').empty().append('<option value="0">Select Branch</option>');
+                 $.each(BranchList, function (i, branch) {
+                     $('#branchName').append(`<option value="${branch.BranchId}">${branch.BranchName}</option>`);
+                 });
+             });
+         });
+
+         // Set Specific Branch IFSCCode in textBox
+         $('#branchName').change(function () {
+             var branchid = $(this).val();
+             var branch = BranchList.find(b => b.BranchId == branchid);
+             $('#ifsc').val(branch ? branch.IFSCCode : '');
+         });
+
+         // Load State
+         $('#country').change(function () {
+             var countrycode = $(this).val();
+             $.getJSON('@Url.Action("GetStateSJ","Purchase")', { countrycode: countrycode }, function (lststate) {
+                 console.log("State Data", lststate);
+                 $('#state').empty().append(`<option value="">Select State</option>`);
+                 $.each(lststate, function (i, state) {
+                     $('#state').append(`<option value=${state.iso2}>${state.name}</option>`);
+                 });
+             });
+         });
+
+         // Load City
+         $('#state').change(function () {
+             var countryCode = $('#country').val();
+             var stateCode = $(this).val();
+             console.log("Country: " + countryCode + ", State: " + stateCode);
+
+             $.getJSON('@Url.Action("GetCitiesSJ", "Purchase")', { countryCode: countryCode, stateCode: stateCode }, function (data) {
+                 console.log("City Data", data);
+                 $('#city').empty().append('<option>Select City</option>');
+                 $.each(data, function (i, city) {
+                     $('#city').append('<option value="' + city.id + '">' + city.name + '</option>');
+                 });
+             });
+         });
+
+
+        $(document).on("click", "#btnAddVendor", function () {
+            console.log("Add Vendor button clicked");
+
+            $('#Vendorform')[0].reset();
+            $('#Vendorform').removeClass("was-validated");
+
+            var modal = new bootstrap.Modal(document.getElementById("vendorModal"));
+            modal.show();
+        });
+        $('#Vendorform').submit(function (e) {
+            e.preventDefault();
+
+            if (!this.checkValidity()) {
+                e.stopPropagation();
+                $(this).addClass("was-validated");
+                return;
+            }
+
+            let formdata = $(this).serialize();
+            console.log("FormData", formdata);
+
+            $.ajax({
+                url: '@Url.Action("SaveVendorDetailsSJ", "Purchase")',
+                type: 'POST',
+                data: formdata,
+                success: function (res) {
+                    console.log("Response", res);
+
+                    if (res && res.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success',
+                            text: res.message || "Vendor saved successfully!",
+                            confirmButtonColor: '#3085d6',
+                            confirmButtonText: 'OK'
+                        }).then(() => {
+                            $('#Vendorform')[0].reset();
+                            $('#Vendorform').removeClass("was-validated");
+                            $('#vendorModal').modal('hide');
+
+                            if (typeof loadVendors === "function") {
+                                loadVendors();
+                            }
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: res.message || "Something went wrong while saving vendor.",
+                            confirmButtonColor: '#d33',
+                            confirmButtonText: 'OK'
+                        });
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("AJAX Error:", status, error, xhr.responseText);
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Unexpected Error',
+                        text: "An unexpected error occurred. Please try again.",
+                        confirmButtonColor: '#d33',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            });
+        });
+
+    });
+    // Helper function to recalc SrNo for export across all pages
+    function getExportSrNo(rowIdx, tbl) {
+        let allRows = tbl.rows({ order: 'applied', search: 'applied' }).nodes().toArray();
+        let checkedRows = allRows.filter(row => $(row).find('input.row-select').prop('checked'));
+        let sr = checkedRows.findIndex(row => tbl.row(row).index() === rowIdx) + 1;
+        return sr;
+    }
+</script>
+
+
+
+

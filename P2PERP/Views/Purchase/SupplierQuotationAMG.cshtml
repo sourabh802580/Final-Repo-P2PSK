@@ -1,0 +1,268 @@
+﻿@{
+    ViewBag.Title = "SupplierQuotationAMG";
+}
+<style>
+    .nav-pills .nav-link {
+        color: #0d6efd; /* Bootstrap primary blue */
+        border: 1px solid #0d6efd;
+        margin-right: 5px;
+    }
+
+        .nav-pills .nav-link.active {
+            background-color: #0d6efd !important;
+            color: #fff !important;
+        }
+
+    #quotationItemsTable th, #quotationItemsTable td {
+        text-align: center !important;
+        vertical-align: middle !important;
+    }
+</style>
+<div id="toastContainer" class="toast-container position-fixed top-0 end-0 p-3" style="z-index : 1100;"></div>
+
+<!-- ✅ Nav-Pills -->
+
+<div class="tab-content mt-3">
+
+    <ul class="nav nav-pills mb-3" id="quotationTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <a class="nav-link active"
+               id="pending-tab"
+               data-bs-toggle="pill"
+               href="#pendingTab"
+               data-url="@Url.Action("PendingSupplierAMG", "Purchase")"
+               role="tab">
+                Pending Quotations
+            </a>
+        </li>
+        <li class="nav-item" role="presentation">
+            <a class="nav-link"
+               id="approved-tab"
+               data-bs-toggle="pill"
+               href="#approvedTab"
+               data-url="@Url.Action("ApprovedSupplierAMG", "Purchase")"
+               role="tab">
+                Approved Quotations
+            </a>
+        </li>
+    </ul>
+
+    <div class="tab-pane fade show active" id="pendingTab" role="tabpanel"></div>
+    <div class="tab-pane fade" id="approvedTab" role="tabpanel"></div>
+</div>
+
+<!-- 🔽 Modal -->
+<div class="modal fade" id="quotationModal" tabindex="-1" aria-labelledby="quotationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white justify-content-center">
+                <h5 class="modal-title text-center text-white w-100 fw-bold" id="quotationModalLabel">Quotation Details</h5>
+                <button type="button" class="btn-close btn-close-white position-absolute end-0 me-3" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+                <!-- Header Section -->
+                <div class="row mb-4">
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">RFQ Code</label>
+                        <div id="qRFQ" class="form-control-plaintext"></div>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">Quotation Code</label>
+                        <div id="qCode" class="form-control-plaintext"></div>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">Vendor</label>
+                        <div id="qVendor" class="form-control-plaintext"></div>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">Company</label>
+                        <div id="qCompany" class="form-control-plaintext"></div>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">Expected Delivery Date</label>
+                        <div id="qDate" class="form-control-plaintext"></div>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">Vendor Delivery Date</label>
+                        <div id="qDelDate" class="form-control-plaintext"></div>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">Shipping Charges</label>
+                        <div id="qShip" class="form-control-plaintext"></div>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">Grand Total</label>
+                        <div id="qGrand" class="form-control-plaintext text-success fw-bold"></div>
+                    </div>
+                </div>
+
+                <!-- Items Section -->
+                <h6 class="fw-bold">Items</h6>
+                <table id="quotationItemsTable" class="table table-striped table-bordered w-100">
+                    <thead class="table-dark text-white text-center fw-bold">
+                        <tr>
+                            <th>SrNo</th>
+                            <th>Item Code</th>
+                            <th>Item Name</th>
+                            <th>Qty</th>
+                            <th>Rate</th>
+                            <th>Gross Amount</th>
+                            <th>Discount %</th>
+                            <th>Discount Amount</th>
+                            <th>Net Amount</th>
+                            <th>GST %</th>
+                            <th>Final Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+
+        // ✅ Load first tab immediately
+        loadTabContent($("#quotationTabs a.active"), true);
+
+        // ✅ On every tab switch, reload data fresh
+        $('#quotationTabs a[data-bs-toggle="pill"]').on("shown.bs.tab", function (e) {
+            loadTabContent($(e.target), true); // force reload each time
+        });
+
+        // Load tab content with AJAX
+        function loadTabContent(tab, force = false) {
+            var url = tab.attr("data-url");
+            var target = tab.attr("href");
+
+            if (url) {
+                $(target).html("<div class='text-info p-3'>Loading...</div>");
+                $.ajax({
+                    url: url,
+                    type: "GET",
+                    dataType: "html",
+                    success: function (data) {
+                        $(target).html(data);
+                    },
+                    error: function () {
+                        $(target).html("<div class='text-danger p-3'>Error loading view.</div>");
+                    }
+                });
+            }
+        }
+
+        // Fix for Materio - unlock body & remove backdrop after modal close
+        document.getElementById('quotationModal')
+            .addEventListener('hidden.bs.modal', function () {
+                document.body.classList.remove('modal-open');
+                document.body.style.overflow = 'auto';
+                $('.modal-backdrop').remove();
+            });
+
+    });
+
+    // ✅ Modal trigger from buttons inside partials
+    $(document).on("click", ".btn-view", function () {
+        const code = $(this).data("id");
+        const modalEl = document.getElementById('quotationModal');
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+
+        // Clear previous data
+        $("#qRFQ, #qCode, #qVendor, #qCompany, #qDate, #qDelDate, #qShip, #qGrand").text("");
+        if ($.fn.DataTable.isDataTable("#quotationItemsTable")) {
+            $("#quotationItemsTable").DataTable().destroy();
+        }
+        $("#quotationItemsTable tbody").empty();
+
+        // Load header
+        $.getJSON("/Purchase/GetQuotationHeaderAMG", { quotationCode: code }, function (hdr) {
+            if (hdr.length > 0) {
+                $("#qRFQ").text(hdr[0].RFQCode || "N/A");
+                $("#qCode").text(hdr[0].RegisterQuotationCode || "N/A");
+                $("#qVendor").text(hdr[0].VenderName || "N/A");
+                $("#qCompany").text(hdr[0].CompanyName || "N/A");
+                //$("#qDate").text(hdr[0].VQDate ? new Date(hdr[0].VQDate).toLocaleDateString() : "N/A");
+                //$("#qDelDate").text(hdr[0].VendorDeliveryDate ? new Date(hdr[0].VendorDeliveryDate).toLocaleDateString() : "N/A");
+                function formatDate(dateStr) {
+                    if (!dateStr) return "N/A";
+                    const d = new Date(dateStr);
+                    if (isNaN(d)) return "N/A";
+                    return d.toLocaleDateString("en-GB"); // gives dd/mm/yyyy
+                }
+
+                $("#qDate").text(formatDate(hdr[0].VQDate));
+                $("#qDelDate").text(formatDate(hdr[0].VendorDeliveryDate));
+
+                $("#qShip").text(hdr[0].ShippingCharges ? parseFloat(hdr[0].ShippingCharges).toLocaleString('en-IN', { style: 'currency', currency: 'INR' }) : "N/A");
+            }
+        });
+
+        // Load items
+        $.getJSON("/Purchase/GetQuotationItemsAMG", { quotationCode: code }, function (items) {
+            let tbody = $("#quotationItemsTable tbody");
+            let total = 0;
+            $.each(items, function (i, item) {
+                tbody.append(`<tr>
+    <td class="text-center">${i + 1}</td>
+    <td class="text-center">${item.ItemCode || "N/A"}</td>
+    <td class="text-center">${item.ItemName || "N/A"}</td>
+    <td class="text-center">${item.Quantity || "0"}</td>
+    <td class="text-center">${item.CostPerUnit ? parseFloat(item.CostPerUnit).toLocaleString('en-IN', { style: 'currency', currency: 'INR' }) : "N/A"}</td>
+    <td class="text-center">${item.GrossAmount ? parseFloat(item.GrossAmount).toLocaleString('en-IN', { style: 'currency', currency: 'INR' }) : "N/A"}</td>
+    <td class="text-center">${item.DiscountPercent || "0"}%</td>
+    <td class="text-center">${item.DiscountAmount ? parseFloat(item.DiscountAmount).toLocaleString('en-IN', { style: 'currency', currency: 'INR' }) : "N/A"}</td>
+    <td class="text-center">${item.NetAmount ? parseFloat(item.NetAmount).toLocaleString('en-IN', { style: 'currency', currency: 'INR' }) : "N/A"}</td>
+    <td class="text-center">${item.TotalGST || "0"}%</td>
+    <td class="text-center">${item.FinalAmount ? parseFloat(item.FinalAmount).toLocaleString('en-IN', { style: 'currency', currency: 'INR' }) : "N/A"}</td>
+</tr>`);
+
+
+            });
+            //$("#qGrand").text(total.toLocaleString('en-IN', { style: 'currency', currency: 'INR' }));
+            let gtotal = 0;
+            $.each(items, function (i, item) {
+                gtotal += parseFloat(item.FinalAmount || 0);
+                // (append rows as above)
+            });
+            $("#qGrand").text(gtotal.toLocaleString('en-IN', { style: 'currency', currency: 'INR' }));
+
+            // ✅ Initialize DataTable
+            $("#quotationItemsTable").DataTable({
+                paging: false,
+                searching: true,
+                info: false,
+                ordering: false,
+                autoWidth: false
+            });
+        });
+
+        modal.show();
+    });
+
+    // Fix for layout-wrapper scroll
+    const layoutWrapper = document.querySelector('.layout-wrapper');
+
+    document.addEventListener('show.bs.modal', function (e) {
+        if (e.target.id === 'quotationModal' && layoutWrapper) {
+            layoutWrapper.dataset.prevPosition = layoutWrapper.style.position;
+            layoutWrapper.style.position = 'static';
+        }
+    });
+
+    document.addEventListener('hidden.bs.modal', function (e) {
+        if (e.target.id === 'quotationModal' && layoutWrapper) {
+            document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
+            document.body.classList.remove('modal-open');
+            document.body.style.overflow = '';
+            document.body.style.paddingRight = '';
+            document.documentElement.style.overflow = '';
+            layoutWrapper.style.position = layoutWrapper.dataset.prevPosition || 'fixed';
+        }
+    });
+</script>

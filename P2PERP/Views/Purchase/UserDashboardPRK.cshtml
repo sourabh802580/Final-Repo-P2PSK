@@ -1,0 +1,394 @@
+﻿@{
+    ViewBag.Title = "UserDashboard";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<style>
+        .card-small {
+    height: 110px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease, color 0.3s ease;
+    transform: translateY(0);
+    border-radius: 0.5rem;
+    overflow: hidden;
+    will-change: transform;
+        }
+
+         .card-small:hover {
+             transform: translateY(-5px) scale(1.03);
+             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+             z-index: 10;
+            
+         }
+
+    /* Animate icon on hover */
+    .card-small:hover i {
+        animation: bounce 0.6s;
+    }
+
+    /* Optional text glow on hover */
+    .card-small:hover h5,
+    .card-small:hover p {
+        text-shadow: 0 0 5px rgba(255, 255, 255, 0.7);
+    }
+
+    /* Card body animation (background transition) */
+    .card-small .card-body {
+        transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+        .modal-backdrop {
+            display: none !important;
+        }
+
+        body.modal-open .container::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1040;
+        }
+
+        .modal {
+            z-index: 1055 !important;
+        }
+
+         .icon-circle {
+             backdrop-filter: blur(4px);
+         }
+</style>
+</head>
+<body class="bg-light">
+    <div class="main-content">
+        <div class="container py-4">
+            <div class="shadow-sm rounded bg-white p-4">
+                <div class="text-center mb-4">
+                    <h3 class="text-primary fw-bold">Purchase Requisition Manager Dashboard</h3>
+                </div>
+
+                <!-- Cards section -->
+                <div class="row g-3 mb-4">
+                    @{
+                        var cards = new[] {
+                                new { Id = "approvedPrCard", Bg = "linear-gradient(135deg, #6ee7b7, #34d399)", Title = "Approved Purchase Requisition", DarkText = true },
+                                new { Id = "pendingPrCard", Bg = "linear-gradient(135deg, #fde68a, #facc15)", Title = "Pending Purchase Requisition", DarkText = true },
+                                new { Id = "requestedRfqCard", Bg = "linear-gradient(135deg, #93c5fd, #60a5fa)", Title = "Requested Request for Quotation", DarkText = true },
+                                new { Id = "pendingRfqCard", Bg = "linear-gradient(135deg, #fcd34d, #fbbf24)", Title = "Pending Request for Quotation", DarkText = true },
+                                new { Id = "approvedRcCard", Bg = "linear-gradient(135deg, #86efac, #4ade80)", Title = "Approved Register Quotation", DarkText = true },
+                                new { Id = "pendingRcCard", Bg = "linear-gradient(135deg, #fdba74, #fb923c)", Title = "Pending Register Quotation", DarkText = true },
+                                new { Id = "approvedPoCard", Bg = "linear-gradient(135deg, #c4b5fd, #a78bfa)", Title = "Approved Purchase Order", DarkText = true },
+                                new { Id = "pendingPoCard", Bg = "linear-gradient(135deg, #f9a8d4, #f472b6)", Title = "Pending Purchase Order", DarkText = true }
+                            };
+                    }
+
+                    <div class="row g-3 mb-4">
+                        @foreach (var card in cards)
+                        {
+                            var textColor = card.DarkText ? "#1f2937" : "white"; // black for light tones, white for darker tones
+
+                            <div class="col-md-3">
+                                <div class="card shadow-md border-0 card-small position-relative d-flex flex-column rounded-3 overflow-hidden"
+                                     id="@card.Id"
+                                     style="cursor:pointer; transition: transform 0.2s, box-shadow 0.2s;">
+
+                                    <div class="card-body text-center d-flex flex-column justify-content-center align-items-center"
+                                         style="background:@card.Bg; color:@textColor; flex:1; padding:2rem 1rem;">
+
+                                        <!-- Icon in circle -->
+                                        <div class="icon-circle d-flex align-items-center justify-content-center position-absolute"
+                                             style="top: 12px; right: 12px; background: rgba(255,255,255,0.3); border-radius:50%; width:40px; height:40px;">
+                                            <i class="bi @(card.Title.Contains("Approved") ? "bi-check-circle-fill" : "bi-hourglass-split") fs-5"
+                                               style="color:@textColor;"></i>
+                                        </div>
+
+                                        <!-- Count -->
+                                        <h5 class="fw-bold mb-1 fs-2 flex-grow-1 d-flex align-items-center justify-content-center">0</h5>
+                                        <p class="fw-semibold fs-6 mb-0 mt-auto">@card.Title</p>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                
+
+
+
+                <!-- Charts section -->
+                <div class="row g-4 mb-4">
+                    <div class="col-12">
+                        <div class="card shadow-sm">
+                            <div class="card-body">
+                                <div id="barChart" style="height: 400px;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="card shadow-sm">
+                            <div class="card-body">
+                                <div id="trendChart" style="height: 400px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Date Button -->
+                <button id="dateFilterBtn"
+                        class="btn btn-primary rounded-circle shadow-lg position-fixed"
+                        style="top: 70px; right: 20px; width: 60px; height: 60px; z-index: 1050;">
+                    <i class="bi bi-calendar-date fs-4"></i>
+                </button>
+
+                <!-- Hidden input used for daterangepicker (required for correct positioning) -->
+                <input type="text" id="reportrange" class="form-control position-fixed"
+                       style="top: 70px; right: 20px; width: 1px; height: 1px; opacity: 0; z-index: -1;" />
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="dashboardModal" tabindex="-1">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white justify-content-center">
+                    <h5 class="modal-title fw-bold mb-0 text-white" id="dashboardModalLabel">Details</h5>
+                    <button type="button" class="btn-close btn-close-white position-absolute end-0 me-3" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="dashboardModalBody"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedStartDate, selectedEndDate;
+
+        function initDateRangePicker() {
+            const start = moment().startOf('year');
+            const end = moment().endOf('year');
+
+            $('#reportrange').daterangepicker({
+                startDate: start,
+                endDate: end,
+                opens: 'left',
+                drops: 'down',
+                parentEl: 'body',
+                alwaysShowCalendars: false,
+                autoUpdateInput: true,
+                autoApply: false, // Needed for Apply/Cancel
+                showDropdowns: true,
+                ranges: {
+                    'Today': [moment(), moment()],
+                    'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                    'This Month': [moment().startOf('month'), moment().endOf('month')],
+                    'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
+                    'This Year': [moment().startOf('year'), moment().endOf('year')]
+                },
+                locale: {
+                    cancelLabel: 'Clear',
+                    applyLabel: 'Apply',
+                    format: 'DD/MM/YYYY'
+                }
+            });
+
+            // Set initial value in field
+            $('#reportrange').val(start.format('DD-MM-YYYY') + ' - ' + end.format('DD-MM-YYYY'));
+
+            // Initial dashboard load
+            onDateChange(start, end);
+
+            // Handle Apply
+            $('#reportrange').on('apply.daterangepicker', function (ev, picker) {
+                selectedStartDate = picker.startDate.format('YYYY-MM-DD');
+                selectedEndDate = picker.endDate.format('YYYY-MM-DD');
+
+                const displayStartDate = picker.startDate.format('DD-MM-YYYY');
+                const displayEndDate = picker.endDate.format('DD-MM-YYYY');
+
+                $(this).val(displayStartDate + ' - ' + displayEndDate);
+
+                onDateChange(picker.startDate, picker.endDate);
+            });
+
+            // Handle Clear
+            $('#reportrange').on('cancel.daterangepicker', function () {
+                $(this).val('');
+
+                // Reset to default
+                const start = moment().startOf('year');
+                const end = moment().endOf('year');
+
+                onDateChange(start, end);
+            });
+        }
+
+        function onDateChange(start, end) {
+            selectedStartDate = start.format('YYYY-MM-DD');
+            selectedEndDate = end.format('YYYY-MM-DD');
+
+            const displayStartDate = start.format('DD-MM-YYYY');
+            const displayEndDate = end.format('DD-MM-YYYY');
+
+            $.get("/Purchase/GetDashboardCounts", {
+                startDate: selectedStartDate,
+                endDate: selectedEndDate
+            }, function (data) {
+                $("#approvedPrCard h5").text(data.ApprovedPR);
+                $("#pendingPrCard h5").text(data.PendingPR);
+                $("#requestedRfqCard h5").text(data.RequestedRFQ);
+                $("#pendingRfqCard h5").text(data.PendingRFQ);
+                $("#approvedRcCard h5").text(data.ApprovedRC);
+                $("#pendingRcCard h5").text(data.PendingRC);
+                $("#approvedPoCard h5").text(data.ApprovedPO);
+                $("#pendingPoCard h5").text(data.PendingPO);
+
+                Highcharts.chart('barChart', {
+                    chart: { type: 'column' },
+                    title: {
+                        text: `PR, RFQ, RQ & PO Status (${displayStartDate} to ${displayEndDate})`,
+                        style: {
+                            color: '#374151',   // Tailwind gray-700 style (good neutral tone)
+                            fontSize: '14px',   // smaller size
+                            fontWeight: '600',  // semi-bold
+                            fontFamily: 'Segoe UI, Roboto, sans-serif'
+                        }
+                    },
+                    xAxis: { categories: ['PR', 'RFQ', 'RQ', 'PO'] },
+                    yAxis: { min: 0, title: { text: 'Count' } },
+                    plotOptions: {
+                        column: {
+                            borderRadius: 5,
+                            dataLabels: {
+                                enabled: true,
+                                style: { fontWeight: 'bold', color: '#000', textOutline: 'none' }
+                            }
+                        }
+                    },
+                    series: [
+                        {
+                            name: 'Approved / Requested',
+                            data: [data.ApprovedPR, data.RequestedRFQ, data.ApprovedRC, data.ApprovedPO],
+                            color: {
+                                linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
+                                stops: [
+                                    [0, '#16a34a'], // top (lighter green)
+                                    [1, '#0d6d2d']  // bottom (darker green)
+                                ]
+                            }
+                        },
+                        {
+                            name: 'Pending',
+                            data: [data.PendingPR, data.PendingRFQ, data.PendingRC, data.PendingPO],
+                            color: {
+                                linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
+                                stops: [
+                                    [0, '#facc15'], // top (lighter yellow)
+                                    [1, '#d97706']  // bottom (darker golden)
+                                ]
+                            }
+                        }
+                    ],
+                    tooltip: { shared: true },
+                    credits: { enabled: false }
+                });
+
+            });
+
+            loadTrendData(selectedStartDate, selectedEndDate, displayStartDate, displayEndDate);
+        }
+
+        function loadTrendData(startDate, endDate, displayStartDate, displayEndDate) {
+            $.ajax({
+                url: '/Purchase/GetDashboardTrends',
+                type: 'GET',
+                data: { startDate: startDate, endDate: endDate },
+                success: function (response) {
+                    const categories = (response?.Trend?.Categories || []).map(c => {
+                        const m = moment(c, ["YYYY-MM-DD", "YYYY-MM-DDTHH:mm:ss", "DD-MM-YYYY"], true);
+                        return m.isValid() ? m.format("DD/MM/YYYY") : c;
+                    });
+
+
+                    const prData = response?.Trend?.PR || [];
+                    const rfqData = response?.Trend?.RFQ || [];
+                    const rqData = response?.Trend?.RQ || [];
+                    const poData = response?.Trend?.PO || [];
+
+                    if (categories.length > 0) {
+                        Highcharts.chart('trendChart', {
+                            chart: { type: 'line' },
+                            title: {
+                                text: `PR, RFQ, RQ & PO Trend (${displayStartDate} to ${displayEndDate})`,
+                                style: {
+                                    color: '#374151',   // Tailwind gray-700 style (good neutral tone)
+                                    fontSize: '14px',   // smaller size
+                                    fontWeight: '600',  // semi-bold
+                                    fontFamily: 'Segoe UI, Roboto, sans-serif'
+                                }
+                            },
+                            xAxis: { categories: categories },
+                            yAxis: { min: 0, title: { text: 'Count' } },
+                            series: [
+                                { name: 'PR', data: prData, color: '#3b82f6' },
+                                { name: 'RFQ', data: rfqData, color: '#9333ea' },
+                                { name: 'RQ', data: rqData, color: '#f97316' },
+                                { name: 'PO', data: poData, color: '#16a34a' }
+                            ],
+                            tooltip: { shared: true },
+                            credits: { enabled: false }
+                        });
+                    } else {
+                        $('#trendChart').html('<p class="text-center text-muted">No trend data available for selected range.</p>');
+                    }
+                },
+                error: function () {
+                    $('#trendChart').html('<p class="text-center text-danger">Failed to load trend data.</p>');
+                }
+            });
+        }
+
+        $(document).ready(function () {
+            initDateRangePicker();
+
+            // Show datepicker on button click and reposition
+            $('#dateFilterBtn').on('click', function () {
+                const drp = $('#reportrange').data('daterangepicker');
+                drp.show();
+
+                const btn = $(this);
+                const offset = btn.offset();
+                const btnWidth = btn.outerWidth();
+                const drpWidth = drp.container.outerWidth();
+                let left = offset.left + btnWidth - drpWidth;
+                if (left < 0) left = 0;
+
+                drp.container.css({ top: offset.top + btn.outerHeight() + 5, left: left, right: 'auto' });
+            });
+
+            // Modal loader (unchanged)
+            const modal = new bootstrap.Modal(document.getElementById("dashboardModal"));
+            function loadPartial(title, url) {
+                $("#dashboardModalLabel").text(title);
+                $("#dashboardModalBody").html('<p class="text-center text-muted">Loading...</p>');
+                modal.show();
+                $.get(url, function (html) {
+                    $("#dashboardModalBody").html(html);
+                });
+            }
+
+            // Card click events
+            $("#approvedPrCard").click(() => loadPartial("Approved Purchase Requisition", "/Purchase/ShowApprovePRPartialPRK"));
+            $("#pendingPrCard").click(() => loadPartial("Pending Purchase Requisition", "/Purchase/ShowPendingPRPartialPRK"));
+            $("#requestedRfqCard").click(() => loadPartial("Requested Request for Quotation", "/Purchase/ShowReuestedRFQPartialPRK"));
+            $("#pendingRfqCard").click(() => loadPartial("Pending Request for Quotation", "/Purchase/ShowPendingRFQPartialPRK"));
+            $("#approvedRcCard").click(() => loadPartial("Approved Register Quotation", "/Purchase/ShowApproveRQPartialPRK"));
+            $("#pendingRcCard").click(() => loadPartial("Pending Register Quotation", "/Purchase/ShowPendingRQPartialPRK"));
+            $("#approvedPoCard").click(() => loadPartial("Approved Purchase Orders", "/Purchase/ShowApprovePOPartialPRK"));
+            $("#pendingPoCard").click(() => loadPartial("Pending Purchase Orders", "/Purchase/ShowPendingPOPartialPRK"));
+        });
+    </script>
+</body>
+</html>

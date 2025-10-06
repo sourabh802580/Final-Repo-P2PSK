@@ -1,0 +1,183 @@
+﻿
+
+
+@{
+    ViewBag.Title = "JITStockMHB";
+}
+
+
+<div class="container mt-4">
+    <h2 class="text-center text-primary mb-4 fw-bold"> Just In Time - Stock Request</h2>
+
+    <!-- ✅ Alert Messages -->
+    <div id="alertSuccess" class="alert alert-success d-none" role="alert">
+        ✅ Stock request submitted successfully!
+    </div>
+    <div id="alertError" class="alert alert-danger d-none" role="alert">
+        ❌ Failed to submit stock request.
+    </div>
+
+    <!-- 📋 Form -->
+    <form id="stockForm" class="bg-light p-4 rounded shadow-sm">
+        <div class="row g-3">
+
+            <!-- 🔽 Item Name Dropdown -->
+            <div class="col-md-6">
+                <label for="itemName" class="form-label fw-semibold">Item Name</label>
+                <select id="itemName" class="form-select" name="ItemId" required>
+                    <option value="">-- Select Item --</option>
+                    @* Populated via AJAX *@
+                </select>
+            </div>
+
+            <!-- 🔐 Item Code -->
+            <div class="col-md-6">
+                <label for="itemCode" class="form-label fw-semibold">Item Code</label>
+                <input type="text" class="form-control" id="itemCode" name="ItemCode" readonly>
+            </div>
+
+            <!-- 📏 UOM -->
+            <div class="col-md-6">
+                <label for="uom" class="form-label fw-semibold">UOM</label>
+                <input type="text" class="form-control" id="uom" name="UOM" readonly>
+            </div>
+
+            <!-- 🔢 Quantity -->
+            <div class="col-md-6">
+                <label for="quantity" class="form-label fw-semibold">Quantity</label>
+                <input type="number" class="form-control" id="quantity" name="Quantity" min="1" required>
+            </div>
+
+            <!-- 📝 Description -->
+            <div class="col-md-6">
+                <label for="description" class="form-label fw-semibold">Description</label>
+                <textarea class="form-control" id="description" name="Description" rows="3" readonly></textarea>
+            </div>
+
+            <!-- 📅 Required Date -->
+            <div class="col-md-6">
+                <label for="RequiredDate">Required Date</label>
+                <input type="date" id="RequiredDate" name="RequiredDate"
+                       class="form-control" required
+                       min="@DateTime.Now.ToString("yyyy-MM-dd")" />
+            </div>
+
+            <!-- ✅ Submit Button -->
+            <div class="col-12 text-end mt-4">
+                <button type="submit" class="btn btn-success px-4">Submit</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+
+<style>
+    label {
+        font-weight: 600;
+    }
+
+    .form-control[readonly] {
+        background-color: #f9f9f9;
+    }
+
+    #stockForm {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+</style>
+
+
+<script>
+    $(document).ready(function () {
+        // 🔄 Load Item Dropdown
+        $.get('/Inventory/GetItemListMHB', function (items) {
+            $.each(items, function (i, item) {
+                $('#itemName').append(`<option value="${item.ItemId}">${item.ItemName}</option>`);
+            });
+        });
+
+        // 🔄 Fetch Item Details on Change
+        $('#itemName').on('change', function () {
+            const itemId = $(this).val();
+            if (!itemId) {
+                $('#itemCode, #uom, #description').val('');
+                return;
+            }
+
+            $.get('/Inventory/GetItemDetailsMHB', { itemId: itemId }, function (item) {
+                $('#itemCode').val(item.ItemCode);
+                $('#uom').val(item.UOMName);
+                $('#description').val(item.Description);
+            });
+        });
+
+        // ✅ Handle Form Submission
+        $(document).on("submit", "#stockForm", function (e) {
+            e.preventDefault();
+            let form = this;
+
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "Do you want to submit this stock request?",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#198754',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, Submit',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Submitting...',
+                        text: 'Please wait while we process your request',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        didOpen: () => Swal.showLoading()
+                    });
+
+                    const formData = {
+                        ItemCode: $('#itemCode').val(),
+                        Quantity: $('#quantity').val(),
+                        RequiredDate: $('#requiredDate').val()
+                    };
+
+                    $.ajax({
+                        type: 'POST',
+                        url: '/Inventory/SaveJustInTimeMHB',
+                        data: formData,
+                        success: function (response) {
+                            if (response.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Success!',
+                                    text: 'Your stock request has been submitted.',
+                                    timer: 1800,
+                                    showConfirmButton: false
+                                }).then(() => {
+                                    form.reset(); // Reset the form
+                                    location.reload(); // Optional: Reload page
+                                });
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Submission Failed',
+                                    text: 'Please try again.'
+                                });
+                            }
+                        },
+                        error: function () {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error!',
+                                text: 'Something went wrong. Please try again.'
+                            });
+                        }
+                    });
+                }
+            });
+        });
+    
+    });
+</script>
+
+

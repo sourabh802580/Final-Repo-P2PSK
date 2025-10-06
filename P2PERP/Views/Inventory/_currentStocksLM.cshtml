@@ -1,0 +1,345 @@
+﻿<style>
+    #currentStockTable thead th {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    #currentStockTable td {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    div.dt-buttons {
+        margin-top: 10px;
+        margin-bottom: 10px;
+    }
+</style>
+
+<div class="container mt-4 card shadow-sm">
+    <h3 class="text-primary text-center fw-bolder">Current Stock</h3>
+    <table id="currentStockTable" class="table table-bordered table-striped wrap">
+        <thead class="table-dark text-center">
+            <tr>
+                <th>
+                    <input type="checkbox" id="selectAllCurrent">
+                </th>
+                <th>Sr.No</th>
+                <th>Item Code</th>
+                <th>Item Name</th>
+                <th>Current Qty</th>
+                <th>Reorder Qty</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+    </table>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="viewModal" tabindex="-1" aria-labelledby="viewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary justify-content-center position-relative">
+                <h4 class="modal-title text-white text-center" id="viewModalLabel">View Item</h4>
+                <button type="button" class="btn-close position-absolute end-0 me-2" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Item Code:</strong> <span id="modalItemCode"></span></p>
+                <p><strong>Item Name:</strong> <span id="modalItemName"></span></p>
+                <p><strong>Current Quantity:</strong> <span id="modalQuantity"></span></p>
+                <p><strong>Reorder Quantity:</strong> <span id="modalReorderQty"></span></p>
+                <hr />
+                <h5>Bin Details</h5>
+                <table class="table table-sm table-bordered">
+                    <thead class="table-dark text-center">
+                        <tr>
+                            <th>Sr.No.</th>
+                            <th>Bin Name</th>
+                            <th>Quantity</th>
+                        </tr>
+                    </thead>
+                    <tbody id="modalBinTable"></tbody>
+                </table>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function () {
+    toastr.options = {
+        closeButton: true,
+        progressBar: true,
+        preventDuplicates: true,
+        newestOnTop: true,
+        positionClass: "toast-top-right",
+        timeOut: "3000"
+    };
+
+    var selectedIds = new Set();
+
+    function serialFormatter() {
+        let counter = 1;
+        return function (data, row, column, node) {
+            if (column === 1) return counter++;
+            return data;
+        };
+    }
+
+    // Initialize DataTable
+    var currentStockTable = $('#currentStockTable').DataTable({
+        "ajax": {
+            "url": "@Url.Action("CurrentStockJsonLM", "Inventory")",
+            "type": "GET",
+            "datatype": "json"
+        },
+        "columns": [
+            {
+                "data": null,
+                "orderable": false,
+                "searchable": false,
+                "className": "text-center",
+                "render": function (data, type, row, meta) {
+                    let uniqueId = row.ItemCode + "_" + meta.row;
+                    return `<input type="checkbox" class="row-checkbox-current" data-id="${uniqueId}" data-code="${row.ItemCode}">`;
+                }
+            },
+            {
+                "data": null,
+                "orderable": false,
+                "searchable": false,
+                "className": "text-center",
+                "render": function (data, type, row, meta) {
+                    return meta.row + 1;
+                }
+            },
+            { "data": "ItemCode", "className": "text-center" },
+            { "data": "ItemName", "className": "text-center" },
+            { "data": "CurrentQty", "className": "text-center" },
+            { "data": "ReorderQuantity", "className": "text-center" },
+            {
+                data: null,
+                orderable: false,
+                className: "text-center",
+                render: function (data, type, row) {
+                    return `<button class="btn btn-sm transfer-btn bg-primary circular-glass-btn"
+                    data-id="${row.ItemCode}"
+                    title="View Current Stock"
+                    data-bs-toggle="tooltip">
+                <i class="bi bi-eye"></i>
+            </button>`;
+                }
+
+            }
+        ],
+        dom: '<"d-flex justify-content-between align-items-center mb-2"Bf>rt<"d-flex justify-content-between align-items-center mt-2"ip>',
+        buttons: [
+            // --- PRINT ---
+            {
+                extend: 'print',
+                text: '<i class="bi bi-printer-fill text-dark fs-5"></i>',
+                title: `Current Stock - ${moment().format("YYYY-MM-DD")}`,
+                exportOptions: {
+                    columns: function (idx, data, node) {
+                        var header = $(node).closest('table').find('th').eq(idx).text().trim();
+                        if (header === "Status") return false;  // Status column hidden
+                        if (header === "BinList") return true;  // Hidden BinList column included
+                        if (idx === 0) return false;            // Skip checkbox column
+                        return true;                            // All other columns
+                    },
+                    rows: function (idx, data, node) {
+                        return selectedIds.has(data.ItemCode + "_" + idx); // Only selected rows
+                    },
+                    format: { body: serialFormatter() } // Serial number reset
+                },
+                action: function (e, dt, button, config) {
+                    if (selectedIds.size === 0) {
+                        toastr.warning("Please select at least one item before printing.");
+                        return;
+                    }
+                    $.fn.dataTable.ext.buttons.print.action.call(this, e, dt, button, config);
+                },
+                customize: function (win) {
+                    $(win.document.body).find('table')
+                        .css('border', '1px solid black')
+                        .css('border-collapse', 'collapse')
+                        .find('th, td')
+                        .css('border', '1px solid black')
+                        .css('padding', '5px');
+
+                    $(win.document.body).find('th')
+                        .css('background-color', 'black')
+                        .css('color', 'white');
+                }
+            },
+            // --- PDF ---
+            {
+                extend: 'pdfHtml5',
+                text: '<i class="bi bi-file-earmark-pdf text-danger fs-5"></i>',
+                title: `Current Stock - ${moment().format("YYYY-MM-DD")}`,
+                exportOptions: {
+                    columns: function (idx, data, node) {
+                        var header = $(node).closest('table').find('th').eq(idx).text().trim();
+                        if (header === "Status") return false;
+                        if (header === "BinList") return true;
+                        if (idx === 0) return false;
+                        return true;
+                    },
+                    rows: function (idx, data, node) {
+                        return selectedIds.has(data.ItemCode + "_" + idx);
+                    },
+                    format: { body: serialFormatter() }
+                },
+                action: function (e, dt, button, config) {
+                    if (selectedIds.size === 0) {
+                        toastr.warning("Please select at least one item before exporting.");
+                        return;
+                    }
+                    $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, button, config);
+                },
+                customize: function (doc) {
+                    var objLayout = {};
+                    objLayout['hLineWidth'] = function (i) { return 0.8; };
+                    objLayout['vLineWidth'] = function (i) { return 0.8; };
+                    objLayout['hLineColor'] = function (i) { return '#000'; };
+                    objLayout['vLineColor'] = function (i) { return '#000'; };
+                    objLayout['paddingLeft'] = function (i) { return 5; };
+                    objLayout['paddingRight'] = function (i) { return 5; };
+                    doc.content[1].layout = objLayout;
+
+                    var headerCells = doc.content[1].table.body[0];
+                    headerCells.forEach(function (cell) {
+                        cell.fillColor = '#000000';
+                        cell.color = '#ffffff';
+                        cell.bold = true;
+                        cell.alignment = 'center';
+                    });
+                }
+            },
+            // --- EXCEL ---
+            {
+                extend: 'excelHtml5',
+                text: '<i class="bi bi-file-earmark-excel text-success fs-5"></i>',
+                title: `Current Stock - ${moment().format("YYYY-MM-DD")}`,
+                exportOptions: {
+                    columns: function (idx, data, node) {
+                        var header = $(node).closest('table').find('th').eq(idx).text().trim();
+                        if (header === "Status") return false;
+                        if (header === "BinList") return true;
+                        if (idx === 0) return false;
+                        return true;
+                    },
+                    rows: function (idx, data, node) {
+                        return selectedIds.has(data.ItemCode + "_" + idx);
+                    },
+                    format: { body: serialFormatter() }
+                },
+                action: function (e, dt, button, config) {
+                    if (selectedIds.size === 0) {
+                        toastr.warning("Please select at least one item before exporting.");
+                        return;
+                    }
+                    $.fn.dataTable.ext.buttons.excelHtml5.action.call(this, e, dt, button, config);
+                }
+            },
+            // --- CSV ---
+            {
+                extend: 'csvHtml5',
+                text: '<i class="bi bi-filetype-csv text-success fs-5"></i>',
+                title: `Current Stock - ${moment().format("YYYY-MM-DD")}`,
+                exportOptions: {
+                    columns: function (idx, data, node) {
+                        var header = $(node).closest('table').find('th').eq(idx).text().trim();
+                        if (header === "Status") return false;
+                        if (header === "BinList") return true;
+                        if (idx === 0) return false;
+                        return true;
+                    },
+                    rows: function (idx, data, node) {
+                        return selectedIds.has(data.ItemCode + "_" + idx);
+                    },
+                    format: { body: serialFormatter() }
+                },
+                action: function (e, dt, button, config) {
+                    if (selectedIds.size === 0) {
+                        toastr.warning("Please select at least one item before exporting.");
+                        return;
+                    }
+                    $.fn.dataTable.ext.buttons.csvHtml5.action.call(this, e, dt, button, config);
+                }
+            }
+        ]
+
+    });
+
+    // Row checkbox logic
+    $('#currentStockTable tbody').on('change', '.row-checkbox-current', function () {
+        const id = $(this).data('id');
+        if ($(this).is(':checked')) selectedIds.add(id);
+        else selectedIds.delete(id);
+        const allChecked = $('.row-checkbox-current').length === $('.row-checkbox-current:checked').length;
+        $('#selectAllCurrent').prop('checked', allChecked);
+    });
+
+    // Select All checkbox
+    $('#selectAllCurrent').on('change', function () {
+        const isChecked = $(this).is(':checked');
+        $('.row-checkbox-current').prop('checked', isChecked).trigger('change');
+    });
+
+    // ---- Modal Open ----
+    $('#currentStockTable tbody').on('click', '.transfer-btn', function () {
+        var rowData = currentStockTable.row($(this).closest('tr')).data();
+
+        $('#modalItemCode').text(rowData.ItemCode);
+        $('#modalItemName').text(rowData.ItemName);
+        $('#modalQuantity').text(rowData.CurrentQty);
+        $('#modalReorderQty').text(rowData.ReorderQuantity);
+
+        // Fill Bin table with Sr.No.
+        let binList = rowData.BinName ? rowData.BinName.split(",") : [];
+        let binRows = "";
+        let srNo = 1;
+
+        binList.forEach(bin => {
+            let parts = bin.trim().match(/(.*)\((\d+)\)/);
+            if (parts) {
+                binRows += `<tr class="text-center">
+                              <td>${srNo++}</td>
+                              <td>${parts[1].trim()}</td>
+                              <td>${parts[2]}</td>
+                            </tr>`;
+            }
+        });
+
+        $('#modalBinTable').html(binRows);
+        $('#viewModal').modal('show');
+    });
+
+    // Initialize Bootstrap tooltips
+    $('body').tooltip({
+        selector: '[title]',
+        trigger: 'hover',
+        placement: 'top'
+    });
+
+
+    $(document).ready(function () {
+    // Tooltip initialize
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+
+    // DataTable draw ke baad dynamic tooltips
+    currentStockTable.on('draw', function () {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+});
+
+});
+</script>
+

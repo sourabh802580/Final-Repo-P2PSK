@@ -1,0 +1,136 @@
+﻿@{
+    Layout = null; // No layout for partial view
+}
+
+<!-- Table Container -->
+<div class="table-responsive">
+    <table id="requestedRfqTable" class="table table-bordered table-hover align-middle shadow-sm">
+        <thead class="table-dark text-center">
+            <tr>
+                <th>Sr No.</th>
+                <th>RFQ Code</th>
+                <th>PR Code</th>
+                <th>Expected Date</th>
+                <th>Warehouse Name</th>
+                <th>Added By</th>
+                <th>Added Date</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody id="tbodyRequestedRfq" class="text-center">
+            <tr>
+                <td colspan="8" class="text-muted py-3">Loading...</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- Center align all cells -->
+<style>
+    #requestedRfqTable thead th,
+    #requestedRfqTable tbody td {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    /* Optional: truncate long text in Description */
+    #requestedRfqTable td.description-cell {
+        max-width: 200px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        cursor: pointer;
+    }
+</style>
+
+<!-- JavaScript -->
+<script>
+    $(document).ready(function () {
+        const tableId = "#requestedRfqTable";
+
+        // Load Requested RFQ list
+        $.ajax({
+            url: '/Purchase/ShowRequestedRFQPRK', // JSON endpoint
+            type: 'GET',
+            success: function (data) {
+                const $tbody = $("#tbodyRequestedRfq");
+                $tbody.empty();
+
+                if (!data || data.length === 0) {
+                    $tbody.append('<tr><td colspan="8" class="text-center text-muted">No records found</td></tr>');
+                    return;
+                }
+
+                data.forEach(function (i, index) {
+                    // Format Added Date
+                    let formattedAddedDate = "";
+                    if (i.AddedDateString) {
+                        let parts = i.AddedDateString.split('-'); // Expect YYYY-MM-DD
+                        if (parts.length === 3) {
+                            formattedAddedDate = parts[0] + '/' + parts[1] + '/' + parts[2]; // DD/MM/YYYY
+                        }
+                    }
+
+                    // Format Expected Date
+                    let formattedExpectedDate = "";
+                    if (i.ExpectedDateString) {
+                        let parts = i.ExpectedDateString.split('-'); // Expect YYYY-MM-DD
+                        if (parts.length === 3) {
+                            formattedExpectedDate = parts[0] + '/' + parts[1] + '/' + parts[2]; // DD/MM/YYYY
+                        }
+                    }
+
+                    // ✅ Add tooltip to Description cell
+                    $tbody.append(`
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td>${i.RFQCode}</td>
+                            <td>${i.PRCode}</td>
+                            <td>${formattedExpectedDate}</td>
+                            <td>${i.WarehouseName}</td>
+                            <td>${i.FullName}</td>
+                            <td>${formattedAddedDate}</td>
+                            <td class="description-cell" data-bs-toggle="tooltip" title="${i.Description || ''}">
+                                ${i.Description || ''}
+                            </td>
+                        </tr>
+                    `);
+                });
+
+                // ✅ Initialize Bootstrap tooltips
+                const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+                tooltipTriggerList.map(function (tooltipTriggerEl) {
+                    return new bootstrap.Tooltip(tooltipTriggerEl);
+                });
+
+                // Initialize or re-initialize DataTable
+                if ($.fn.DataTable.isDataTable(tableId)) {
+                    $(tableId).DataTable().destroy();
+                }
+
+                $(tableId).DataTable({
+                    paging: true,
+                    searching: true,
+                    ordering: true,
+                    responsive: true,
+                    lengthChange: false,
+                    info: true,
+                    pageLength: 10,
+                    lengthMenu: [[5, 10, 25, 50, -1], [5, 10, 25, 50, "All"]],
+
+                    // ✅ Custom layout: entries on left, pagination on right
+                    dom: '<"row mb-2"<"col-sm-6"l><"col-sm-6 text-end"f>>' +
+                        'rt' +
+                        '<"row mt-2"<"col-sm-6"i><"col-sm-6 text-end"p>>',
+
+                    columnDefs: [
+                        { orderable: false, targets: 0 }
+                    ]
+                });
+            },
+            error: function () {
+                $("#tbodyRequestedRfq").html('<tr><td colspan="8" class="text-danger text-center">Error loading records</td></tr>');
+            }
+        });
+    });
+</script>

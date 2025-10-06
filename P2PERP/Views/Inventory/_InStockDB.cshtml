@@ -1,0 +1,363 @@
+﻿@model P2PLibray.Inventory.GRNdetailsDRB
+
+<div class="modal fade" id="InStockModal" tabindex="-1" aria-labelledby="grnModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content shadow-lg rounded-3">
+
+            <!-- Header -->
+            <div class="modal-header bg-primary text-white justify-content-center position-relative">
+                <h5 class="modal-title fw-bold text-white text-center m-0" id="grnModalLabel">InStocks</h5>
+                <button type="button" class="btn-close btn-close-white position-absolute end-0 me-3" data-bs-dismiss="modal"></button>
+            </div>
+
+            <!-- Body -->
+            <div class="modal-body">
+                <form id="grnForm" class="needs-validation" novalidate>
+
+                    <!-- GRN / Invoice Details -->
+                    <div class="table-responsive mb-4">
+                        <table class="table table-bordered align-middle">
+                            <tbody class="table-secondary">
+                                <tr>
+                                    <th class="w-25">GRN No</th>
+                                    <td><input type="text" class="form-control text-light" name="GRNCode" value="@Model.GRNCode" readonly /></td>
+                                    <th class="w-25">GRN Date</th>
+                                    <td><input type="text" class="form-control  text-light" value="@Model.GRNDate.ToString("dd/MM/yyyy")" readonly /></td>
+                                </tr>
+                                <tr>
+                                    <th>PO Reference Name</th>
+                                    <td><input type="text" class="form-control  text-light" name="POReference" value="@Model.POReference" /></td>
+                                    <th>PO Contact Info</th>
+                                    <td><input type="text" class="form-control  text-light" name="POContactInfo" value="@Model.ContactNo" /></td>
+                                </tr>
+                                <tr>
+                                    <th>Invoice No</th>
+                                    <td><input type="text" class="form-control  text-light" name="InvoiceCode" value="@Model.InvoiceCode" /></td>
+                                    <th>Invoice Date</th>
+                                    <td><input type="text" class="form-control  text-light" name="InvoiceDate" value="@Model.InvoiceDate" /></td>
+                                </tr>
+                                <tr>
+                                    <th>Vendor Code</th>
+                                    <td><input type="text" class="form-control  text-light text-light" name="VendorCode" value="@Model.VendorCode" /></td>
+                                    <th>Vendor Name</th>
+                                    <td><input type="text" class="form-control  text-light" name="VendorName" value="@Model.VendorName" /></td>
+                                </tr>
+                                <tr>
+                                    <th>Store ID</th>
+                                    <td><input type="text" class="form-control  text-light" name="StorId" value="@Model.WareHouseCode" readonly /></td>
+                                    <th>Warehouse Name</th>
+                                    <td><input type="text" class="form-control  text-light" name="WareHouseName" value="@Model.WarehouseName" readonly /></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Item Allocation Table -->
+                    <div class="table-responsive">
+                        <table class=" instockTable table table-bordered table-striped align-middle">
+                            <thead class="table-light text-center table-dark">
+                                <tr>
+                                    <th>Sr No</th>
+                                    <th>Item ID</th>
+                                    <th>Item Name</th>
+                                    <th>Type</th>
+                                    <th>UOM</th>
+                                    <th>Qty</th>
+                                    <th>Quantity Stored</th>
+                                    @*<th>Price</th>*@
+                                    <th style="width: 35%">Storage Allocation</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (int i = 0; i < Model.Items.Count; i++)
+                                {
+                                    var item = Model.Items[i];
+                                    bool isComplete = item.Quantity == item.QuantityStored;
+
+                                    <tr class="@(isComplete ? "table-secondary" : "")">
+                                        <td>@(i + 1)</td>
+                                        <td>@item.ItemCode</td>
+                                        <td>@item.ItemName</td>
+                                        <td>@item.ItemCategoryName</td>
+                                        <td>@item.UOMName</td>
+                                        <td>@item.Quantity</td>
+                                        <td>@item.QuantityStored</td>
+                                        @*<td>₹@item.Price</td>*@
+                                        <td>
+                                            <div class="row g-2 p-4">
+                                                <div class="row">
+                                                    <label class="form-label small">Area</label>
+                                                    <select class="form-select area-ddl" @(isComplete ? "disabled" : "")></select>
+                                                </div>
+                                                <div class="row">
+                                                    <label class="form-label small">Rack</label>
+                                                    <select class="form-select rack-ddl" @(isComplete ? "disabled" : "")></select>
+                                                </div>
+                                                <div class="row">
+                                                    <label class="form-label small">Row</label>
+                                                    <select class="form-select row-ddl" @(isComplete ? "disabled" : "")></select>
+                                                </div>
+                                                <div class="row">
+                                                    <label class="form-label small">Bin</label>
+                                                    <select class="form-select bin-ddl" @(isComplete ? "disabled" : "")></select>
+                                                </div>
+                                            </div>
+                                            <div class="mt-2 d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <span class="badge bg-info">Current: <span class="current-items">0</span></span>
+                                                    <span class="badge bg-warning text-dark">Max: <span class="max-capacity">0</span></span>
+                                                    <span class="badge bg-success">Remaining: <span class="remaining">0</span></span>
+                                                </div>
+                                                <div class="ms-2">
+                                                    <input type="number" class="form-control assign-qty" style="width:120px;" min="0" value="0" @(isComplete ? "disabled" : "") />
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Footer Buttons -->
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <button type="button" class="btn btn-outline-danger px-4" data-bs-dismiss="modal"><i class="bi bi-x-circle me-2"></i>Close</button>
+                        <button type="button" class=" btnAssign btn btn-success px-4"><i class="bi bi-check-circle me-2 text-white"></i>Assign</button>
+                    </div>
+
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<script>
+    $(document).ready(function () {
+
+
+
+        // Initialize DataTable for ReturnGoods
+        $('.instockTable').DataTable({
+            retrieve: true,   // reuse existing instance
+            dom: '<"d-flex justify-content-end mb-2"f>rt<"d-flex justify-content-between align-items-center mt-2"ip>',
+            paging: true,
+            searching: true,
+            ordering: false,
+            info: true,
+            responsive: true,
+            columnDefs: [
+                { targets: "_all", className: "text-center align-middle" }
+            ]
+        });
+
+
+        // 🔹 Directly load Areas using Model.WareHouseCode
+        let warehouseCode = '@Model.WareHouseCode';
+        if (warehouseCode) {
+            $(".area-ddl").each(function () {
+                var $area = $(this);
+                $area.empty().append($('<option/>').val("").text("-- Select Area --"));
+
+                $.ajax({
+                    url: '@Url.Action("GetSectionDRB", "Inventory")',
+                    type: 'GET',
+                    data: { code: warehouseCode },
+                    success: function (data) {
+                        console.log("Sections:", data);
+                        $.each(data, function (i, section) {
+                            $area.append($('<option/>').val(section.SectionCode).text(section.SectionName));
+                        });
+                    }
+                });
+            });
+        }
+
+        // 🔹 Area → Rack
+        $(document).on("change", ".area-ddl", function () {
+            var sectionCode = $(this).val();
+            var $row = $(this).closest("tr");
+            var $rack = $row.find(".rack-ddl");
+            var $rowddl = $row.find(".row-ddl");
+            var $bin = $row.find(".bin-ddl");
+
+            $rack.empty().append($('<option/>').val("").text("-- Select Rack --"));
+            $rowddl.empty().append($('<option/>').val("").text("-- Select Row --"));
+            $bin.empty().append($('<option/>').val("").text("-- Select Bin --"));
+
+            if (sectionCode) {
+                $.ajax({
+                    url: '@Url.Action("GetRackDRB", "Inventory")',
+                    type: 'GET',
+                    data: { Sectioncode: sectionCode },
+                    success: function (data) {
+                        console.log("Racks:", data);
+                        $.each(data, function (i, rack) {
+                            $rack.append($('<option/>').val(rack.RackCode).text(rack.RackName));
+                        });
+                    }
+                });
+            }
+        });
+
+        // 🔹 Rack → Row
+        $(document).on("change", ".rack-ddl", function () {
+            var rackCode = $(this).val();
+            var $row = $(this).closest("tr");
+            var $rowddl = $row.find(".row-ddl");
+            var $bin = $row.find(".bin-ddl");
+
+            $rowddl.empty().append($('<option/>').val("").text("-- Select Row --"));
+            $bin.empty().append($('<option/>').val("").text("-- Select Bin --"));
+
+            if (rackCode) {
+                $.ajax({
+                    url: '@Url.Action("GetRowDRB", "Inventory")',
+                    type: 'GET',
+                    data: { Rackcode: rackCode },
+                    success: function (data) {
+                        console.log("Rows:", data);
+                        $.each(data, function (i, rw) {
+                            $rowddl.append($('<option/>').val(rw.RowCode).text(rw.RowName));
+                        });
+                    }
+                });
+            }
+        });
+
+        // 🔹 Row → Bin
+        $(document).on("change", ".row-ddl", function () {
+            var rowCode = $(this).val();
+            var $row = $(this).closest("tr");
+            var $bin = $row.find(".bin-ddl");
+
+            $bin.empty().append($('<option/>').val("").text("-- Select Bin --"));
+
+            if (rowCode) {
+                $.ajax({
+                    url: '@Url.Action("GetBinDRB", "Inventory")',
+                    type: 'GET',
+                    data: { Rowcode: rowCode },
+                    success: function (data) {
+                        console.log("Bins:", data);
+                        $.each(data, function (i, bin) {
+                            $bin.append(
+                                $('<option/>')
+                                    .val(bin.BinCode)
+                                    .text(bin.BinName)
+                                    .attr("data-max", bin.MaxQuantity)
+                                    .attr("data-current", bin.CurrentItems)
+                            );
+                        });
+                    }
+                });
+            }
+        });
+
+        // 🔹 Bin → Show capacity
+        $(document).on("change", ".bin-ddl", function () {
+            var $bin = $(this);
+            var $row = $bin.closest("tr");
+
+            var selected = $bin.find(":selected");
+            var max = selected.data("max") || 0;
+            var current = selected.data("current") || 0;
+
+            $row.find(".current-items").text(current);
+            $row.find(".max-capacity").text(max);
+            $row.find(".assign-qty").val(0);
+            $row.find(".remaining").text(max - current);
+        });
+
+        // When AssignQty changes → update Remaining
+        $(document).on("input", ".assign-qty", function () {
+            var $input = $(this);
+            var $row = $input.closest("tr");
+
+            var assignQty = parseInt($input.val()) || 0;
+            var current = parseInt($row.find(".current-items").text()) || 0;
+            var max = parseInt($row.find(".max-capacity").text()) || 0;
+
+            var remaining = max - (current + assignQty);
+
+            // Prevent over-assign
+            if (remaining < 0) {
+                toastr.warning("Bin Capacity Exceeded...!");
+                $input.val(0);
+                remaining = max - current;
+            }
+
+            $row.find(".remaining").text(remaining);
+        });
+
+        // 🔹 Save Assignments
+        $(".btnAssign").click(function () {
+            let assignments = [];
+
+            $(".instockTable tbody tr").each(function () {
+                let itemId = $(this).find("td:eq(1)").text();
+                let binCode = $(this).find(".bin-ddl").val();
+                let assignQty = parseInt($(this).find(".assign-qty").val()) || 0;
+
+                if (binCode && assignQty > 0) {
+                    assignments.push({
+                        GRNItemCode: itemId,
+                        BinCode: binCode,
+                        QuantityStored: assignQty,
+                        CreatedDate: new Date().toISOString()
+                    });
+                }
+                console.log(assignQty);
+            });
+
+            if (assignments.length === 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'No Items',
+                    text: 'No items assigned to bins!',
+                    confirmButtonText: 'OK'
+                });
+                return;
+            }
+
+            console.log(assignments);
+
+            $.ajax({
+                url: '@Url.Action("SaveItemBinAssignmentDRB", "Inventory")',
+                type: 'POST',
+                contentType: "application/json",
+                data: JSON.stringify(assignments),
+                success: function (res) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Assignment Saved',
+                        text: 'Bin assignment saved successfully!',
+                        timer: 2000,
+                        showConfirmButton: false
+                    }).then(() => {
+                        location.reload();
+                    });
+                },
+                error: function () {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Something went wrong while saving bin assignments!'
+                    });
+                }
+            });
+        });
+
+        // 🔹 Disable row if fully stored
+        $(".instockTable tbody tr").each(function () {
+            var qty = parseInt($(this).find("td:eq(5)").text()) || 0;
+            var stored = parseInt($(this).find("td:eq(6)").text()) || 0;
+
+            if (qty === stored) {
+                $(this).addClass("table-secondary");
+                $(this).find("select, input").prop("disabled", true);
+            }
+        });
+    });
+</script>

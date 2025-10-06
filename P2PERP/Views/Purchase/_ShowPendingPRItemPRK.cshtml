@@ -1,0 +1,176 @@
+﻿@{
+    Layout = null;
+    string prCode = ViewBag.PRCode ?? "";
+}
+
+<div id="prContent" class="mt-2">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <span class="badge bg-secondary text-dark fs-6 px-3 py-2 shadow-sm">PR Code: @prCode</span>
+    </div>
+
+    <!-- PR Items Table -->
+    <div class="card shadow-sm border-0 rounded-3 mb-4">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table id="prItemsTable" class="table table-striped table-hover table-bordered align-middle mb-0">
+                    <thead class="table-dark text-center">
+                        <tr>
+                            <th>Sr No</th>
+                            <th>Item Name</th>
+                            <th>Required Quantity</th>
+                            <th>Unit Rate</th>
+                            <th>Expected Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="prItemBody" class="text-center">
+                        <tr>
+                            <td colspan="5" class="text-muted py-3">Loading...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Note and Buttons -->
+    <div class="card shadow-sm border-0 rounded-3">
+        <div class="card-body">
+            <div class="mb-3">
+                <label class="form-label fw-bold text-danger">Note from Manager:</label>
+                <textarea id="managerNote" class="form-control" rows="3" placeholder="Enter note here..."></textarea>
+            </div>
+            <div class="d-flex justify-content-end gap-2 mt-3">
+                <button id="rejectBtn" class="btn btn-danger px-4">✖ Reject</button>
+                <button id="approveBtn" class="btn btn-success px-4">✔ Approve</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    #prItemsTable thead th,
+    #prItemsTable tbody td {
+        text-align: center !important;
+        vertical-align: middle;
+    }
+</style>
+
+<script>
+function initPRModal(prCode) {
+    // Load items
+    $.getJSON("/Purchase/ShowPendingPRItemsPRK", { prCode: prCode }, function (data) {
+        let tbody = $("#prItemBody").empty();
+
+        if (!data || data.length === 0) {
+            tbody.append("<tr><td colspan='5' class='text-center text-muted'>No items found</td></tr>");
+        } else {
+            let sr = 1;
+            data.forEach(function (item) {
+                const unitRate = item.UnitRates ? `₹ ${parseFloat(item.UnitRates).toFixed(2)}` : "₹ 0.00";
+                const expectedDate = item.RequiredDate ? moment(item.RequiredDate).format("DD/MM/YYYY") : "";
+
+                tbody.append(`<tr>
+                    <td>${sr++}</td>
+                    <td>${item.ItemName}</td>
+                    <td>${item.RequiredQuantity}</td>
+                    <td>${unitRate}</td>
+                    <td>${expectedDate}</td>
+                </tr>`);
+            });
+        }
+
+        if ($.fn.DataTable.isDataTable('#prItemsTable')) {
+            $('#prItemsTable').DataTable().clear().destroy();
+        }
+        $('#prItemsTable').DataTable({
+            paging: true,
+            searching: true,
+            ordering: true,
+            responsive: true,
+            lengthChange: false,  // ✅ Enables "Entries per page"
+            info: true,          // ✅ Enables "Showing X of Y entries"
+            pageLength: 10,      // ✅ Optional: default entries per page
+            lengthMenu: [[5, 10, 25, 50, -1], [5, 10, 25, 50, "All"]],
+
+            // ✅ Layout: entries left, search right (top); info left, pagination right (bottom)
+            dom: '<"row mb-2"<"col-sm-6"l><"col-sm-6 text-end"f>>' +
+                'rt' +
+                '<"row mt-2"<"col-sm-6"i><"col-sm-6 text-end"p>>'
+        });
+
+    });
+
+    // Approve
+    $("#approveBtn").off("click").on("click", function () {
+        const note = $("#managerNote").val().trim();
+        Swal.fire({
+            title: 'Confirm Approval',
+            text: 'Are you sure you want to approve this PR?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, Approve',
+            showLoaderOnConfirm: true,
+            allowOutsideClick: () => !Swal.isLoading()
+        }).then(result => {
+            if (result.isConfirmed) {
+                $.post("/Purchase/UpdatePRStatusPRK", { prCode: prCode, statusId: 1, note: note }, function () {
+                    Swal.close();
+                    if (typeof showToast === "function") {
+                        showToast("✔ PR Approved successfully", "success");
+                    }
+                    $("#prModal").modal("hide");
+
+                    // ✅ Reload main DataTable
+                    if (window.table && $.fn.DataTable.isDataTable('#pendingPRTable')) {
+                        window.table.ajax.reload(null, false);
+                    }
+
+                });
+            }
+        });
+    });
+
+    // Reject
+    $("#rejectBtn").off("click").on("click", function () {
+        const note = $("#managerNote").val().trim();
+        if (!note) {
+            if (typeof showToast === "function") {
+                showToast("⚠ Please enter a note before rejecting", "warning");
+            }
+            return;
+        }
+
+        Swal.fire({
+            title: 'Confirm Rejection',
+            text: 'Are you sure you want to reject this PR?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, Reject',
+            showLoaderOnConfirm: true,
+            allowOutsideClick: () => !Swal.isLoading()
+        }).then(result => {
+            if (result.isConfirmed) {
+                $.post("/Purchase/UpdatePRStatusRejectPRK", { prCode: prCode, statusId: 2, note: note }, function () {
+                    Swal.close();
+                    if (typeof showToast === "function") {
+                        showToast("✖ PR Rejected", "danger");
+                    }
+                    $("#prModal").modal("hide");
+
+                    // ✅ Reload main DataTable
+                    if (window.table && $.fn.DataTable.isDataTable('#pendingPRTable')) {
+                        window.table.ajax.reload(null, false);
+                    }
+
+                });
+            }
+        });
+    });
+}
+
+// Initialize when modal loads
+$(function () {
+    initPRModal('@ViewBag.PRCode');
+});
+</script>
+

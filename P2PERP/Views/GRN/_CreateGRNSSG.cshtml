@@ -1,0 +1,460 @@
+﻿@{
+    Layout = null;
+}
+
+<div class="card shadow p-3">
+    <!-- PO & GRN Info -->
+    <div class="row mb-2">
+        <div class="col-md-4">
+            <label>PONO:</label>
+            <input type="text" id="txtPOCode" class="form-control form-control-sm bg-secondary-subtle" value="@ViewBag.POCode" readonly>
+        </div>
+        <div class="col-md-4">
+            <label>PO DATE:</label>
+            <input type="text"
+                   id="txtPODate"
+                   class="form-control form-control-sm bg-secondary-subtle"
+                   value="@Convert.ToDateTime(ViewBag.PODate).ToString("dd\\/MM\\/yyyy")"
+                   readonly>
+        </div>
+
+        <div class="col-md-4">
+            <label>VENDOR NAME:</label>
+            <input type="text" id="txtVendorName" class="form-control form-control-sm bg-secondary-subtle" value="@ViewBag.VendorName" readonly>
+        </div>
+    </div>
+
+    <div class="row mb-2">
+        <div class="col-md-4">
+            <label>GRNNO:</label>
+            <input type="text" id="txtGRNCode" class="form-control form-control-sm bg-secondary-subtle" value="@ViewBag.GRNCode" readonly>
+        </div>
+        <div class="col-md-4">
+            <label><span class="text-danger">*</span> INVOICE NO:</label>
+            <input type="text" id="txtInvoiceNo" class="form-control form-control-sm" placeholder="Enter Invoice Number">
+        </div>
+        <div class="col-md-4">
+            <label><span class="text-danger">*</span> INVOICE DATE:</label>
+            <input type="text"
+                   id="txtInvoiceDate"
+                   class="form-control form-control-sm"
+                   value="@(ViewBag.InvoiceDate != null ? Convert.ToDateTime(ViewBag.InvoiceDate).ToString("dd/MM/yyyy") : "")"
+                   placeholder="dd/MM/yyyy">
+        </div>
+
+       
+
+
+
+
+
+    </div>
+
+    <!-- Addresses -->
+    <div class="row mb-2">
+        <div class="col-md-6">
+            <label>COMPANY ADDRESS:</label>
+            <textarea id="txtCompanyAddress" class="form-control form-control-sm bg-secondary-subtle" readonly rows="2">@ViewBag.CompanyAddress</textarea>
+        </div>
+        <div class="col-md-6">
+            <label>BILLING ADDRESS:</label>
+            <textarea id="txtBillingAddress" class="form-control form-control-sm bg-secondary-subtle" readonly rows="2">@ViewBag.BillingAddress</textarea>
+        </div>
+    </div>
+
+    <!-- Add Item Section -->
+    <h6 class="mt-3 fw-bold text-dark">Add Item Details</h6>
+    <div class="row mb-2">
+        <div class="col-md-4">
+            <label><span class="text-danger">*</span> ITEM NAME:</label>
+            <select id="itemDropdown" class="form-select form-select-sm">
+                <option value="">Select Item</option>
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label><span class="text-danger">*</span> QTY:</label>
+            <input type="number" id="txtQty" class="form-control form-control-sm" placeholder="Enter Quantity">
+        </div>
+        <div class="col-md-4">
+            <label><span class="text-danger">*</span> WAREHOUSE NAME:</label>
+            <select id="ddlWarehouse" class="form-select form-select-sm">
+                <option value="">Select Warehouse</option>
+            </select>
+        </div>
+    </div>
+
+
+    <div class="row mb-2">
+        <div class="col-md-4">
+            <label>UNIT RATE (₹):</label>
+            <input type="text" id="txtUnitRate" class="form-control form-control-sm bg-secondary-subtle" readonly>
+        </div>
+        <div class="col-md-4">
+            <label>DISCOUNT %:</label>
+            <input type="text" id="txtDiscount" class="form-control form-control-sm bg-secondary-subtle" readonly>
+        </div>
+        <div class="col-md-4">
+            <label>GST %:</label>
+            <input type="text" id="txtGST" class="form-control form-control-sm bg-secondary-subtle" readonly>
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <div class="col-md-4">
+            <label>AMOUNT:</label>
+            <input type="text" id="txtAmount" class="form-control form-control-sm bg-secondary-subtle" readonly>
+        </div>
+        <div class="col-md-4">
+            <label>UOM:</label>
+            <input type="text" id="txtUOM" class="form-control form-control-sm bg-secondary-subtle" readonly>
+        </div>
+        <div class="col-md-4">
+            <label>QUALITY CHECK:</label>
+            <input type="text" id="txtQC" class="form-control form-control-sm bg-secondary-subtle" readonly>
+        </div>
+    </div>
+
+    <div class="row mb-2">
+        <div class="col-md-6">
+            <label>ITEM DESCRIPTION:</label>
+            <textarea id="txtItemDesc" class="form-control form-control-sm bg-secondary-subtle" readonly rows="2"></textarea>
+        </div>
+    </div>
+
+    <!-- Add button on the right, large and bold -->
+    <div class="row mb-2">
+        <div class="col text-end">
+            <button type="button" id="btnAddItem" class="btn btn-success btn-l fw-bold">
+                <i class="bi bi-plus-circle me-2"></i> Add Item
+            </button>
+        </div>
+    </div>
+
+    <!-- Items DataTable -->
+    <div class="table-responsive">
+        <table id="itemTable" class="table table-bordered table-striped text-center align-middle" style="width:100%">
+            <thead class="table-dark">
+                <tr>
+                    <th>Sr. No.</th>
+                    <th>Item Name</th>
+                    <th>Description</th>
+                    <th>Quantity</th>
+                    <th>Unit Rate (₹)</th>
+                    <th>Discount</th>
+                    <th>GST %</th>
+                    <th>Amount</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+    <div class="text-end mt-3 mb-3">
+
+        <!-- Assign Button -->
+        <button type="button" id="btnCreateGRN" class="btn btn-success btn-lg fw-bold" data-bs-toggle="tooltip"
+                data-bs-placement="top" title="Create Goods Receipt Note for selected items">
+            <i class="bi bi-check-circle me-1"></i> Create GRN
+        </button>
+    </div>
+</div>
+
+<!-- Toast container -->
+<div id="toastContainer" class="toast-container position-fixed top-0 end-0 p-3" style="z-index:1100;"></div>
+
+<script>
+    $(document).ready(function () {
+
+            $(function () {
+                $('#txtInvoiceDate').datepicker({
+                    format: 'dd/mm/yyyy',   // Display slashes
+                    autoclose: true
+                });
+     });
+        // Initialize Bootstrap tooltips
+        function initTooltips() {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        }
+
+        // Initial page load
+        initTooltips();
+
+        const POCode = '@ViewBag.POCode';
+        let POItems = [], selectedItems = new Set();
+
+        // Convert value to number safely
+        const num = v => parseFloat(String(v).replace(/[, ]/g,'').replace('%','')) || 0;
+
+        //  Calculate discount amount
+        const discountAmount = (base, val) => base * (num(val)/100);
+
+        //  Fetch warehouses and bind to dropdown
+        $.get('/GRN/GetWarehousesSSG', data=>{
+            const ddl = $('#ddlWarehouse').empty().append('<option value="">Select Warehouse</option>');
+            (data.data||data).forEach(w=> ddl.append(`<option value="${w.WareHouseId}">${w.WarehouseName}</option>`));
+        });
+
+        // Load PO Items into dropdown
+        const loadPOItems = (code) => {
+            if(!code) return;
+            $.get('/GRN/POItemsSSG', { POCode: code }, res=>{
+                POItems = res.data || [];
+                const dropdown = $('#itemDropdown').empty().append('<option value="">Select Item</option>');
+                POItems.forEach(i=> dropdown.append(`<option value="${i.ItemCode}">${i.ItemName}</option>`));
+            });
+        };
+
+        loadPOItems(POCode);
+
+        // Get selected row item codes
+        function getSelectedRowCodes() {
+            return $('#itemTable tbody .rowCheckboxItem:checked').map(function () {
+                return $(this).val();
+            }).get();
+        }
+
+        // Initialize DataTable for items
+        const itemTable = $('#itemTable').DataTable({
+            responsive: true,
+            dom: '<"row mb-2"<"col-md-6"><"col-md-6 d-flex justify-content-end"f>>t<"row mt-2"<"col-md-6"i><"col-md-6 d-flex justify-content-end"p>>',
+            columns: [
+                { data: null, render: (data, type, row, meta) => meta.row + 1, className: 'text-center' }, // Sr.No
+                { data: 'ItemName', className: 'text-center' },
+                {
+                    data: 'Description',
+                    className: 'text-center',
+                    render: data => `<span data-bs-toggle="tooltip" title="${data}">${data}</span>`
+                },
+                { data: 'Quantity', className: 'text-center' },
+                {
+                    data: 'UnitRate',
+                    className: 'text-center',
+                    render: data => `₹${data}`
+                },
+                {
+                    data: 'Discount',
+                    className: 'text-center',
+                    render: data => `${data}%`
+                },
+                { data: 'GST', className: 'text-center' },
+                {
+                    data: 'Amount',
+                    className: 'text-center',
+                    render: data => `₹${data}`
+                },
+                {
+                    data: null,
+                    render: () => `<button class="btn btn-danger btn-sm deleteRow" data-bs-toggle="tooltip" title="Delete this item"><i class="bi bi-trash3"></i></button>`,
+                    orderable: false,
+                    className: 'text-center'
+                }
+            ]
+        });
+
+        //  Update total amount after rows change
+        const updateTotal = () => {
+            let total = 0;
+            itemTable.rows().every(function () {
+                total += num(this.data().Amount);
+            });
+
+            // Remove previous total
+            $('#totalAmount').remove();
+
+            // Append new total
+            $('#itemTable_wrapper').after(`
+                <div id="totalAmount" class="d-flex justify-content-end mt-2 mb-2">
+                    <div class="fw-bold p-2 bg-primary text-white rounded">
+                        Total Amount: ₹${total.toFixed(2)}
+                    </div>
+                </div>
+            `);
+        };
+
+        //  On item selection from dropdown, populate fields
+        $('#itemDropdown').change(function(){
+            const item = POItems.find(x=>x.ItemCode==$(this).val());
+            if(!item) return;
+            $('#txtQty').val(item.Quantity);
+            $('#txtUnitRate').val(item.CostPerUnit);
+            $('#txtDiscount').val(item.Discount + "%");
+            $('#txtGST').val(item.GST);
+            $('#txtAmount').val((num(item.Quantity)*num(item.CostPerUnit)).toFixed(2));
+            $('#txtItemDesc').val(item.Description);
+            $('#txtQC').val(item.IsQuality);
+            $('#txtUOM').val(item.UOMName);
+        });
+
+        //  Qty validation against PO Qty
+        $('#txtQty').on('input', function(){
+            const entered = num($(this).val());
+            const item = POItems.find(x=>x.ItemCode==$('#itemDropdown').val());
+            if(item && entered>num(item.Quantity)){
+                Swal.fire({ icon:'warning', title:`Qty cannot exceed PO Qty (${item.Quantity})`, showConfirmButton:false, timer:1800 });
+                $(this).val(item.Quantity);
+            }
+        });
+
+        //  Auto add % when typing in Discount textbox
+        $('#txtDiscount').on('input', function(){
+            let val = $(this).val().replace('%','');
+            if(val && !isNaN(val)) {
+                $(this).val(val + '%');
+            }
+        });
+
+        //  Add item to DataTable
+        $('#btnAddItem').click(()=>{
+            const itemCode = $('#itemDropdown').val();
+            const qty = num($('#txtQty').val());
+            const unitRate = num($('#txtUnitRate').val());
+            const warehouse = $('#ddlWarehouse').val();
+
+            if(!itemCode || qty<=0 || unitRate<=0){ Swal.fire({icon:'warning', title:'Enter valid quantity', showConfirmButton:false, timer:1800}); return; }
+            if(!warehouse){ Swal.fire({icon:'warning', title:'Select warehouse', showConfirmButton:false, timer:1800}); return; }
+            if(selectedItems.has(itemCode)){ Swal.fire({icon:'warning', title:'Item already added', showConfirmButton:false, timer:1800}); return; }
+
+            selectedItems.add(itemCode);
+            const base = qty*unitRate;
+            const amt = base - discountAmount(base, $('#txtDiscount').val());
+
+            itemTable.row.add({
+                ItemCode:itemCode,
+                ItemName:$('#itemDropdown option:selected').text(),
+                Description:$('#txtItemDesc').val(),
+                Quantity:qty,
+                UnitRate:unitRate,
+                Discount:$('#txtDiscount').val().replace('%',''),
+                GST:$('#txtGST').val(),
+                Amount:amt.toFixed(2)
+            }).draw(false);
+
+            updateTotal();
+            Swal.fire({ icon:'success', title:'Item added!', showConfirmButton:false, timer:1500 });
+        });
+
+        //  Delete row from DataTable
+        $('#itemTable tbody').on('click', '.deleteRow', function(){
+            const row = itemTable.row($(this).parents('tr'));
+            selectedItems.delete(row.data().ItemCode);
+            row.remove().draw();
+            updateTotal();
+        });
+
+        //  Create GRN
+        $('#btnCreateGRN').click(function () {
+            if (!$('#txtInvoiceNo').val().trim()) {
+                Swal.fire({ icon: 'warning', title: 'Please enter Invoice No', showConfirmButton: false, timer: 1800 });
+                return;
+            }
+            if (!$('#txtInvoiceDate').val()) {
+                Swal.fire({ icon: 'warning', title: 'Please select Invoice Date', showConfirmButton: false, timer: 1800 });
+                return;
+            }
+            if (itemTable.rows().count() === 0) {
+                Swal.fire({ icon: 'warning', title: 'Please select at least one row', showConfirmButton: false, timer: 1800 });
+                return;
+            }
+
+            var grnHeader = {
+                GRNCode: $('#txtGRNCode').val(),
+                POCode: $('#txtPOCode').val(),
+                InvoiceNo: $('#txtInvoiceNo').val(),
+                InvoiceDate: $('#txtInvoiceDate').val(),
+                AddedDate: new Date().toISOString(),
+                Items: []
+            };
+
+            itemTable.rows().every(function () {
+                var d = this.data();
+                grnHeader.Items.push({ ItemCode: d.ItemCode, Quantity: parseFloat(d.Quantity), WareHouseId: $('#ddlWarehouse').val() });
+            });
+
+            var formData = new FormData();
+            formData.append('GRNCode', grnHeader.GRNCode);
+            formData.append('POCode', grnHeader.POCode);
+            formData.append('InvoiceNo', grnHeader.InvoiceNo);
+            formData.append('InvoiceDate', grnHeader.InvoiceDate);
+            formData.append('AddedDate', grnHeader.AddedDate);
+
+            grnHeader.Items.forEach(function (item, index) {
+                formData.append(`Items[${index}].ItemCode`, item.ItemCode);
+                formData.append(`Items[${index}].Quantity`, item.Quantity);
+                formData.append(`Items[${index}].WareHouseId`, item.WareHouseId);
+            });
+
+            $.ajax({
+                url: '/GRN/CreateSSG',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (res) {
+                    if (res.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'GRN created successfully!',
+                            showConfirmButton: false,
+                            timer: 1500
+                        }).then(() => {
+                            // Close the modal using Bootstrap 5 Modal API
+                            var grnModalEl = document.getElementById('createGrnModal');
+                            var grnModal = bootstrap.Modal.getInstance(grnModalEl) || new bootstrap.Modal(grnModalEl);
+                            grnModal.hide();
+
+                            // Clear item table and selections
+                            itemTable.clear().draw();
+                            selectedItems.clear();
+                            $('#totalAmount').remove();
+
+                            // Reload Approved PO table if exists
+                            if ($.fn.DataTable.isDataTable('#approvedPoTable')) {
+                                $('#approvedPoTable').DataTable().ajax.reload(null, false);
+                            }
+
+                            // Reload GRN table if exists
+                            if ($.fn.DataTable.isDataTable('#grnTable')) {
+                                $('#grnTable').DataTable().ajax.reload(null, false);
+                            }
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: res.message,
+                            showConfirmButton: false,
+                            timer: 2000
+                        });
+                    }
+                }
+            });
+
+
+
+        });
+
+    });
+
+    //  Custom tooltip initialization
+    function initTooltips() {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (el) {
+            if (el._tooltip) el._tooltip.dispose();
+            el._tooltip = new bootstrap.Tooltip(el, {
+                template: '<div class="tooltip" role="tooltip">' +
+                    '<div class="tooltip-arrow"></div>' +
+                    '<div class="tooltip-inner" style="background-color:#000; color:#fff;"></div>' +
+                    '</div>'
+            });
+        });
+    }
+
+    initTooltips();
+    $('#itemTable').on('draw.dt', function () { initTooltips(); });
+
+</script>
+
+
+

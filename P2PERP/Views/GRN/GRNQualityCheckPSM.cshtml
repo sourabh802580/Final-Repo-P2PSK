@@ -1,0 +1,304 @@
+﻿@{
+    ViewBag.Title = "GRN Quality Check & Assign QC";
+}
+
+<div class="container">
+    <div class="card shadow-lg border-0 rounded-4 p-4">
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center flex-wrap mb-4">
+            <!-- Datepicker (Left Side) -->
+            <div class="mb-2" style="width:280px;">
+                <div class="input-group">
+                    <span class="input-group-text bg-primary text-white">
+                        <i class="bi bi-calendar-date"></i>
+                    </span>
+                    <input type="text" id="FourthreportrangePSM" class="form-control" readonly placeholder="Select Date" />
+                </div>
+            </div>
+
+            <!-- Center Heading -->
+            <div class="flex-grow-1 text-center mb-2">
+                <h4 class="text-primary fw-bold mb-0">
+                    <i class="bi bi-pie-chart-fill me-2"></i> GRN Quality Check & Assign QC
+                </h4>
+            </div>
+
+            <!-- Empty Right Side -->
+            <div class="mb-2" style="width:280px;"></div>
+        </div>
+
+        <!-- Chart Card -->
+        <div class="position-relative border rounded-3 p-3 shadow-sm mb-4" style="min-height:420px;">
+            <div class="d-flex justify-content-center align-items-center" style="height:100%; min-height:400px;">
+                <div id="grnQCDonutChartPSM" style="width:100%; height:100%;"></div>
+            </div>
+        </div>
+
+        <!-- DataTable -->
+        <h5 class="text-primary fw-bold text-center mb-3">GRN Assign Quality Check List</h5>
+        <div class="table-responsive">
+            <table id="GRNReturnGoodsTablePSM" class="table table-striped table-bordered w-100">
+                <thead class="table-dark">
+                    <tr>
+                        <th><input type="checkbox" id="selectAll" /></th>
+                        <th>S.No</th>
+                        <th>Item Name</th>
+                        <th>Description</th>
+                        <th>Category</th>
+                        <th>Added Date</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    let grnTable;
+    let currentFrom = null;
+    let currentTo = null;
+
+    toastr.options = {
+        closeButton: true,
+        progressBar: true,
+        newestOnTop: true,
+        positionClass: "toast-top-right",
+        preventDuplicates: true,
+        timeOut: 3000
+    };
+
+    function buildDatetimeString() {
+        const now = new Date();
+        return now.getFullYear() + '-' +
+            ('0' + (now.getMonth() + 1)).slice(-2) + '-' +
+            ('0' + now.getDate()).slice(-2) + ' ' +
+            ('0' + now.getHours()).slice(-2) + ':' +
+            ('0' + now.getMinutes()).slice(-2) + ':' +
+            ('0' + now.getSeconds()).slice(-2);
+    }
+
+    function findTableNodeIndex(doc) {
+        if (!doc || !doc.content) return -1;
+        for (let i = 0; i < doc.content.length; i++) {
+            if (doc.content[i] && doc.content[i].table) return i;
+        }
+        return -1;
+    }
+
+    function pdfCustomizeGeneric(doc, title, orientation) {
+        orientation = orientation || 'portrait';
+        try {
+            doc.pageOrientation = orientation;
+            doc.pageSize = 'A4';
+            doc.pageMargins = [30, 60, 30, 40];
+            doc.styles = doc.styles || {};
+            doc.styles.tableHeader = doc.styles.tableHeader || {};
+            doc.styles.tableHeader.fillColor = '#2c3e50';
+            doc.styles.tableHeader.color = 'white';
+            doc.styles.tableHeader.bold = true;
+            doc.defaultStyle = doc.defaultStyle || {};
+            doc.defaultStyle.fontSize = 10;
+            const tableIndex = findTableNodeIndex(doc);
+            const datetime = buildDatetimeString();
+            const headerBlock = [
+                { text: title || '', alignment: 'center', fontSize: 14, bold: true, margin: [0, 0, 0, 6] },
+                { text: 'Generated on: ' + datetime, alignment: 'center', bold: false, fontSize: 9, margin: [0, 0, 0, 8] },
+                { text: '\n' }
+            ];
+            if (tableIndex >= 0) {
+                doc.content.splice(tableIndex, 0, ...headerBlock);
+                const tableObj = doc.content[tableIndex + headerBlock.length];
+                if (tableObj && tableObj.table && tableObj.table.body) {
+                    const body = tableObj.table.body;
+                    for (let r = 1; r < body.length; r++) body[r][0] = { text: (r).toString(), alignment: 'center' };
+                    for (let c = 0; c < body[0].length; c++) {
+                        if (typeof body[0][c] === 'string') body[0][c] = { text: body[0][c], style: 'tableHeader', alignment: 'center', bold: true };
+                    }
+                    tableObj.layout = {
+                        hLineWidth: () => 0.5,
+                        vLineWidth: () => 0.5,
+                        hLineColor: () => '#aaa',
+                        vLineColor: () => '#aaa',
+                        paddingLeft: () => 6,
+                        paddingRight: () => 6
+                    };
+                }
+            } else {
+                doc.content.splice(0, 0, ...headerBlock);
+            }
+            doc.footer = (currentPage, pageCount) => ({
+                columns: [
+                    { text: 'Generated on: ' + datetime, alignment: 'left', margin: [30, 0, 0, 0] },
+                    { text: 'Page ' + currentPage + ' of ' + pageCount, alignment: 'right', margin: [0, 0, 30, 0] }
+                ],
+                fontSize: 9
+            });
+        } catch (e) { console.error('pdfCustomizeGeneric error', e); }
+    }
+
+    function excelCustomize(xlsx, title) {
+        try {
+            const sheet = xlsx.xl.worksheets['sheet1.xml'];
+            if (sheet) {
+                $('sheetData row:first', sheet).before(`<row r="1"><c t="inlineStr" r="A1"><is><t>${title}</t></is></c></row>`);
+                $('row:nth-child(2) c', sheet).attr('s', '2');
+            }
+        } catch (e) { console.error('excelCustomize error', e); }
+    }
+
+    function printCustomize(win, title) {
+        try {
+            $(win.document.body).css('font-size', '12pt').prepend(`<h3 class="text-center mb-3">${title}</h3>`);
+            $(win.document.body).find('table').addClass('compact table-bordered').css('font-size', 'inherit');
+        } catch (e) { console.error('printCustomize error', e); }
+    }
+
+    function makeExportButton(type, text, checkboxSelector, title, orientation) {
+        title = title || "Report"; orientation = orientation || "portrait";
+        return {
+            extend: type,
+            text: text,
+            action: function (e, dt, button, config) {
+                if (checkboxSelector && $(checkboxSelector + ":checked").length === 0) {
+                    toastr.warning("Please select at least one row!", "Warning");
+                    return;
+                }
+                $.fn.dataTable.ext.buttons[type].action.call(this, e, dt, button, config);
+            },
+            exportOptions: {
+                columns: ':visible:not(:first-child):not(:last-child)',
+                rows: (idx, data, node) => checkboxSelector ? $(node).find(checkboxSelector).is(':checked') : true,
+                format: {
+                    body: data => {
+                        let div = document.createElement("div"); div.innerHTML = data;
+                        if (div.querySelector("i.bi-currency-rupee")) return "₹ " + div.textContent.trim();
+                        if (div.querySelector("span.badge")) return div.textContent.trim();
+                        return div.textContent.trim() || data;
+                    }
+                }
+            },
+            customize: doc => { if (type === 'pdfHtml5') pdfCustomizeGeneric(doc, title, orientation); },
+            customizeData: data => { if (type === 'excelHtml5') excelCustomize(data, title); },
+            customizePrint: win => { if (type === 'print') printCustomize(win, title); }
+        };
+    }
+
+    //DatePicker
+    $('#FourthreportrangePSM').daterangepicker({
+        autoUpdateInput: false,
+        opens: "right",
+        drops: "down",
+        locale: { cancelLabel: 'Clear' },
+        ranges: {
+            'Today': [moment(), moment()],
+            'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+            'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+            'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+            'This Month': [moment().startOf('month'), moment().endOf('month')],
+            'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+        }
+    }, function(start, end) {
+        currentFrom = start.format('YYYY-MM-DD'); currentTo = end.format('YYYY-MM-DD');
+        $('#FourthreportrangePSM').val(currentFrom + ' - ' + currentTo);
+        initGRNTable(currentFrom, currentTo);
+        loadDonutChart(currentFrom, currentTo);
+    });
+
+    $('#FourthreportrangePSM').on('cancel.daterangepicker', function() {
+        $(this).val(''); currentFrom = null; currentTo = null;
+        initGRNTable(null, null);
+        loadDonutChart(null, null);
+    });
+
+    function initGRNTable(fromDate, toDate){
+        if(grnTable){ grnTable.destroy(); $('#GRNReturnGoodsTablePSM tbody').empty(); }
+
+        grnTable = $('#GRNReturnGoodsTablePSM').DataTable({
+            dom: '<"d-flex justify-content-between align-items-center mb-2"Bf>rt<"d-flex justify-content-between align-items-center"i p>',
+            responsive: true,
+            processing: true,
+            buttons: [
+                makeExportButton('print', '<i class="bi bi-printer-fill text-dark fs-5"></i>', '.rowCheckbox', 'GRN Summary Report', 'portrait'),
+                makeExportButton('pdfHtml5', '<i class="bi bi-file-earmark-pdf text-danger fs-5"></i>', '.rowCheckbox', 'GRN Summary Report', 'portrait'),
+                makeExportButton('excelHtml5', '<i class="bi bi-file-earmark-excel text-dark fs-5"></i>', '.rowCheckbox', 'GRN Summary Report'),
+                makeExportButton('csvHtml5', '<i class="bi bi-filetype-csv text-success fs-5"></i>', '.rowCheckbox', 'GRN Summary Report')
+            ],
+            ajax: {
+                url: '@Url.Action("GetGRNAssignQCListPSM","GRN")',
+                type: 'GET',
+                data: { startDate: fromDate || null, endDate: toDate || null },
+                dataSrc: json => Array.isArray(json) ? json : (json.data || [])
+            },
+            columns: [
+                { data: null, orderable: false, searchable: false, render: d => `<input type="checkbox" class="rowCheckbox" value="${d.ItemId || d.ItemName}" />` },
+                { data: null, orderable: false, searchable: false, render: (d, t, r, meta) => meta.row + meta.settings._iDisplayStart + 1 },
+                { data: "ItemName", render: d => `<span title="${d}">${d}</span>` },
+                { data: "Description", render: d => `<span title="${d || ''}">${d || ''}</span>` },
+                { data: "ItemCategoryName" },
+                { data: "AddedDate", render: d => d ? new Date(d).toLocaleDateString("en-GB") : "" },
+                { data: "StatusName", render: d => d ? `<span class="badge ${d === "Active" ? "bg-success" : "bg-info"} fw-semibold" data-bs-toggle="tooltip" data-bs-placement="top" title="Status: ${d}">${d}</span>` : "" }
+            ],
+            drawCallback: function(settings){
+                $("#selectAll").off("change").on("change", function(){ $(".rowCheckbox").prop("checked", this.checked); });
+                $(".rowCheckbox").off("change").on("change", function () { $("#selectAll").prop("checked", $(".rowCheckbox:checked").length === $(".rowCheckbox").length); });
+                var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+                var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                    return new bootstrap.Tooltip(tooltipTriggerEl, { trigger: 'hover', customClass: 'tooltip-dark' })
+                });
+            }
+        });
+    }
+
+    function loadDonutChart(fromDate, toDate){
+        let url = '@Url.Action("GRNQualityCheckChartPSM", "GRN")';
+        if(fromDate && toDate) url += `?startDate=${fromDate}&endDate=${toDate}`;
+
+        fetch(url)
+        .then(res => res.json())
+        .then(data => {
+            if(!Array.isArray(data)) data=[];
+            if(data.length === 0) {
+                Highcharts.chart('grnQCDonutChartPSM', {
+                    chart: { type: 'pie', height: null },
+                    title: { text: 'No Data Present', align: 'center', style:{ color:'#000', fontWeight:'bold', fontSize:'16px' } },
+                    series: [{ data: [] }],
+                    credits: { enabled:false }
+                });
+                return;
+            }
+
+            Highcharts.chart('grnQCDonutChartPSM', {
+                chart: { type: 'pie', height: null },
+                title: { text: '' },
+                tooltip: { pointFormat: '<b>{point.y}</b> items' },
+                plotOptions: {
+                    pie: {
+                        innerSize: '60%',
+                        allowPointSelect: true,
+                        cursor: 'pointer',
+                        dataLabels: { enabled: true, format: '<b>{point.name}</b>: {point.y}' },
+                        point: {
+                            events: {
+                                click: function() {
+                                    const categoryName = this.name;
+                                    if(grnTable) {
+                                        grnTable.column(4).search(categoryName).draw();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                series: [{ name:'Items', colorByPoint:true, data: data.map(d=>({ name:d.Category, y:d.Count })) }],
+                credits: { enabled:false }
+            });
+        }).catch(err=>console.error("Error loading donut chart:",err));
+    }
+
+    $(document).ready(function(){
+        initGRNTable(null,null);
+        loadDonutChart(null,null);
+    });
+</script>

@@ -1,0 +1,123 @@
+﻿@model P2PLibray.GRN.PrintDetailsClass
+
+<div id="printSlipArea" class="container border p-4 bg-white">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+        <h4 class="fw-bold text-center flex-grow-1">📦 PACKING SLIP</h4>
+        <div class="border p-2 text-center rounded shadow-sm" style="width:250px;">
+            <h3 class="fw-bold text-primary">GAYASOFT</h3>
+        </div>
+    </div>
+
+    <!-- Date & GRNO -->
+    <div class="row mb-3">
+        <div class="col-md-6"><strong>Date:</strong> @DateTime.Now.ToString("dd-MM-yyyy") </div>
+        <div class="col-md-6"><strong>GR No:</strong> @Model.GoodReturnCode</div>
+    </div>
+
+    <!-- Addresses -->
+    <div class="row mb-3 text-uppercase">
+        <div class="col-md-4 border p-2">
+            <strong>Company Address</strong>
+            <p id="CompanyAddress"></p>
+        </div>
+        <div class="col-md-4 border p-2">
+            <strong>Invoice No:</strong> @Model.InvoiceNo
+        </div>
+        <div class="col-md-4 border p-2">
+            <strong>PO No:</strong> @Model.POCode
+        </div>
+    </div>
+
+    <!-- Order Details -->
+    @*<div class="row mb-3">
+            <div class="col-md-6 border p-2"></div>
+            <div class="col-md-6 border p-2"></div>
+        </div>*@
+
+    <!-- Product Table -->
+    <div class="table-responsive mb-3">
+        <table class="table table-bordered align-middle text-center">
+            <thead class="table-light">
+                <tr>
+                    <th>SR NO</th>
+                    <th>ITEM NAME</th>
+                    <th>ITEM DESCRIPTION</th>
+                    <th>QTY</th>
+                    <th>UOM</th>
+                    <th>UNIT RATE (₹)</th>
+                    <th>AMOUNT (₹)</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Items != null && Model.Items.Any())
+                {
+                    int sr = 1;
+                    foreach (var item in Model.Items)
+                    {
+                        <tr>
+                            <td>@sr</td>
+                            <td>@item.ItemName</td>
+                            <td>@item.ItemDescription</td>
+                            <td>@item.Qty</td>
+                            <td>@item.UOM</td>
+                            <td>@item.UnitRate.ToString("N2")</td>
+                            <td>@item.Amount.ToString("N2")</td>
+                        </tr>
+                        sr++;
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="7">No items found</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Totals -->
+    <div class="row justify-content-end">
+        <div class="col-md-4">
+            <table class="table table-bordered">
+                <tbody>
+                    @*<tr><th>Total:</th><td>@Model.Items.Sum(i => i.Amount).ToString("N2")</td></tr>*@
+                    <tr><th>Total Amount:</th><td>@Model.TotalAmount.ToString("N2")</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<div class="d-flex justify-content-between align-items-center mt-4">
+    <h6><strong>Authorized Signature</strong></h6>
+    <button class="btn btn-success px-4" onclick="printSlip()">🖨️ Print</button>
+</div>
+
+<script>
+    function printSlip() {
+        var printContent = document.getElementById("printSlipArea").innerHTML;
+        var originalContent = document.body.innerHTML;
+
+        document.body.innerHTML = printContent;
+        window.print();
+        document.body.innerHTML = originalContent;
+        location.reload(); // reload to restore JS events & buttons
+    }
+
+
+    $.ajax({
+        url: '@Url.Action("getCompanyAddressHSB", "GRN")',
+        type: 'GET',
+        success: function (res) {
+            var $CompanyAddress = $("#CompanyAddress");
+
+            $CompanyAddress.text(res);
+            console.log(res);
+
+        }
+    })
+
+</script>

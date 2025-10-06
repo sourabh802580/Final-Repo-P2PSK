@@ -1,0 +1,338 @@
+﻿@model P2PLibray.Account.Account
+
+@{
+    ViewBag.Title = "User Profile";
+    var loc = Model.SameLocation; // check same location
+}
+
+<div class="content-body">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-lg-12">
+                <!-- Profile section -->
+                <div class="profile border border-1 rounded-3">
+                    <div class="profile-head">
+                        <div class="photo-content">
+                            @{
+                                var roleId = Convert.ToInt32(Session["RoleId"]);
+                                var coverImg = "cover.jpg"; // default
+
+                                coverImg = (new[] { 2, 3, 4 }.Contains(roleId)) ? "Inventory.jpg" :
+                                           (new[] { 5, 6, 7, 8, 9 }.Contains(roleId)) ? "Purchase.jpg" :
+                                           (new[] { 10, 11, 12 }.Contains(roleId)) ? "GRN.jpg" :
+                                           (new[] { 13, 14, 15 }.Contains(roleId)) ? "Quality.jpg" :
+                                           "cover.jpg"; // fallback
+                            }
+                            <div class="cover-photo" style="background-image:url(@Url.Content("~/Content/images/backgrounds/" + coverImg))"></div>
+                            <!-- Profile photo -->
+                            <div class="profile-photo">
+                                <img src="@(string.IsNullOrEmpty(Model.ProfilePhoto) ? Url.Content("~/Content/images/avatars/1.png") : Url.Content(Model.ProfilePhoto))"
+                                     class="img-fluid rounded-circle border border-1 border-black" alt="">
+                            </div>
+                        </div>
+                        <!-- Basic user info -->
+                        <div class="profile-info">
+                            <div class="row justify-content-center">
+                                <div class="col-xl-8">
+                                    <div class="row">
+                                        <div class="col-xl-4 col-sm-4 border-right-1 prf-col">
+                                            <div class="profile-name">
+                                                <p>@(Model.Department) - @(Model.RoleName)</p>
+                                                <h6 class="text-primary">@(Model.UserName)</h6>
+                                            </div>
+                                        </div>
+                                        <div class="col-xl-4 col-sm-4 border-right-1 prf-col">
+                                            <div class="profile-email" style="word-break: break-word; white-space: normal;">
+                                                <p>Email</p>
+                                                <h6 class="text-muted">@(Model.EmailAddress)</h6>
+                                            </div>
+                                        </div>
+                                        <div class="col-xl-4 col-sm-4 prf-col">
+                                            <div class="profile-call" style="word-break: break-word; white-space: normal;">
+                                                <p>Phone No.</p>
+                                                <h6 class="text-muted">@(Model.PhoneNumber)</h6>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- End profile -->
+            </div>
+        </div>
+
+        <!-- Tabs section -->
+        <div class="row my-3">
+            <div class="col-lg-12">
+                <div class="profile-tab">
+                    <div class="custom-tab-1">
+                        <!-- Tab menu -->
+                        <ul class="nav nav-pills mb-4 w-100">
+                            <li class="nav-item">
+                                <a href="#personal-data" data-bs-toggle="tab" class="nav-link active">Personal Details</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="#communication-data" data-bs-toggle="tab" class="nav-link">Communicational Details</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="#permission-data" data-bs-toggle="tab" class="nav-link">Permissions Details</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="#update-profile" data-bs-toggle="tab" class="nav-link">Update Profile</a>
+                            </li>
+                        </ul>
+
+                        <!-- Tab content -->
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="tab-content mt-3">
+
+                                    <!-- Personal Details -->
+                                    <div id="personal-data" class="tab-pane fade active show text-black">
+                                        <div class="row">
+                                            <div class="col-lg-6">
+                                                <dl>
+                                                    <dt>Mother Name : </dt>
+                                                    <dd class="ps-5">@(Model.MotherName)</dd>
+                                                </dl>
+                                            </div>
+                                            <div class="col-lg-6">
+                                                <dl>
+                                                    <dt>Gender : </dt>
+                                                    <dd class="ps-5">@(Model.Gender)</dd>
+                                                </dl>
+                                            </div>
+                                            <div class="col-lg-6">
+                                                <dl>
+                                                    <dt>Blood Group : </dt>
+                                                    <dd class="ps-5">@(Model.BloodGroup)</dd>
+                                                </dl>
+                                            </div>
+                                            <div class="col-lg-6">
+                                                <dl>
+                                                    <dt>Birth Date : </dt>
+                                                    <dd class="ps-5">@(Model.DateOfBirth.ToString("dd-MM-yyyy").Replace("-", "/"))</dd>
+                                                </dl>
+                                            </div>
+                                            <div class="col-lg-6">
+                                                <dl>
+                                                    <dt>Joining date : </dt>
+                                                    <dd class="ps-5">@(Model.JoiningDate.ToString("dd-MM-yyyy").Replace("-", "/"))</dd>
+                                                </dl>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Communication Details -->
+                                    <div id="communication-data" class="tab-pane fade text-black">
+                                        <div class="row">
+                                            <div class="col-lg-12">
+                                                <dl>
+                                                    <dt>Alternate Contact Number : </dt>
+                                                    <dd class="ps-5">@(Model.AlternamteNumber)</dd>
+                                                </dl>
+                                            </div>
+                                            @{
+                                                if (!loc)
+                                                {
+                                                    <div class="col-lg-6">
+                                                        <dl>
+                                                            <dt>Local Address : </dt>
+                                                            <dd class="ps-5">@Model.LocalLocation</dd>
+                                                            <dd class="ps-5">@Model.LocalLandmark</dd>
+                                                            <dd class="ps-5" id="LocalCityName"></dd>
+                                                            <dd class="ps-5" id="LocalStateName"></dd>
+                                                            <dd class="ps-5" id="LocalCountryName"></dd>
+                                                            <dd class="ps-5">@Model.LocalPincode</dd>
+                                                        </dl>
+                                                    </div>
+                                                }
+                                            }
+                                            <div class="col-lg-6">
+                                                <dl>
+                                                    <dt>Permanent Address : </dt>
+                                                    <dd class="ps-5">@Model.ParmanentLocation</dd>
+                                                    <dd class="ps-5">@Model.ParmanentLandmark</dd>
+                                                    <dd class="ps-5" id="ParmanentCityName"></dd>
+                                                    <dd class="ps-5" id="ParmanentStateName"></dd>
+                                                    <dd class="ps-5" id="ParmanentCountryName"></dd>
+                                                    <dd class="ps-5">@Model.ParmanentPincode</dd>
+                                                </dl>
+                                            </div>
+
+                                        </div>
+                                    </div>
+
+                                    <!-- Permission Details -->
+                                    <div id="permission-data" class="tab-pane fade text-black">
+                                        <div class="row">
+                                            <div class="col-lg-12">
+                                                <h3>Permissions</h3>
+                                                @foreach (var perm in Model.PermissionsData)
+                                                {
+                                                    <div class="row">
+                                                        <div class="col-6 ps-5">
+                                                            @perm.PermissionName
+                                                        </div>
+                                                        <div class="col-6">
+                                                            <input type="checkbox" onclick="return false;" @(perm.HasPermission == 1 ? "checked" : "") />
+                                                        </div>
+                                                    </div>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Update Profile -->
+                                    <div id="update-profile" class="tab-pane fade text-black">
+                                        <div class="row">
+                                            <div class="col-lg-12">
+                                                @using (Html.BeginForm("UpdateUserProfile", "Account", FormMethod.Post, new { @id = "UpdateUserProfile" }))
+                                                {
+                                                    @Html.AntiForgeryToken()
+                                                    @Html.HiddenFor(model => model.StaffCode);
+
+                                                    <!-- Alternate Number -->
+                                                    <div class="row justify-content-center">
+                                                        <div class="col-lg-6 px-2">
+                                                            <div class="form-floating">
+                                                                @Html.EditorFor(model => model.AlternamteNumber,
+                                                                    new { htmlAttributes = new { @class = "form-control", @id = "AlternamteNumber", @placeholder = "Enter your alternate number", @type = "tel" } })
+                                                                @Html.LabelFor(model => model.AlternamteNumber, new { @for = "AlternamteNumber" })
+                                                                @Html.ValidationMessageFor(model => model.AlternamteNumber, "", new { @class = "text-danger" })
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Submit button -->
+                                                    <div class="row justify-content-center text-center mt-5">
+                                                        <div class="col-lg-12 p-2">
+                                                            <input type="submit" value="Update" class="btn btn-success my-5" id="btnsmt" />
+                                                        </div>
+                                                    </div>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- End Update Profile -->
+                                </div>
+                            </div>
+                        </div>
+                        <!-- End Tab Content -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- End Tabs -->
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+
+        // Local address city/state/country
+        $.ajax({
+            type: "GET",
+            url: '@Url.Action("GetCities", "Account")',
+            data: {
+                countryCode: '@Model.CountryCode',
+                stateCode: '@Model.StateCode',
+                CityId: @Model.CityId
+            },
+            success: function (response) {
+                if (response) {
+                    $('#LocalCityName').text(response.Name || '');
+                    $('#LocalStateName').text(response.StateName || '');
+                    $('#LocalCountryName').text(response.CountryName || '');
+                }
+            },
+            error: function (err) {
+                console.error(err);
+            }
+        });
+
+        // Permanent address city/state/country
+        $.ajax({
+            type: "GET",
+            url: '@Url.Action("GetCities", "Account")',
+            data: {
+                countryCode: '@Model.ExtraCountryCode',
+                stateCode: '@Model.ExtraStateCode',
+                CityId: @Model.ExtraCityId
+            },
+            success: function (response) {
+                if (response) {
+                    $('#ParmanentCityName').text(response.Name || '');
+                    $('#ParmanentStateName').text(response.StateName || '');
+                    $('#ParmanentCountryName').text(response.CountryName || '');
+                }
+            },
+            error: function (err) {
+                console.error(err);
+            }
+        });
+
+        // Handle update profile form submit
+        $(document).on("submit", "#UpdateUserProfile", function (e) {
+            e.preventDefault();
+
+            // Send form via AJAX
+            $.ajax({
+                type: "POST",
+                url: $('#UpdateUserProfile').attr('action'),
+                data: $('#UpdateUserProfile').serialize(),
+                success: function (response) {
+                    if (response.success) {
+                        // Success Alert
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Your Profile Has Been Updated..!',
+                            text: response.message,
+                            showConfirmButton: false,
+                            timer: 1500
+                        }).then(() => {
+                            Swal.fire({
+                                toast: true,
+                                position: 'top-end',
+                                icon: 'success',
+                                title: 'Profile Updated',
+                                showConfirmButton: false,
+                                timer: 2000,
+                                timerProgressBar: true
+                            });
+
+                            setTimeout(function () {
+                                LoadNew();
+                                LoadUsers();
+                            }, 2000);
+                        });
+                    }
+                    else {
+                        // Failure message
+                        Swal.fire("Update Is Not Done", response.message, "error");
+                    }
+                },
+                error: function () {
+                    // Error message
+                    Swal.fire("Error", "Something went wrong!", "error");
+                }
+            });
+        });
+
+        // Check if URL has a hash
+        var hash = window.location.hash;
+        if (hash) {
+            // Activate the corresponding tab
+            var tabLink = $('a.nav-link[href="' + hash + '"]');
+            if (tabLink.length) {
+                tabLink.tab('show'); // Bootstrap 5
+                // Optional: scroll to tab
+                $('html, body').animate({
+                    scrollTop: tabLink.offset().top - 100 // adjust offset
+                }, 500);
+            }
+        }
+    });
+</script>

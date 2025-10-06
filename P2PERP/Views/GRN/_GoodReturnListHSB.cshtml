@@ -1,0 +1,495 @@
+﻿<h4 class="text-center text-primary fw-bold">Goods Return List</h4>
+
+<!-- Date Filters -->
+<div class="mb-3 d-flex gap-2">
+    <div class="input-group" style="max-width: 280px;">
+        <span class="input-group-text bg-primary text-white">
+            <i class="bi bi-calendar-date"></i> <!-- Bootstrap icon -->
+        </span>
+        <input type="text" id="returnGoodsRange" class="form-control" placeholder="Select date range" readonly />
+    </div>
+    <!-- Reset Filter Button -->
+    @*<button id="resetFilter" class="btn btn-primary">
+            <i class="bi bi-arrow-repeat"></i> Reset
+        </button>*@
+</div>
+
+
+
+<div class="row">
+    <div class="col-12">
+        <div class="table-responsive">
+            <table id="ReturnGoods" class="table table-striped table-bordered text-center">
+                <thead class="table-dark dt-head-center">
+                    <tr>
+                        <th><input type="checkbox" id="selectAllReturn"></th> <!-- checkbox now matches DataTable column -->
+                        <th>SR.NO</th>
+                        <th>GR Date</th>
+                        <th>GRN Code</th>
+                        <th>Reason Of Rejection</th>
+                        <th>Vendor Name</th>
+                        <th>Invoice No</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Universal Modal for Print/Dispatch -->
+<div class="modal fade" id="packingSlipModal" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+
+            <!-- Header -->
+            <div class="modal-header bg-gradient bg-primary text-white d-flex justify-content-center align-items-center">
+                <h5 id="modalHeading" class="modal-title fw-bold text-uppercase text-white mb-2  heading"></h5>
+                <button type="button" class="btn-close btn-close-white position-absolute end-0 me-3" data-bs-dismiss="modal"></button>
+            </div>
+
+            <!-- Body -->
+            <div class="modal-body" id="PrintContainer">
+                <!-- Partial will be injected here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<script>
+    $(document).ready(function () {
+
+        // Date Range Setup
+        let startDate = null;
+        let endDate = null;
+
+        function cb(start, end) {
+            $('#returnGoodsRange').val(start.format('YYYY-MM-DD') + ' - ' + end.format('YYYY-MM-DD'));
+            startDate = start;
+            endDate = end;
+            if ($.fn.DataTable.isDataTable('#ReturnGoods')) {
+                table.draw();
+            }
+        }
+
+        // Clear date range on cancel
+        $('#returnGoodsRange').on('cancel.daterangepicker', function (ev, picker) {
+            startDate = null;
+            endDate = null;
+            $(this).val('');
+            table.draw();
+        });
+
+        // Initialize daterangepicker (empty input initially)
+        $('#returnGoodsRange').daterangepicker({
+            autoUpdateInput: false,
+            locale: { cancelLabel: 'Clear' },// keep input empty at first
+            ranges: {
+                'Today': [moment(), moment()],
+                'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                'This Month': [moment().startOf('month'), moment().endOf('month')],
+                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+            }
+        }, cb);
+
+        // Custom Filter
+        $.fn.dataTable.ext.search.push(function (settings, data) {
+            if (settings.nTable.id !== 'ReturnGoods') return true;
+            const addedDate = moment(data[3], ["YYYY-MM-DD", "YYYY-MM-DD HH:mm:ss"]); // index 3 = "GR Date"
+            if (!startDate || !endDate) return true; // ✅ no filter on first load
+            if (!addedDate.isValid()) return true;
+            return addedDate.isSameOrAfter(startDate, 'day') && addedDate.isSameOrBefore(endDate, 'day');
+        });
+
+        // DataTable Init
+        var table = $('#ReturnGoods').DataTable({
+            dom: '<"d-flex justify-content-between align-items-center mb-2"Bf>rt<"d-flex justify-content-between align-items-center mt-2"ip>',
+            responsive: true,
+            ajax: "/GRN/getReturnGoodsList",
+            columns: [
+                {
+                    data: null,
+                    orderable: false,
+                    render: (data, type, row) => `<input type="checkbox" class="row-select" value="${row.GRNCode}">`
+                },
+                {
+                    data: null,
+                    title: "SR.NO",
+                    orderable: false,
+                    render: function (data, type, row, meta) {
+                        return meta.row + 1;
+                    }
+                },
+                { data: "GoodReturnCode", title: "GR Code" },
+                { data: "AddedDate", title: "GR Date" },
+                { data: "GRNCode", title: "GRN Code" },
+                {
+                    data: "ReasonOfRejection",
+                    title: "Reason Of Rejection",
+
+                },
+                { data: "VenderName", title: "Vendor Name" },
+                { data: "InvoiceNo", title: "Invoice No" },
+                {
+                    data: 'StatusName',
+                    className: 'text-center fw-bold',
+                    render: function (data) {
+                        let statusText = data || 'Unknown';
+                        let statusLower = statusText.trim().toLowerCase();
+
+                        let bgColor = '#6c757d'; // default gray
+
+
+                        if (statusLower == 'assign') bgColor = '#0d6efd';       // blue (primary)
+                        else if (statusLower === 'dispatch') bgColor = '#198754';     // green (success)
+
+                        return `<span class="px-2 py-1 rounded text-white" style="background-color:${bgColor}">${statusText}</span>`;
+                    }
+                },
+                {
+                    data: null,
+                    title: "Action",
+                    orderable: false,
+                    render: (data, type, row) => {
+                        if (row.StatusName === "Dispatch") {
+                            return `
+                <button type="button"
+                        class="btn btn-success btn-sm btn-print square-pill d-inline-flex align-items-center px-3 shadow-sm"
+                        data-grn="${row.GRNCode}"
+                        data-bs-toggle="tooltip"
+                        data-bs-placement="top"
+                        title="Print Good Return">
+                    <i class="bi bi-printer-fill fs-5"></i>
+                </button>`;
+                        } else if (row.StatusName === "Assign") {
+                            return `
+                <button type="button"
+                        class="btn btn-primary btn-sm btn-dispatch square-pill d-inline-flex align-items-center px-3 shadow-sm"
+                        data-grn="${row.GRNCode}"
+                        data-bs-toggle="tooltip"
+                        data-bs-placement="top"
+                        title="Dispatch Good Return">
+                    <i class="bi bi-truck-front-fill fs-5"></i>
+                </button>`;
+                        } else {
+                            return `<span class="text-muted">No Action</span>`;
+                        }
+                    }
+                }
+            ],
+            
+            columnDefs: [
+                { targets: "_all", className: "text-center" } // center all columns
+            ],
+            buttons: [
+
+                {
+                    extend: 'print',
+                    text: '<i class="bi bi-printer-fill text-dark fs-5"></i>',
+                    exportOptions: {
+                        rows: selectedRows,
+                        columns: [1, 2, 3, 4, 5, 6, 7],
+                        modifier: { search: 'applied', order: 'applied' },
+                        format: {
+                            body: (function () {
+                                let counter = 0;
+                                return function (data, row, column, node) {
+                                    if (column === 1) {
+                                        counter++;
+                                        return counter;
+                                    }
+                                    return data;
+                                };
+                            })()
+                        }
+                    },
+                    title: '',
+                    action: function (e, dt, button, config) {
+                        let selected = dt.$('.row-select:checked', { page: 'all' }).length;
+                        if (!selected) {
+                            showExportToast();
+                            return;
+                        }
+                        exportRowIndex = 0;
+                        $.fn.dataTable.ext.buttons.print.action.call(this, e, dt, button, config);
+                    },
+                    customize: function (win) {
+                        $(win.document.body).css({
+                            'font-size': '12px',
+                            'font-family': 'Arial, sans-serif'
+                        });
+                        $(win.document.body).prepend(
+                            `<h3 style="text-align:center;">Return Goods Report</h3>
+   <p style="text-align:center;">Generated on: ${moment().format("YYYY-MM-DD")}</p>`
+                        );
+                        $(win.document.body).find('table')
+                            .addClass('compact')
+                            .css({
+                                'font-size': '12px',
+                                'border': '1px solid black',
+                                'width': 'auto',
+                                'margin-left': 'auto',
+                                'margin-right': 'auto',
+                                'border-collapse': 'collapse'
+                            });
+                        $(win.document.body).find('thead').css({
+                            'background-color': '#343a40',
+                            'color': 'white'
+                        });
+                        $(win.document.body).find('table td, table th').css({
+                            'text-align': 'center',
+                            'padding': '4px'
+                        });
+                        $(win.document.body).find('tbody tr td:first-child, thead tr th:first-child').css("padding-left", "15px");
+                    }
+                },
+                {
+                    extend: 'pdf',
+                    text: '<i class="bi bi-file-earmark-pdf text-danger fs-5"></i>',
+                    exportOptions: {
+                        rows: selectedRows,
+                        columns: [1, 2, 3, 4, 5, 6, 7],
+                        modifier: { search: 'applied', order: 'applied' },
+                        format: {
+                            body: (function () {
+                                let counter = 0;
+                                return function (data, row, column, node) {
+                                    if (column === 1) {
+                                        counter++;
+                                        return counter;
+                                    }
+                                    return data;
+                                };
+                            })()
+                        }
+                    },
+                    title: 'Return Goods Report',
+                    action: function (e, dt, button, config) {
+                        let selected = dt.$('.row-select:checked', { page: 'all' }).length;
+                        if (!selected) {
+                            showExportToast();
+                            return;
+                        }
+                        exportRowIndex = 0;
+                        $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, button, config);
+                    },
+                    customize: function (doc) {
+                        doc.pageMargins = [40, 60, 40, 40];
+                        doc.styles.title = {
+                            fontSize: 16,
+                            bold: true,
+                            alignment: 'center',
+                            margin: [0, 0, 0, 20]
+                        };
+                        doc.content.splice(1, 0, {
+                            text: `Generated on: ${moment().format("YYYY-MM-DD")}`,
+                            alignment: 'center',
+                            margin: [0, 0, 0, 10],
+                            fontSize: 10,
+                            italics: true
+                        });
+                        var tableNode = doc.content.find(node => node.table);
+                        if (tableNode) {
+                            tableNode.table.widths = Array(tableNode.table.body[0].length).fill('auto');
+                            tableNode.layout = {
+                                fillColor: function (rowIndex) { return rowIndex === 0 ? '#343a40' : null; },
+                                hLineColor: function () { return '#ccc'; },
+                                vLineColor: function () { return '#ccc'; },
+                                hLineWidth: function () { return 0.5; },
+                                vLineWidth: function () { return 0.5; },
+                                paddingLeft: function () { return 5; },
+                                paddingRight: function () { return 5; }
+                            };
+                            tableNode.table.body[0].forEach(cell => {
+                                cell.color = 'white';
+                                cell.alignment = 'center';
+                                cell.bold = true;
+                                cell.fontSize = 11;
+                            });
+                            tableNode.table.body.slice(1).forEach((row, idx) => {
+                                row.forEach(cell => {
+                                    cell.fontSize = 10;
+                                    cell.margin = [5, 3, 5, 3];
+                                    cell.alignment = 'center';
+                                });
+                                if (idx % 2 === 0) {
+                                    row.forEach(cell => { cell.fillColor = '#f9f9f9'; });
+                                }
+                            });
+                        }
+                    }
+                },
+
+                {
+                    extend: 'excel',
+                    text: '<i class="bi bi-file-earmark-excel text-success fs-5"></i>',
+                    exportOptions: {
+                        rows: selectedRows,
+                        columns: [1, 2, 3, 4, 5, 6, 7],
+                        modifier: { search: 'applied', order: 'applied' },
+                        format: {
+                            body: (function () {
+                                let counter = 0;
+                                return function (data, row, column, node) {
+                                    if (column === 1) {
+                                        counter++;
+                                        return "   " + counter;
+                                    }
+                                    return data;
+                                };
+                            })()
+                        }
+                    },
+                    title: `Return Goods Report - ${moment().format("YYYY-MM-DD")}`,
+                    action: function (e, dt, button, config) {
+                        let selected = dt.$('.row-select:checked', { page: 'all' }).length;
+                        if (!selected) {
+                            showExportToast();
+                            return;
+                        }
+                        exportRowIndex = 0;
+                        $.fn.dataTable.ext.buttons.excelHtml5.action.call(this, e, dt, button, config);
+                    }
+                },
+                {
+                    extend: 'csv',
+                    text: '<i class="bi bi-filetype-csv text-success fs-5"></i>',
+                    exportOptions: {
+                        rows: selectedRows,
+                        columns: [1, 2, 3, 4, 5, 6, 7],
+                        modifier: { search: 'applied', order: 'applied' },
+                        format: {
+                            body: (function () {
+                                let counter = 0;
+                                return function (data, row, column, node) {
+                                    if (column === 1) {
+                                        counter++;
+                                        return "   " + counter;
+                                    }
+                                    return data;
+                                };
+                            })()
+                        }
+                    },
+                    title: `Return_Goods_Report_${moment().format("YYYY-MM-DD")}`,
+                    action: function (e, dt, button, config) {
+                        // validation: any selected rows?
+                        let selected = dt.$('.row-select:checked', { page: 'all' }).length;
+                        if (!selected) {
+                            showExportToast();
+                            return;
+                        }
+                        exportRowIndex = 0; // reset counter
+                        $.fn.dataTable.ext.buttons.csvHtml5.action.call(this, e, dt, button, config);
+                    }
+                },
+            ]
+        });
+
+        // Configure toastr once
+        toastr.options = {
+            closeButton: true,
+            progressBar: true,
+            preventDuplicates: true,
+            newestOnTop: true,
+            positionClass: "toast-top-right",
+            timeOut: "3000" // 3 seconds
+        };
+
+        // Helper function for warning toast
+        function showExportToast() {
+            toastr.warning("Please select at least one row before exporting.");
+        }
+
+        // Reset Filter Button
+        $('#resetFilter').on('click', function () {
+            startDate = null;
+            endDate = null;
+            $('#returnGoodsRange').val(''); // clear input
+            table.draw(); // reload all rows
+        });
+
+        // Init Bootstrap tooltips for DataTable
+        $('#ReturnGoods').on('draw.dt', function () {
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(el => new bootstrap.Tooltip(el));
+        });
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(el => new bootstrap.Tooltip(el));
+
+        // Row Selection
+        $('#ReturnGoods thead').on('change', '#selectAllReturn', function () {
+            const isChecked = $(this).is(':checked');
+            $('#ReturnGoods .row-select').prop('checked', isChecked);
+        });
+        $('#ReturnGoods tbody').on('change', '.row-select', function () {
+            const all = $('#ReturnGoods .row-select').length;
+            const checked = $('#ReturnGoods .row-select:checked').length;
+            $('#selectAllReturn').prop('checked', all === checked);
+        });
+
+        // Action Buttons
+        $('#ReturnGoods tbody').on('click', '.btn-print', function () {
+            const rowData = table.row($(this).closest('tr')).data();
+            $.get("/GRN/PrintReturnListHSB", { grCode: rowData.GoodReturnCode }, function (html) {
+                $("#PrintContainer").html(html);
+                $("#modalHeading").text("Return Goods Print");
+                $("#packingSlipModal").modal("show");
+            });
+        });
+        $('#ReturnGoods tbody').on('click', '.btn-dispatch', function () {
+            const rowData = table.row($(this).closest('tr')).data();
+            $.get("/GRN/DispatchGRForm", { grCode: rowData.GoodReturnCode }, function (html) {
+                $("#PrintContainer").html(html);
+                $("#modalHeading").text("Return Goods Dispatch");
+                $("#packingSlipModal").modal("show");
+            });
+        });
+
+        // Export Without Loader
+        function exportWithoutLoader(buttonType) {
+            return function (e, dt, button, config) {
+                if ($('.row-select:checked').length === 0) {
+                    showToast("Please select at least one row to export!");
+                    return;
+                }
+                const buttonsApi = dt.button(buttonType);
+                if (buttonsApi) {
+                    const originalAction = $.fn.dataTable.ext.buttons[buttonType].action;
+                    originalAction.call(this, e, dt, button, config);
+                }
+            };
+        }
+    });
+
+    // Row selector function
+    function selectedRows(idx, data, node) {
+        return $(node).find('.row-select').prop('checked');
+    }
+
+   
+
+    // toaster show
+    function showToast(message, type = 'danger') {
+        const toastHTML = `
+    <div class="toast align-items-center text-white bg-${type} border-0 mb-2" role="alert">
+        <div class="d-flex">
+            <div class="toast-body">${message}</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    </div>`;
+        const $toast = $(toastHTML);
+        $('#toastContainer').append($toast);
+        new bootstrap.Toast($toast[0], { delay: 3000 }).show();
+        $toast.on('hidden.bs.toast', function () { $(this).remove(); });
+    }
+</script>
+
+

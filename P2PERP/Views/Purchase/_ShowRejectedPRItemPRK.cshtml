@@ -1,0 +1,75 @@
+﻿@{
+    ViewBag.Title = "Rejected PR Items";
+    string prCode = ViewBag.PRCode ?? "";
+}
+
+<div class="container mt-3">
+    <!-- Hidden field to hold PRCode -->
+    <input type="hidden" id="hiddenPRCode" value="@prCode" />
+
+    <!-- PR Items Table -->
+    <div class="card shadow-sm border-0 rounded-3 mb-4">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover table-bordered align-middle mb-0">
+                    <thead class="table-dark text-center">
+                        <tr>
+                            <th>Item Name</th>
+                            <th>Required Quantity</th>
+                            <th>Unit Rate</th>
+                            <th>Expected Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="prItemBody" class="text-center">
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-3">Loading...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Note Section -->
+    <div class="card shadow-sm border-0 rounded-3">
+        <div class="card-body">
+            <div class="mb-3">
+                <label for="managerNote" class="form-label fw-bold text-danger">Note from Manager:</label>
+                <textarea id="managerNote" class="form-control" rows="3" placeholder="Enter note here..."></textarea>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        let prCode = $('#hiddenPRCode').val(); // ✅ Read from hidden field instead of Razor
+
+        $.ajax({
+            url: '/Purchase/ShowRejectedPRItemPRK',
+            type: 'GET',
+            data: { prCode: prCode },
+            success: function (data) {
+                $("#prItemBody").empty();
+
+                if (data && data.length > 0) {
+                    $.each(data, function (i, item) {
+                        $("#prItemBody").append(`
+                            <tr>
+                                <td><span class="badge bg-primary px-3 py-2 fs-6">${item.ItemName}</span></td>
+                                <td>${item.RequiredQuantity}</td>
+                                <td>₹ ${item.UnitRates}</td>
+                                <td>${item.RequiredDate}</td>
+                            </tr>
+                        `);
+                    });
+                } else {
+                    $("#prItemBody").html('<tr><td colspan="5" class="text-center text-muted py-3">No records found</td></tr>');
+                }
+            },
+            error: function () {
+                $("#prItemBody").html('<tr><td colspan="5" class="text-center text-danger py-3">Error loading items</td></tr>');
+            }
+        });
+    });
+</script>

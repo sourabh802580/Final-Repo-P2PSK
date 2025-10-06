@@ -1,0 +1,290 @@
+﻿@model P2PLibray.Purchase.Purchase
+<!-- Filters -->
+<div class="card shadow-sm p-3 mb-4">
+    <div class="row g-3">
+        <div class="col-md-2">
+            <input type="text" class="form-control" placeholder="PRN" />
+        </div>
+        <div class="col-md-2">
+            <select class="form-select">
+                <option>Item Name</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <input type="date" class="form-control" placeholder="Required Date" />
+        </div>
+        <div class="col-md-2">
+            <input type="date" class="form-control" placeholder="Created Date" />
+        </div>
+        <div class="col-md-2">
+            <input type="text" class="form-control" placeholder="Created By" />
+        </div>
+        <div class="col-md-2">
+            <select class="form-select">
+                <option>Status</option>
+            </select>
+        </div>
+    </div>
+</div>
+
+<!-- Table -->
+<div class="container">
+    <div class="card p-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="table-responsive">
+                    <table id="requisitionTable" class="table table-striped table-bordered">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" id="selectAll" /></th>
+                                <th>Sr No</th>
+                                <th>PR Code</th>
+                                <th>Required Date</th>
+                                <th>Added By</th>
+                                <th>Added Date</th>
+                                <th>Approve Rejected By</th>
+                                <th>Approve Rejected Date</th>
+                                <th>Priority</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                    </table>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+<!-- Modal -->
+<div class="modal fade" id="purchaseRequisitionModal" data-bs-backdrop="false" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <!-- Header -->
+            <div class="modal-header bg-light">
+                <h5 class="modal-title fw-bold">Purchase Requisition Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <!-- Body -->
+            <div class="modal-body">
+                <!-- Requisition Header Info -->
+                <div class="card shadow-sm p-3 mb-4">
+                    <h6 class="fw-bold text-center mb-3 text-secondary">Requisition Info</h6>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-bordered text-center">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>PR CODE</th>
+                                    <th>Required Date</th>
+                                    <th>Created By</th>
+                                </tr>
+                            </thead>
+                            <tbody id="PRInfoBody">
+                                <tr>
+                                    <td id="PRCODE"></td>
+                                    <td id="RequiredDate"></td>
+                                    <td id="FullName"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Item Details -->
+                <div class="card shadow-sm p-3">
+                    <h6 class="fw-bold text-center mb-3 text-secondary">Item Details</h6>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-bordered text-center">
+                            <thead class="table-dark text-white">
+                                <tr>
+                                    <th>SR NO</th>
+                                    <th>ITEM CODE</th>
+                                    <th>ITEM NAME</th>
+                                    <th>DESCRIPTION</th>
+                                    <th>QTY</th>
+                                    <th>UNIT RATE (RS)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ItemTableBody">
+                                <tr>
+                                    <td id="SrNo"></td>
+                                    <td id="ItemCode"></td>
+                                    <td id="ItemName"></td>
+                                    <td id="Description"></td>
+                                    <td id="RequiredQuantity"></td>
+                                    <td id="UnitRate"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+        $(document).ready(function () {
+
+            console.log("Hello");
+    var table = $('#requisitionTable').DataTable({
+        ajax: {
+            url: '/Purchase/GetAllRequisitionJsonSP',
+            type: "GET",
+            dataSrc: function (json) {
+                console.log(json);
+                return json;
+            },
+            error: function (xhr, error, thrown) {
+                console.error("AJAX Error:", error, thrown, xhr.responseText);
+                alert("Failed to load requisitions. Check console for details.");
+            }
+        },
+        columns: [
+            {
+                data: null,
+                orderable: false,
+                render: function (data, type, row) {
+                    return '<input type="checkbox" class="row-check" value="' + row.PRCode + '"/>';
+                }
+            },
+            {
+                data: null,
+                render: function (data, type, row, meta) {
+                    return meta.row + 1; // Sr No
+                }
+            },
+            { data: "PRCode" },
+            {
+                data: "RequiredDate",
+                render: function (data) {
+                    if (!data) return "";
+                    var date = new Date(parseInt(data.substr(6))); // /Date(xxx)/ to Date
+                    return date.toLocaleDateString("en-GB"); // dd/MM/yyyy
+                }
+            },
+            { data: "AddedBy" },
+            {
+                data: "AddedDate",
+                render: function (data) {
+                    if (!data) return "";
+                    var date = new Date(parseInt(data.substr(6)));
+                    return date.toLocaleString("en-GB"); // Date + Time
+                }
+            },
+            { data: "ApproveRejectedBy" },
+            {
+                data: "ApproveRejectedDate",
+                render: function (data) {
+                    if (!data) return "";
+                    var date = new Date(parseInt(data.substr(6)));
+                    return date.toLocaleString("en-GB"); // Date + Time
+                }
+            },
+
+            {
+                data: "Priority",
+                render: function (data) {
+                    if (data === "Hot") return '<span class="badge bg-danger">Hot</span>';
+                    if (data === "Warm") return '<span class="badge bg-warning">Warm</span>';
+                    return '<span class="badge bg-success">Normal</span>';
+                }
+            },
+            {
+                data: "Status",
+                render: function (data) {
+                    if (data === "Pending") return '<span class="badge bg-info">Pending</span>';
+                    if (data === "Rejected") return '<span class="badge bg-danger">Rejected</span>';
+                    return '<span class="badge bg-success">' + data + '</span>';
+                }
+            },
+            {
+                data: null,
+                render: function (data, type, row) {
+                    if (row.Status === "Approved" || row.Status === "Rejected") {
+                        return `<button class="btn btn-sm btn-info view-btn" data-id="${row.PRCode}" data-bs-toggle="modal" data-bs-target="#purchaseRequisitionModal">View</button>`;
+        } else {
+            return '<a href="@Url.Action("Edit", "Purchase")?id=' + row.PRCode + '" class="btn btn-sm btn-success">Update</a> ' +
+                   `<button class="btn btn-sm btn-info view-btn" data-id="${row.PRCode}" data-bs-toggle="modal" data-bs-target="#purchaseRequisitionModal">View</button>`;
+        }
+                }
+            }
+        ]
+    });
+
+    // Select/Deselect All
+    $('#selectAll').on('click', function () {
+        $('.row-check').prop('checked', this.checked);
+    });
+    });
+
+
+  // Load modal with partial view
+$(document).on("click", ".view-btn", function () {
+    var prCode = $(this).data("id");
+
+    $.ajax({
+        url: '/Purchase/DetailsPartialSP',
+        type: 'POST',  // 👈 POST request
+        data: { id: prCode },
+
+        success: function (response) {
+            if (response.success) {
+                // Refresh values instead of append
+                $("#PRCODE").html(`<h6>${response.data.PRCode}</h6>`);
+                $("#RequiredDate").html(`<h6>${response.data.RequiredDate}</h6>`);
+                $("#FullName").html(`<h6>${response.data.FullName}</h6>`);
+
+                console.log(response.data);
+            }
+        },
+        error: function (xhr, status, error) {
+            console.error("AJAX Error:", status, error, xhr.responseText);
+        }
+    });
+
+
+    $.ajax({
+        url: '/Purchase/ItemPartialSP',
+        type: 'POST',
+        data: { id: prCode },
+
+        success: function (response) {
+            if (response.success) {
+
+                $("#SrNo").html("");
+                $("#ItemCode").html("");
+                $("#ItemName").html("");
+                $("#Description").html("");
+                $("#RequiredQuantity").html("");
+                $("#UnitRate").html("");
+
+                $.each(response.data, function (i, item) {
+                    var srNo = i + 1;
+
+                    $("#SrNo").append(`<h6>${srNo}</h6>`);
+                    $("#ItemCode").append(`<h6>${item.ItemCode}</h6>`);
+                    $("#ItemName").append(`<h6>${item.ItemName}</h6>`);
+                    $("#Description").append(`<h6>${item.Description}</h6>`);
+                    $("#RequiredQuantity").append(`<h6>${item.RequiredQuantity}</h6>`);
+                    $("#UnitRate").append(`<h6>${item.UnitRate}</h6>`);
+                });
+
+                console.log(response.data);
+            }
+        },
+        error: function (xhr, status, error) {
+            console.error("AJAX Error:", status, error, xhr.responseText);
+        }
+    });
+
+    });
+</script>

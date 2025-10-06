@@ -1,0 +1,1053 @@
+﻿@{
+    ViewBag.Title = "ManagerApprovalMHB";
+}
+
+<div class="main-content">
+
+
+    <div class="container mt-4">
+        <h2 class="mb-4 text-center text-primary"> Manager Approval Panel</h2>
+        <div class="mb-3">
+            <div class="input-group" style="max-width: 280px;">
+                <span class="input-group-text bg-primary text-white">
+                    <i class="bi bi-calendar-date"></i>
+                </span>
+                <input type="text" id="createdDateFilter" class="form-control" placeholder="Filter by Created Date" readonly />
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table id="plansTable" class="table table-hover table-bordered align-middle text-center shadow-sm">
+                <thead class="table-dark">
+                    <tr>
+                        <th><input type="checkbox" id="selectAll" /></th> <!-- ✅ Select All -->
+                        <th>Sr. No</th>
+                        <th>Plan Name</th>
+                        <th>MRP Code</th>
+                        <th>Created Date</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Rows will be populated dynamically -->
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+
+
+
+    <!-- ✅ Plan Details Modal -->
+    <div class="modal fade" id="planDetailsModal" tabindex="-1" aria-labelledby="planDetailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title text-center w-100 text-white">📝 Plan Details</h5>
+                    <button type="button" class="btn-close btn-close-white" onclick="closePlanModal()" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label class="fw-bold">Plan Name:</label>
+                            <div id="modalPlanName" class="text-muted"></div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="fw-bold">MRP Code:</label>
+                            <div id="modalPlanCode" class="text-muted"></div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="fw-bold">Year:</label>
+                            <div id="modalPlanyear" class="text-muted"></div>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive mb-3">
+                        <table class="table table-bordered text-center table-striped">
+                            <thead class="table-secondary">
+                                <tr>
+                                    <th>Item Name</th>
+                                    <th>Item Code</th>
+                                    <th>Quantity</th>
+                                    <th>UOM</th>
+                                    <th>Description</th>
+                                    <th>Request Type</th>
+                                </tr>
+                            </thead>
+                            <tbody id="modalItemTableBody"></tbody>
+                        </table>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="fw-bold">From Date:</label>
+                            <div id="modalfromdate" class="text-muted"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="fw-bold">To Date:</label>
+                            <div id="modaltodate" class="text-muted"></div>
+                        </div>
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <button id="approveBtn" class="btn btn-success px-4 me-3">✅ Approve</button>
+                        <button id="rejectBtn" class="btn btn-danger px-4">❌ Reject</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+    <!-- ✅ Reject Reason Modal -->
+    <div class="modal fade" id="rejectReasonModal" tabindex="-1" aria-labelledby="rejectReasonModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content shadow">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">❌ Reason for Rejection</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <textarea id="rejectReasonText" class="form-control" rows="4" placeholder="Enter reason for rejection..."></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button id="submitRejectBtn" class="btn btn-danger">Submit</button>
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="editPlanModal" tabindex="-1" aria-labelledby="editPlanModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-warning text-white">
+                    <h5 class="modal-title text-center w-100 text-white" id="editPlanModalLabel">✏ Edit Plan</h5>
+
+                    <button type="button" class="btn-close btn-close-white" onclick="closeEditModal()" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+
+                    <!-- Plan Metadata -->
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label>Year:</label>
+                            <input type="text" class="form-control" id="editYear" readonly />
+                        </div>
+                        <div class="col-md-4">
+                            <label>Plan Name:</label>
+                            <input type="text" class="form-control" id="editPlanName" readonly />
+                        </div>
+                        <div class="col-md-4">
+                            <label>Plan Code:</label>
+                            <input type="text" class="form-control" id="editMRPCode" readonly />
+                        </div>
+                    </div>
+
+                    <!-- Item Form -->
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <label>Item Name:</label>
+                            <select class="form-control" id="editItemName">
+                                <option value="">Select Item</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label>Item Code:</label>
+                            <input type="text" class="form-control" id="editItemCode" readonly />
+                        </div>
+                        <div class="col-md-2">
+                            <label>Quantity:</label>
+                            <input type="number" class="form-control" id="editQuantity" />
+                        </div>
+                        <div class="col-md-2">
+                            <label>UOM:</label>
+                            <input type="text" class="form-control" id="editUOM" readonly />
+                        </div>
+                        <div class="col-md-2">
+                            <label>Request Type:</label>
+                            <input type="text" class="form-control" id="editRequestType" readonly />
+                        </div>
+                        <div class="col-md-1 d-flex align-items-end">
+                            <button class="btn btn-primary w-100" onclick="addItemToEditTable()">Add</button>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <label>Description:</label>
+                            <input type="text" class="form-control" id="editItemDescription" readonly />
+                        </div>
+                    </div>
+
+                    <!-- Item Table -->
+                    <div class="table-responsive mb-3">
+                        <table class="table table-bordered text-center table-striped">
+                            <thead class="table-secondary">
+                                <tr>
+                                    <th>Item Name</th>
+                                    <th>Item Code</th>
+                                    <th>Quantity</th>
+                                    <th>UOM</th>
+                                    <th>Description</th>
+                                    <th>Request Type</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="editItemTableBody"></tbody>
+                        </table>
+                    </div>
+
+                    <!-- Date Range -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label>From Date:</label>
+                            <input type="date" class="form-control" id="editFromDate" />
+                        </div>
+                        <div class="col-md-6">
+                            <label>To Date:</label>
+                            <input type="date" class="form-control" id="editToDate" />
+                        </div>
+                    </div>
+
+                    <div class="text-center">
+                        <button type="button" class="btn btn-success px-4" id="sendForApprovalBtn">
+                            Send for Approval
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<style>
+    .modal-backdrop {
+        display: none;
+    }
+    /* Blur only main content when modal opens */
+    body.modal-open .main-content {
+        position: relative;
+    }
+
+        body.modal-open .main-content::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1040; /* behind modal */
+            pointer-events: none; /* clicks pass to modal */
+        }
+
+    /* Ensure modal is above overlay */
+    .modal {
+        z-index: 1055 !important;
+    }
+
+    #plansTable th,
+    #plansTable td {
+        text-align: center !important;
+        vertical-align: middle !important;
+    }
+</style>
+
+<script>
+
+    //function fetchPlans() {
+    //    const tbody = $('#plansTable tbody');
+    //    tbody.html(<tr><td colspan="5"><div class="spinner-border text-primary" role="status"></div></td></tr>);
+
+    //    $.ajax({
+    //        url: '/Inventory/FetchPlanDetailsMHB',
+    //        method: 'GET',
+    //        success: function (items) {
+    //            tbody.empty();
+
+    //            if (!items || items.length === 0) {
+    //                tbody.append(<tr><td colspan="5" class="text-muted">No plans found.</td></tr>);
+    //                return;
+    //            }
+
+    //            $.each(items, function (index, plan) {
+    //                let actionButtons = `
+    //            <button class="btn btn-sm btn-outline-primary me-2"
+    //                onclick="viewPlanDetails('${plan.MaterialReqPlanningCode}', '${plan.PlanName}', '${plan.StatusName}')">
+    //                View
+    //            </button>`;
+
+    //                if (plan.StatusName === "Pending") {
+    //                    actionButtons += `
+    //                    <button class="btn btn-sm btn-outline-warning"
+    //                        onclick="openEditModal('${plan.MaterialReqPlanningCode}', '${plan.PlanName}')">
+    //                        Edit
+    //                    </button>`;
+    //               }
+
+    //                const row = `
+    //    <tr>
+    //        <td><input type="checkbox" class="row-select" /></td> <!-- ✅ checkbox -->
+    //        <td>${index + 1}</td>
+    //        <td>${plan.PlanName}</td>
+    //        <td>${plan.MaterialReqPlanningCode}</td>
+    //        <td>${plan.AddedDate}</td>
+    //        <td>${plan.StatusName}</td>
+    //        <td>${actionButtons}</td>
+    //    </tr>`;
+    //                tbody.append(row);
+    //            });
+
+    //        },
+    //        error: function () {
+    //            tbody.html(<tr><td colspan="5" class="text-danger">Failed to load data.</td></tr>);
+    //        }
+    //    });
+
+    //    if ($.fn.DataTable.isDataTable('#plansTable')) {
+    //        $('#plansTable').DataTable().destroy();
+    //    }
+
+    //    $('#plansTable').DataTable({
+    //        dom: '<"d-flex justify-content-between align-items-center mb-3"<"dt-left"B><"dt-search"f>>rt<"bottom d-flex justify-content-between align-items-center"ip>',
+    //        buttons: [
+    //            {
+    //                extend: 'print',
+    //                title: 'Manager Approval Panel',
+    //                text: '<i class="bi bi-printer-fill text-dark fs-5"></i>',
+    //                exportOptions: {
+    //                    columns: [1, 2, 3, 4, 5, 6],
+    //                    rows: function (idx, data, node) {
+    //                        return $(node).find('.row-select').prop('checked');
+    //                    },
+    //                    format: {
+    //                        body: function (data, rowIdx, colIdx, node) {
+    //                            if (colIdx === 1) return rowIdx + 1; // Sr. No
+    //                            return $(node).text().trim();
+    //                        }
+    //                    }
+    //                },
+    //                action: function (e, dt, button, config) {
+    //                    if ($('.row-select:checked').length === 0) {
+    //                        showExportToast();
+    //                        return;
+    //                    }
+    //                    $.fn.dataTable.ext.buttons.print.action.call(this, e, dt, button, config);
+    //                }
+    //            },
+    //            {
+    //                extend: 'pdfHtml5',
+    //                title: 'Manager Approval Panel',
+    //                text: '<i class="bi bi-file-earmark-pdf text-danger fs-5"></i>',
+    //                exportOptions: {
+    //                    columns: [1, 2, 3, 4, 5, 6],
+    //                    rows: function (idx, data, node) {
+    //                        return $(node).find('.row-select').prop('checked');
+    //                    },
+    //                    format: {
+    //                        body: function (data, rowIdx, colIdx, node) {
+    //                            if (colIdx === 1) return rowIdx + 1;
+    //                            return $(node).text().trim();
+    //                        }
+    //                    }
+    //                },
+    //                action: function (e, dt, button, config) {
+    //                    if ($('.row-select:checked').length === 0) {
+    //                        showExportToast();
+    //                        return;
+    //                    }
+    //                    $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, button, config);
+    //                }
+    //            },
+    //            {
+    //                extend: 'excelHtml5',
+    //                title: 'Manager Approval Panel',
+    //                text: '<i class="bi bi-file-earmark-excel text-success fs-5"></i>',
+    //                exportOptions: {
+    //                    columns: [1, 2, 3, 4, 5, 6],
+    //                    rows: function (idx, data, node) {
+    //                        return $(node).find('.row-select').prop('checked');
+    //                    },
+    //                    format: {
+    //                        body: function (data, rowIdx, colIdx, node) {
+    //                            if (colIdx === 1) return rowIdx + 1;
+    //                            return $(node).text().trim();
+    //                        }
+    //                    }
+    //                },
+    //                action: function (e, dt, button, config) {
+    //                    if ($('.row-select:checked').length === 0) {
+    //                        showExportToast();
+    //                        return;
+    //                    }
+    //                    $.fn.dataTable.ext.buttons.excelHtml5.action.call(this, e, dt, button, config);
+    //                }
+    //            },
+    //            {
+    //                extend: 'csvHtml5',
+    //                title: 'Manager Approval Panel',
+    //                text: '<i class="bi bi-filetype-csv text-primary fs-5"></i>',
+    //                exportOptions: {
+    //                    columns: [1, 2, 3, 4, 5, 6],
+    //                    rows: function (idx, data, node) {
+    //                        return $(node).find('.row-select').prop('checked');
+    //                    },
+    //                    format: {
+    //                        body: function (data, rowIdx, colIdx, node) {
+    //                            if (colIdx === 1) return rowIdx + 1;
+    //                            return $(node).text().trim();
+    //                        }
+    //                    }
+    //                },
+    //                action: function (e, dt, button, config) {
+    //                    if ($('.row-select:checked').length === 0) {
+    //                        showExportToast();
+    //                        return;
+    //                    }
+    //                    $.fn.dataTable.ext.buttons.csvHtml5.action.call(this, e, dt, button, config);
+    //                }
+    //            }
+    //        ],
+    //        columnDefs: [
+    //            { targets: 1, render: function (data, type, row, meta) { return meta.row + 1; } }, // Sr. No
+    //            { orderable: false, targets: [0, 6] } // Checkbox & Action buttons not sortable
+    //        ]
+    //    });
+
+
+
+    //}
+
+    function fetchPlans() {
+        const tableSelector = '#plansTable';
+
+        // Show loading spinner
+        const tbody = $(tableSelector + ' tbody');
+        tbody.html('<tr><td colspan="7" class="text-center"><div class="spinner-border text-primary" role="status"></div></td></tr>');
+
+
+        // Fetch data from server
+        $.ajax({
+            url: '/Inventory/FetchPlanDetailsMHB',
+            method: 'GET',
+            success: function (items) {
+                // If DataTable already exists, destroy it
+                if ($.fn.DataTable.isDataTable(tableSelector)) {
+                    $(tableSelector).DataTable().clear().destroy();
+                }
+
+                // Clear tbody manually before repopulating (safety)
+                tbody.empty();
+
+                // Initialize DataTable first
+                const table = $(tableSelector).DataTable({
+                    dom: '<"d-flex justify-content-between align-items-center mb-3"<"dt-left"B><"dt-search"f>>rt<"bottom d-flex justify-content-between align-items-center"ip>',
+                    buttons: [
+                        {
+                            extend: 'print',
+                            title: 'Manager Approval Panel',
+                            text: '<i class="bi bi-printer-fill text-dark fs-5"></i>',
+                            exportOptions: {
+                                columns: [1, 2, 3, 4, 5, 6],
+                                rows: function (idx, data, node) {
+                                    return $(node).find('.row-select').prop('checked');
+                                },
+                                format: {
+                                    body: function (data, rowIdx, colIdx, node) {
+                                        return colIdx === 1 ? rowIdx + 1 : $(node).text().trim();
+                                    }
+                                }
+                            },
+                            action: function (e, dt, button, config) {
+                                if ($('.row-select:checked').length === 0) {
+                                    showExportToast();
+                                    return;
+                                }
+                                $.fn.dataTable.ext.buttons.print.action.call(this, e, dt, button, config);
+                            }
+                        },
+                        {
+                            extend: 'pdfHtml5',
+                            title: 'Manager Approval Panel',
+                            text: '<i class="bi bi-file-earmark-pdf text-danger fs-5"></i>',
+                            exportOptions: {
+                                columns: [1, 2, 3, 4, 5, 6],
+                                rows: function (idx, data, node) {
+                                    return $(node).find('.row-select').prop('checked');
+                                },
+                                format: {
+                                    body: function (data, rowIdx, colIdx, node) {
+                                        return colIdx === 1 ? rowIdx + 1 : $(node).text().trim();
+                                    }
+                                }
+
+                            },
+                            action: function (e, dt, button, config) {
+                                if ($('.row-select:checked').length === 0) {
+                                    showExportToast();
+                                    return;
+                                }
+                                $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, button, config);
+                            }
+                        },
+                        {
+                            extend: 'excelHtml5',
+                            title: 'Manager Approval Panel',
+                            text: '<i class="bi bi-file-earmark-excel text-success fs-5"></i>',
+                            exportOptions: {
+                                columns: [1, 2, 3, 4, 5, 6],
+                                rows: function (idx, data, node) {
+                                    return $(node).find('.row-select').prop('checked');
+                                },
+                                format: {
+                                    body: function (data, rowIdx, colIdx, node) {
+                                        return colIdx === 1 ? rowIdx + 1 : $(node).text().trim();
+                                    }
+                                }
+                            },
+                            action: function (e, dt, button, config) {
+                                if ($('.row-select:checked').length === 0) {
+                                    showExportToast();
+                                    return;
+                                }
+                                $.fn.dataTable.ext.buttons.excelHtml5.action.call(this, e, dt, button, config);
+                            }
+                        },
+                        {
+                            extend: 'csvHtml5',
+                            title: 'Manager Approval Panel',
+                            text: '<i class="bi bi-filetype-csv text-primary fs-5"></i>',
+                            exportOptions: {
+                                columns: [1, 2, 3, 4, 5, 6],
+                                rows: function (idx, data, node) {
+                                    return $(node).find('.row-select').prop('checked');
+                                },
+                                format: {
+                                    body: function (data, rowIdx, colIdx, node) {
+                                        return colIdx === 1 ? rowIdx + 1 : $(node).text().trim();
+                                    }
+                                }
+                            },
+                            action: function (e, dt, button, config) {
+                                if ($('.row-select:checked').length === 0) {
+                                    showExportToast();
+                                    return;
+                                }
+                                $.fn.dataTable.ext.buttons.csvHtml5.action.call(this, e, dt, button, config);
+                            }
+                        }
+                    ],
+                    columnDefs: [
+                        { targets: 1, render: function (data, type, row, meta) { return meta.row + 1; } },
+                        { orderable: false, targets: [0, 6] }
+                    ]
+                });
+
+                // No items case
+                if (!items || items.length === 0) {
+                    table.row.add([
+                        '', '', 'No plans found.', '', '', '', ''
+                    ]).draw();
+                    return;
+                }
+
+                // Populate table rows
+                items.forEach((plan, index) => {
+                    let actionButtons = `
+                        <div class="d-flex align-items-center gap-2">
+                            <!-- View Button -->
+                            <button class="btn btn-sm btn-primary d-flex align-items-center justify-content-center"
+                                    style="width: 32px; height: 32px;"
+                                    onclick="viewPlanDetails('${plan.MaterialReqPlanningCode}', '${plan.PlanName}', '${plan.StatusName}')"
+                                    title="View">
+                                <i class="bi bi-eye-fill text-white"></i>
+                            </button>`;
+
+                                        if (plan.StatusName === "Pending") {
+                                            actionButtons += `
+                            <!-- Edit Button -->
+                            <button class="btn btn-sm btn-warning d-flex align-items-center justify-content-center"
+                                    style="width: 32px; height: 32px;"
+                                    onclick="openEditModal('${plan.MaterialReqPlanningCode}', '${plan.PlanName}')"
+                                    title="Edit">
+                                <i class="bi bi-pencil-fill text-white"></i>
+                            </button>`;
+                    }
+
+                    actionButtons += `</div>`;
+                //});
+
+
+
+
+                    const rowData = [
+                        $('<input>', { type: 'checkbox', class: 'row-select' }).prop('outerHTML'),
+                        index + 1,
+                        plan.PlanName,
+                        plan.MaterialReqPlanningCode,
+                        plan.AddedDate,
+                        plan.StatusName,
+                        actionButtons
+                    ];
+
+
+                    table.row.add(rowData);
+                });
+
+                table.draw();
+            },
+            error: function () {
+                tbody.html('<tr><td colspan="7" class="text-danger">Failed to load data.</td></tr>');
+            }
+        });
+    }
+
+    toastr.options = {
+        closeButton: true,
+        progressBar: true,
+        preventDuplicates: true,
+        newestOnTop: true,
+        positionClass: "toast-top-right",
+        timeOut: "3000"
+    };
+
+    function showExportToast() {
+        toastr.warning("Please select at least one row before exporting.", "Warning");
+    }
+
+    // Select All
+    $(document).on("change", "#selectAll", function () {
+        $(".row-select").prop("checked", this.checked);
+    });
+
+    // Sync "Select All" if individual checkbox is changed
+    $(document).on("change", ".row-select", function () {
+        $("#selectAll").prop("checked", $(".row-select:checked").length === $(".row-select").length);
+    });
+
+
+    function viewPlanDetails(mrpCode, planName, status) {
+        $.ajax({
+            url: '/Inventory/showplanforApprovalMHB',
+            type: 'GET',
+            data: { MRPcode: mrpCode },
+            success: function (data) {
+                $('#modalPlanName').text(data.PlanName || '');
+                $('#modalPlanCode').text(data.MRPCode || '');
+                $('#modalPlanyear').text(data.Year || '');
+                $('#modalfromdate').text(data.FromDate || '');
+                $('#modaltodate').text(data.ToDate || '');
+
+                const tbody = $('#modalItemTableBody');
+                tbody.empty();
+
+                if (data.ItemList && data.ItemList.length > 0) {
+                    $.each(data.ItemList, function (i, item) {
+                        const row = `
+                                <tr>
+                                    <td>${item.ItemName}</td>
+                                    <td>${item.ItemCode}</td>
+                                    <td>${item.QuantityMRP}</td>
+                                    <td>${item.UOMName}</td>
+                                    <td>${item.Description}</td>
+                                    <td>${item.RequestType}</td>
+                                </tr>`;
+                        tbody.append(row);
+                    });
+                } else {
+                    tbody.append('<tr><td colspan="6">No items found.</td></tr>');
+
+                }
+
+                // Toggle approve/reject buttons
+                if (status === "Approved" || status === "Rejected") {
+                    $('#approveBtn').hide();
+                    $('#rejectBtn').hide();
+                } else {
+                    $('#approveBtn').show();
+                    $('#rejectBtn').show();
+                }
+
+                $('#planDetailsModal').modal('show');
+            },
+            error: function () {
+                alert("⚠ Failed to load plan details.");
+            }
+        });
+    }
+
+    function closePlanModal() {
+        const modal = bootstrap.Modal.getInstance(document.getElementById('planDetailsModal'));
+        modal.hide();
+    }
+
+    let currentMRPCode = '';
+
+    $(document).ready(function () {
+        fetchPlans();
+
+        $('#approveBtn').click(function () {
+            const mrpCode = $('#modalPlanCode').text();
+
+            // 🔔 Confirm approval
+            Swal.fire({
+                title: 'Approve this Plan?',
+                text: "This action will mark the MRP plan as approved.",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#198754',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, Approve'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // 🔄 Show loading while request is processing
+                    Swal.fire({
+                        title: 'Approving...',
+                        text: 'Please wait...',
+                        allowOutsideClick: false,
+                        didOpen: () => Swal.showLoading()
+                    });
+
+                    // 🔧 Send approval request
+                    $.ajax({
+                        url: '/Inventory/ApprovePlanMHB',
+                        type: 'POST',
+                        data: { MRPCode: mrpCode },
+                        success: function () {
+                            Swal.fire({
+                                icon: 'success',
+                                title: '✅ Approved!',
+                                text: 'Plan approved successfully.',
+                                showConfirmButton: false,
+                                timer: 1500
+                            });
+
+                            $('#planDetailsModal').modal('hide');
+                            fetchPlans();
+                        },
+                        error: function () {
+                            Swal.fire('❌ Error', 'Failed to approve plan.', 'error');
+                        }
+                    });
+                }
+            });
+        });
+
+
+
+        $('#rejectBtn').click(function () {
+            currentMRPCode = $('#modalPlanCode').text();
+            //$('#planDetailsModal').modal('hide');
+            $('#rejectReasonText').val('');
+            $('#rejectReasonModal').modal('show');       // Show rejection modal
+        });
+
+        // Submit Rejection
+        $('#submitRejectBtn').click(function () {
+            const reason = $('#rejectReasonText').val().trim();
+
+            if (reason === '') {
+                alert("⚠ Please enter a rejection reason.");
+                return;
+            }
+
+            $.ajax({
+                url: '/Inventory/RejectPlanMHB',
+                type: 'POST',
+                data: {
+                    MRPCode: currentMRPCode,
+                    Reason: reason
+                },
+                success: function () {
+                    alert("❌ Plan rejected successfully.");
+                    $('#rejectReasonModal').modal('hide');
+                    fetchPlans(); // Refresh table
+                },
+                error: function () {
+                    alert("❗ Failed to reject plan.");
+                }
+            });
+        });
+    });
+
+    function openEditModal(mrpCode, planName) {
+
+        populateItemDropdown();
+        // Store in hidden fields or use directly
+        $('#editPlanName').val(planName);
+        $('#editMRPCode').val(mrpCode);
+
+        // Clear table
+        $('#editItemTableBody').empty();
+
+        // Fetch details from server
+        $.ajax({
+            url: '/Inventory/showplanforApprovalMHB',
+            type: 'GET',
+            data: { MRPcode: mrpCode },
+            success: function (data) {
+                $('#editYear').val(data.Year || '');
+                $('#editFromDate').val(formatDate(data.FromDate));
+                $('#editToDate').val(formatDate(data.ToDate));
+
+                if (data.ItemList && data.ItemList.length > 0) {
+                    data.ItemList.forEach(item => {
+                        $('#editItemTableBody').append(`
+                            <tr>
+                                <td>${item.ItemName}</td>
+                                <td>${item.ItemCode}</td>
+                                <td>${item.QuantityMRP}</td>
+                                <td>${item.UOMName}</td>
+                                <td>${item.Description}</td>
+                                <td>${item.RequestType}</td>
+                                <td><a href="#" class="text-danger" onclick="$(this).closest('tr').remove()">Remove</a></td>
+                            </tr>
+                        `);
+                    });
+                }
+
+                new bootstrap.Modal(document.getElementById('editPlanModal')).show();
+            },
+            error: function () {
+                alert("⚠ Failed to load plan for edit.");
+            }
+        });
+    }
+
+    function closeEditModal() {
+        const modal = bootstrap.Modal.getInstance(document.getElementById('editPlanModal'));
+        modal.hide();
+    }
+
+    function addItemToEditTable() {
+        const itemName = $('#editItemName option:selected').text();
+        const itemCode = $('#editItemCode').val();
+        const qty = $('#editQuantity').val();
+        const uom = $('#editUOM').val();
+        const reqType = $('#editRequestType').val();
+        const description = $('#editItemDescription').val() || '–';
+
+        if (!itemName || !itemCode || !qty || !uom || !reqType) {
+            alert("⚠ Fill all fields before adding.");
+            return;
+        }
+
+        $('#editItemTableBody').append(`
+            <tr>
+                <td>${itemName}</td>
+                <td>${itemCode}</td>
+                <td>${qty}</td>
+                <td>${uom}</td>
+                <td>${description}</td>
+                <td>${reqType}</td>
+                <td><a href="#" class="text-danger" onclick="$(this).closest('tr').remove()">Remove</a></td>
+            </tr>
+        `);
+
+        // Clear input fields
+        $('#editItemCode, #editQuantity, #editUOM, #editRequestType, #editItemDescription').val('');
+        $('#editItemName').val('');
+    }
+
+
+
+
+    //function formatDate(dateString) {
+    //    const date = new Date(dateString);
+    //    return date.toISOString().split('T')[0];
+    //}
+    function formatDate(dateString) {
+        if (!dateString) return ""; // nothing to format
+
+        const date = new Date(dateString);
+
+        if (isNaN(date.getTime())) {
+            console.warn("Invalid date:", dateString);
+            return ""; // or return dateString to display as-is
+        }
+
+        return date.toISOString().split('T')[0];
+    }
+
+    function populateItemDropdown() {
+        $.ajax({
+            url: '/Inventory/GetItemListMHB', // Your endpoint
+            type: 'GET',
+            success: function (items) {
+                $('#editItemName').empty().append('<option value="">Select</option>');
+                items.forEach(item => {
+                    $('#editItemName').append(`<option value="${item.ItemId}">${item.ItemName}</option>`);
+                });
+
+            }
+        });
+    }
+
+    $(document).on('change', '#editItemName', function () {
+        const selectedItemId = $(this).val();
+
+        if (!selectedItemId) {
+            $('#editItemCode').val('');
+            $('#editUOM').val('');
+            $('#editItemDescription').val('');
+            $('#editRequestType').val(''); // Optional, if clearing needed
+            return;
+        }
+
+        $.ajax({
+            url: '/Inventory/GetItemDetailsMHB',
+            type: 'GET',
+            data: { itemId: selectedItemId },
+            success: function (data) {
+                $('#editItemCode').val(data.ItemCode || '');
+                $('#editUOM').val(data.UOMName || '');
+                $('#editItemDescription').val(data.Description || '');
+
+                // ✅ Set RequestType as "MRPItems" explicitly
+                $('#editRequestType').val('MRPItems');
+            },
+            error: function () {
+                alert("⚠ Failed to fetch item details.");
+            }
+        });
+    });
+
+    $(document).on('click', '#sendForApprovalBtn', function () {
+        let items = [];
+
+        // 🔄 Loop through table rows and build item list
+        $('#editItemTableBody tr').each(function () {
+            let tds = $(this).find('td');
+
+            items.push({
+                ItemName: $(tds[0]).text(),
+                ItemCode: $(tds[1]).text(),
+                QuantityMRP: $(tds[2]).text(),
+                UOMName: $(tds[3]).text(),
+                Description: $(tds[4]).text(),
+                RequestType: $(tds[5]).text()
+            });
+        });
+
+        // ⚠ Validation: no items
+        if (items.length === 0) {
+            Swal.fire("⚠ Warning", "Please add at least one item before sending for approval.", "warning");
+            return;
+        }
+
+        // ✅ Prepare the payload
+        let payload = {
+            MRPCode: $('#editMRPCode').val(),
+            ItemList: items
+        };
+
+        console.log("Payload:", JSON.stringify(payload));
+
+        // 🔔 Confirm submission
+        Swal.fire({
+            title: 'Send Plan for Approval?',
+            text: "This action will update the plan and send it for approval.",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#198754',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, Submit'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // 🔄 Show loading
+                Swal.fire({
+                    title: 'Submitting...',
+                    text: 'Please wait...',
+                    allowOutsideClick: false,
+                    didOpen: () => Swal.showLoading()
+                });
+
+                // 📨 AJAX call to submit
+                $.ajax({
+                    url: '/Inventory/SaveEditedPlanMHB',
+                    type: 'POST',
+                    data: JSON.stringify(payload),
+                    contentType: 'application/json; charset=utf-8',
+                    success: function (res) {
+                        if (res.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: '✅ Success',
+                                text: 'Plan submitted successfully!',
+                                showConfirmButton: false,
+                                timer: 1500
+                            });
+
+                            closeEditModal(); // 👈 Close modal
+                            fetchPlans();     // 🔁 Reload plans
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: '❌ Failed',
+                                text: res.message || 'Failed to submit the plan.'
+                            });
+                        }
+                    },
+                    error: function () {
+                        Swal.fire({
+                            icon: 'error',
+                            title: '❌ Server Error',
+                            text: 'Something went wrong while submitting the plan.'
+                        });
+                    }
+                });
+            }
+        });
+    });
+
+    // Global variables for date range
+    let addedStart = null, addedEnd = null;
+
+    // Attach Date Range Picker to "Added Date" filter
+    $(document).on('focus', '#createdDateFilter', function () { // keep using your filter input
+        if (!$(this).data('daterangepicker')) {
+            $(this).daterangepicker({
+                autoUpdateInput: false,
+                opens: "center",
+                drops: "down",
+                alwaysShowCalendars: true,
+                locale: { cancelLabel: 'Clear' },
+                ranges: {
+                    'Today': [moment(), moment()],
+                    'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                    'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                    'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                    'This Month': [moment().startOf('month'), moment().endOf('month')],
+                    'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                }
+            });
+
+            // Apply filter
+            $(this).on('apply.daterangepicker', function (ev, picker) {
+                addedStart = picker.startDate;
+                addedEnd = picker.endDate;
+                $(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY'));
+
+                $('#plansTable').DataTable().draw();
+            });
+
+            // Clear filter
+            $(this).on('cancel.daterangepicker', function () {
+                $(this).val('');
+                addedStart = null;
+                addedEnd = null;
+                $('#plansTable').DataTable().draw();
+            });
+        }
+    });
+
+    // DataTable custom search for Added Date (column index 4)
+    $.fn.dataTable.ext.search.push(function (settings, data) {
+        if (settings.nTable.id !== 'plansTable') return true;
+
+        if (!addedStart || !addedEnd) return true; // no filter applied
+
+        const addedDate = moment(data[4], 'DD/MM/YYYY'); // parse in backend format
+
+        return addedDate.isBetween(addedStart, addedEnd, null, '[]'); // inclusive
+    });
+
+</script>

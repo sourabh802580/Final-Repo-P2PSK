@@ -1,0 +1,268 @@
+﻿
+@{
+    ViewBag.Title = "ISRStockMHB";
+}
+
+<div class="container mt-4">
+   
+
+    <!-- 📋 Table -->
+    <div class="table-responsive shadow-lg rounded">
+        <h2 class="text-center text-primary fw-bold mb-4"> ISR & JIT Stock  </h2>
+        <!-- Date Range Picker -->
+        <div class="mb-3">
+            <div class="input-group" style="max-width: 280px;">
+                <span class="input-group-text bg-primary text-white">
+                    <i class="bi bi-calendar-date"></i>
+                </span>
+                <input type="text" id="ISRdatepicker" class="form-control" placeholder="Select date range" readonly />
+            </div>
+        </div>
+
+        <table id="inventoryTable" class="table table-hover table-striped align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th><input type="checkbox" id="selectAll" /></th>
+                    <th>Sr No</th>
+                    <th>Item Name</th>
+                    <th>Item Code</th>
+                    <th>Quantity</th>
+                    <th>Description</th>
+                    <th>Required date</th>
+                    <th>UOM</th>
+                    <th>Request Type</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="tbodyInventory"></tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ✅ Styles -->
+<style>
+    .status-badge {
+        padding: 6px 10px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .status-pending {
+        background-color: #ffc107;
+        color: #212529;
+    }
+
+    .status-rejected {
+        background-color: #dc3545;
+        color: white;
+    }
+
+    .status-approved {
+        background-color: #28a745;
+        color: white;
+    }
+</style>
+
+<script>
+    $(document).ready(function () {
+        let inventoryData = [];
+
+        // Load Inventory Data
+        $.ajax({
+            url: '/Inventory/ISRStock2MHB',
+            type: 'GET',
+            success: function (res) {
+                if (res && res.Data) {
+                    inventoryData = res.Data;
+                    renderInventoryTable(inventoryData);
+                }
+            },
+            error: function () {
+                alert("Error fetching data.");
+            }
+        });
+
+        // Render table
+        function renderInventoryTable(data) {
+            const $tbody = $("#tbodyInventory");
+            $tbody.empty();
+
+            if (!data || data.length === 0) {
+                $tbody.append(`<tr><td colspan="9" class="text-center">No records found</td></tr>`);
+                return;
+            }
+
+            $.each(data, function (i, item) {
+                const statusClass = getStatusClass(item.StatusName);
+                const row = `
+                    <tr>
+                        <td><input type="checkbox" class="row-select" /></td>
+                        <td></td> <!-- Sr No will be auto-filled by DataTable -->
+                        <td>${item.ItemName}</td>
+                        <td>${item.ItemCode}</td>
+                        <td>${item.ISRQuantity}</td>
+                        <td>${item.Description}</td>
+                        <td>${item.RequiredDates}</td>
+                        <td>${item.UOMName}</td>
+                        <td>${item.RequestType}</td>
+                        <td><span class="status-badge ${statusClass}">${item.StatusName}</span></td>
+                    </tr>
+                `;
+                $tbody.append(row);
+            });
+
+            // Re-initialize DataTable
+            if ($.fn.DataTable.isDataTable('#inventoryTable')) {
+                $('#inventoryTable').DataTable().destroy();
+            }
+
+            $('#inventoryTable').DataTable({
+                dom: '<"d-flex justify-content-between align-items-center mb-3"<"dt-left"B><"dt-search"f>>rt<"bottom d-flex justify-content-between align-items-center"ip>',
+                buttons: [
+                    {
+                        extend: 'print',
+                        title: 'Stock Level',
+                        text: '<i class="bi bi-printer-fill text-dark fs-5"></i>',
+                        exportOptions: exportOptionsConfig(),
+                        action: exportAction('print')
+                    },
+                    {
+                        extend: 'pdfHtml5',
+                        title: 'Stock Level',
+                        text: '<i class="bi bi-file-earmark-pdf text-danger fs-5"></i>',
+                        exportOptions: exportOptionsConfig(),
+                        action: exportAction('pdfHtml5')
+                    },
+                    {
+                        extend: 'excelHtml5',
+                        title: 'Stock Level',
+                        text: '<i class="bi bi-file-earmark-excel text-success fs-5"></i>',
+                        exportOptions: exportOptionsConfig(),
+                        action: exportAction('excelHtml5')
+                    },
+                    {
+                        extend: 'csvHtml5',
+                        title: 'Stock Level',
+                        text: '<i class="bi bi-filetype-csv text-primary fs-5"></i>',
+                        exportOptions: exportOptionsConfig(),
+                        action: exportAction('csvHtml5')
+                    }
+                ],
+                columnDefs: [
+                    {
+                        targets: 1, // Sr No
+                        render: function (data, type, row, meta) {
+                            return meta.row + 1;
+                        }
+                    },
+                    { orderable: false, targets: [0, 9] }
+                ],
+                order: []
+            });
+        }
+
+        // Export Config Generator
+        function exportOptionsConfig() {
+            return {
+                columns: [1, 2, 3, 4, 5, 6, 7, 8],
+                rows: function (idx, data, node) {
+                    return $(node).find('.row-select').prop('checked');
+                },
+                format: {
+                    body: function (data, rowIdx, colIdx, node) {
+                        if (colIdx === 1) return rowIdx + 1;
+                        return $(node).text().trim();
+                    }
+                }
+            };
+        }
+
+        // Export Action Wrapper
+        function exportAction(type) {
+            return function (e, dt, button, config) {
+                if ($('.row-select:checked').length === 0) {
+                    showExportToast();
+                    return;
+                }
+                $.fn.dataTable.ext.buttons[type].action.call(this, e, dt, button, config);
+            };
+        }
+
+        // Status Class Mapping
+        function getStatusClass(status) {
+            if (!status) return "";
+            status = status.toLowerCase();
+            if (status === "pending") return "status-pending";
+            if (status === "approved") return "status-approved";
+            if (status === "rejected") return "status-rejected";
+            return "";
+        }
+
+        // Select All Functionality
+        $(document).on("change", "#selectAll", function () {
+            $(".row-select").prop("checked", this.checked);
+        });
+
+        $(document).on("change", ".row-select", function () {
+            $("#selectAll").prop("checked", $(".row-select:checked").length === $(".row-select").length);
+        });
+
+        // Toastr Configuration
+        toastr.options = {
+            closeButton: true,
+            progressBar: true,
+            preventDuplicates: true,
+            newestOnTop: true,
+            positionClass: "toast-top-right",
+            timeOut: "3000"
+        };
+
+        // Toast Warning
+        function showExportToast() {
+            toastr.warning("Please select at least one row before exporting.", "Warning");
+        }
+    });
+    // 📌 Date Range Picker for Required Date
+    $(document).on('focus', '#ISRdatepicker', function () {
+        if (!$(this).data('daterangepicker')) {
+            $(this).daterangepicker({
+                autoUpdateInput: false,
+                opens: "center",
+                drops: "down",
+                alwaysShowCalendars: true,
+                locale: { cancelLabel: 'Clear' },
+                ranges: {
+                    'Today': [moment(), moment()],
+                    'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                    'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                    'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                    'This Month': [moment().startOf('month'), moment().endOf('month')],
+                    'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                }
+            }, function (start, end) {
+                $('#ISRdatepicker').val(start.format('YYYY-MM-DD') + ' - ' + end.format('YYYY-MM-DD'));
+
+                // ✅ DataTable filter for Required Date column (index 6)
+                $.fn.dataTable.ext.search.push(function (settings, data) {
+                    if (settings.nTable.id !== 'inventoryTable') return true;
+
+                    const requiredDate = moment(data[6], 'YYYY-MM-DD');
+                    return requiredDate.isBetween(start, end, undefined, '[]');
+                });
+
+                $('#inventoryTable').DataTable().draw();
+
+                // remove filter after each draw
+                $.fn.dataTable.ext.search.pop();
+            });
+
+            // Clear on cancel
+            $('#ISRdatepicker').on('cancel.daterangepicker', function () {
+                $(this).val('');
+                $('#inventoryTable').DataTable().draw();
+            });
+        }
+    });
+
+</script>

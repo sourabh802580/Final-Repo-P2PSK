@@ -1,0 +1,102 @@
+﻿@{
+    Layout = null; // No layout for partial view
+}
+
+<!-- Table Container -->
+
+<div class="table-responsive">
+    <table id="rejectedPrTable" class="table table-bordered table-hover align-middle shadow-sm">
+        <thead class="table-dark text-center">
+            <tr>
+                <th>PR Code</th>
+                <th>Added Date</th>
+                <th>Approved/Rejected Date</th>
+                <th>Status</th>
+                <th>Priority</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody id="tbodyPartial" class="text-center">
+            <tr>
+                <td colspan="6" class="text-muted py-3">Loading...</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- Style for table alignment -->
+<style>
+    #rejectedPrTable thead th,
+    #rejectedPrTable tbody td {
+        text-align: center;
+        vertical-align: middle;
+    }
+</style>
+
+<!-- Script -->
+<script>
+    $(document).ready(function () {
+        const tableId = "#rejectedPrTable";
+
+        // Load rejected PRs
+        $.ajax({
+            url: '/Purchase/ShowRejectPRK',
+            type: 'GET',
+            success: function (data) {
+                const $tbody = $("#tbodyPartial");
+                $tbody.empty();
+
+                if (!data || data.length === 0) {
+                    $tbody.append('<tr><td colspan="6" class="text-center text-muted">No records found</td></tr>');
+                    return;
+                }
+
+                data.forEach(function (i) {
+                    $tbody.append(`
+                        <tr>
+                            <td>${i.PRCode}</td>
+                            <td>${i.AddedDate}</td>
+                            <td>${i.ApprovedRejectedDate}</td>
+                            <td>${i.StatusName}</td>
+                            <td>${i.Priority}</td>
+                            <td>${i.Description}</td>
+                        </tr>
+                    `);
+                });
+
+                // Initialize or re-initialize DataTable
+                if ($.fn.DataTable.isDataTable(tableId)) {
+                    $(tableId).DataTable().destroy();
+                }
+
+                $(tableId).DataTable({
+                    paging: true,
+                    searching: true,
+                    ordering: true,
+                    responsive: true,
+                    lengthChange: false,
+                    info: false
+                });
+            },
+            error: function () {
+                $("#tbodyPartial").html('<tr><td colspan="6" class="text-danger text-center">Error loading records</td></tr>');
+            }
+        });
+
+        // Optional: Load rejected PR item details into modal
+        $(document).on("click", ".btnActionPartial", function () {
+            let prCode = $(this).data("id");
+            $.ajax({
+                url: '/Purchase/ShowRejectedPRItemPRK',
+                type: 'GET',
+                data: { prCode: prCode },
+                success: function (partialView) {
+                    $("#prModalBody").html(partialView);
+                },
+                error: function () {
+                    alert("⚠ Error loading PR items");
+                }
+            });
+        });
+    });
+</script>

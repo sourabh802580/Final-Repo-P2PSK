@@ -1,0 +1,1683 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Vendor Management</title>
+    <link href="~/Content/VendorManagementOK.css" rel="stylesheet" />
+    <style>
+       
+        .btn-sm {
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        #exportContainer .dt-buttons {
+            display: flex;
+            justify-content: end; /* center align */
+            gap: 8px;
+            margin-left:-10px;
+        }
+
+        .table-container {
+            overflow-x: auto; /* scroll if content overflows */
+            width: 100%;
+        }
+
+        .erp-table {
+            width: 100% !important;
+            table-layout: auto;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+            /* Header Styling */
+            .erp-table thead th {
+                white-space: nowrap; /* keep header text in one line */
+                text-align: center;
+                vertical-align: middle;
+                font-weight: 600;
+                padding: 12px 10px;
+            }
+
+                /* Select All column alignment */
+                .erp-table thead th:first-child {
+                    text-align: left;
+                    vertical-align: middle;
+                }
+
+                    .erp-table thead th:first-child input {
+                        margin-right: 6px;
+                    }
+
+        /* Right-align the DataTables search container */
+        div.dataTables_wrapper div.dt-search {
+            display: flex;
+            justify-content: flex-end; /* push input to right */
+            margin-left: auto; /* take up space and move right */
+            margin-bottom: 1rem; /* optional spacing under toolbar */
+        }
+
+            /* Style the input itself */
+            div.dataTables_wrapper div.dt-search input.dt-input {
+                height: 40px;
+                min-width: 220px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                padding: 0 8px;
+            }
+
+        .dt-paging nav {
+            float: right !important;
+        }
+
+        #searchContainer {
+            margin-top: 50px !important;
+        }
+        .expbtndate {
+            padding:0px;
+            margin-left: -10px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Toast container somewhere fixed, e.g. top right -->
+    <div id="toastContainer"
+         class="toast-container position-fixed top-0 end-0 p-3"
+         style="z-index: 2000;">
+    </div>
+    <div class="container my-5">
+        <div class="bg-white shadow rounded p-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="text-center m-auto text-primary">Vendor Management</h3>
+            </div>
+            <!-- Tabs -->
+            <div class="tab-header">
+
+                <!-- Nav Pills -->
+                <ul class="nav nav-pills mb-3" id="vendorTab" role="tablist">
+                    <li class="nav-item me-2" role="presentation">
+                        <button class="nav-link active" id="registration-tab" data-bs-toggle="pill" data-bs-target="#registration" type="button" role="tab" aria-controls="registration" aria-selected="true">
+                            Vendor Registration
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="approval-tab" data-bs-toggle="pill" data-bs-target="#approval" type="button" role="tab" aria-controls="approval" aria-selected="false">
+                            Pending Vendor Approval
+                        </button>
+                    </li>
+                </ul>
+            </div>
+            <!-- Vendor Registration Modal Form -->
+            <div class="tab-content active" id="registration">
+                <form id="Vendorform" class="row g-3 needs-validation" novalidate>
+                    <!-- Personal Details -->
+                    <div class="form-section">
+                        <h5>Personal Details</h5>
+                        <div class="row">
+                            <!-- Full Name -->
+                            <div class="col-md-6">
+                                <div class="input-group input-group-merge mb-3">
+                                    <span class="input-group-text"><i class="ri-user-line"></i></span>
+                                    <div class="form-floating form-floating-outline">
+                                        <input type="text" class="form-control" id="fullName" name="VendorName" placeholder="Full Name" required>
+                                        <label for="fullName">Full Name</label>
+                                        <div class="invalid-feedback">Full Name is required.</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Mobile -->
+                            <div class="col-md-6">
+                                <div class="input-group input-group-merge mb-3">
+                                    <span class="input-group-text"><i class="ri-phone-fill"></i></span>
+                                    <div class="form-floating form-floating-outline">
+                                        <input type="tel" class="form-control" id="mobile" name="MobileNo" placeholder="Mobile Number" required>
+                                        <label for="mobile">Mobile Number</label>
+                                        <div class="invalid-feedback">Mobile Number is required.</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Alternate Mobile -->
+                            <div class="col-md-6">
+                                <div class="input-group input-group-merge mb-3">
+                                    <span class="input-group-text"><i class="ri-phone-line"></i></span>
+                                    <div class="form-floating form-floating-outline">
+                                        <input type="tel" class="form-control" id="altMobile" name="AlternateNo" placeholder="Alternate Mobile">
+                                        <label for="altMobile">Alternate Mobile</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Personal Email -->
+                            <div class="col-md-6">
+                                <div class="input-group input-group-merge mb-3">
+                                    <span class="input-group-text"><i class="ri-mail-line"></i></span>
+                                    <div class="form-floating form-floating-outline">
+                                        <input type="email" class="form-control" id="personalEmail" name="Email" placeholder="Email" required>
+                                        <label for="personalEmail">Personal Email</label>
+                                        <div class="invalid-feedback">Valid email is required.</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Address -->
+                            <div class="col-12">
+                                <div class="input-group input-group-merge mb-3">
+                                    <span class="input-group-text"><i class="ri-map-pin-line"></i></span>
+                                    <div class="form-floating form-floating-outline">
+                                        <textarea class="form-control" id="address" name="Address" placeholder="Address" rows="2" required></textarea>
+                                        <label for="address">Address</label>
+                                        <div class="invalid-feedback">Address is required.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Communication Details -->
+                    <div class="form-section">
+                        <h5>Communication Details</h5>
+                        <div class="row">
+                            <!-- Company Email -->
+                            <div class="col-md-6">
+                                <div class="input-group input-group-merge mb-3">
+                                    <span class="input-group-text"><i class="ri-mail-line"></i></span>
+                                    <div class="form-floating form-floating-outline">
+                                        <input type="text" class="form-control" id="CompanyEmail" name="CompanyEmail" placeholder="Company Email" required>
+                                        <label for="CompanyEmail">Company Email</label>
+                                        <div class="invalid-feedback">CompanyEmail is required.</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Contact Mobile -->
+                            <div class="col-md-6">
+                                <div class="input-group input-group-merge mb-3">
+                                    <span class="input-group-text"><i class="ri-phone-fill"></i></span>
+                                    <div class="form-floating form-floating-outline">
+                                        <input type="tel" class="form-control" name="CompanyMobileNo" id="CompanyMobileNo" placeholder="Mobile Number" required>
+                                        <label for="contactMobile">Mobile Number</label>
+                                        <div class="invalid-feedback">Mobile Number is required.</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Alternate Mobile -->
+                            <div class="col-md-6">
+                                <div class="input-group input-group-merge mb-3">
+                                    <span class="input-group-text"><i class="ri-phone-fill"></i></span>
+                                    <div class="form-floating form-floating-outline">
+                                        <input type="tel" class="form-control" id="CompanyAlternateNo" name="CompanyAlternateNo" placeholder="AlternateMobile Number">
+                                        <label for="contactMobile">AlternateMobile Number</label>
+                                        @*<div class="invalid-feedback">Mobile Number is required.</div>*@
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Company Name -->
+                            <div class="col-md-6">
+                                <div class="input-group input-group-merge mb-3">
+                                    <span class="input-group-text"><i class="ri-building-4-line"></i></span>
+                                    <div class="form-floating form-floating-outline">
+                                        <input type="text" class="form-control" id="companyName" name="CompanyName" placeholder="Company Name" required>
+                                        <label for="companyName">Company Name</label>
+                                        <div class="invalid-feedback">Company Name is required.</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Company Address -->
+                            <div class="col-12">
+                                <div class="input-group input-group-merge mb-3">
+                                    <span class="input-group-text"><i class="ri-map-pin-2-line"></i></span>
+                                    <div class="form-floating form-floating-outline">
+                                        <textarea class="form-control" name="CompanyAddress" id="companyAddress" placeholder="Company Address" rows="2" required></textarea>
+                                        <label for="companyAddress">Company Address</label>
+                                        <div class="invalid-feedback">Company Address is required.</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row g-3">
+
+                                <!-- Industry Type -->
+                                <div class="col-md-4">
+                                    <div class="input-group input-group-merge mb-3">
+                                        <span class="input-group-text"><i class="bi bi-briefcase-fill"></i></span>
+                                        <div class="form-floating form-floating-outline flex-grow-1">
+                                            <select class="form-select" id="industryType" name="IndustryTypeId" required>
+                                            </select>
+                                            <label for="industryType">Industry Type</label>
+                                            <div class="invalid-feedback">Industry Type is required.</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Country -->
+                                <div class="col-md-4">
+                                    <div class="input-group input-group-merge mb-3">
+                                        <span class="input-group-text"><i class="bi bi-globe2"></i></span>
+                                        <div class="form-floating form-floating-outline flex-grow-1">
+                                            <select class="form-select" id="country" name="CountryCode" required></select>
+                                            <label for="country">Country</label>
+                                            <div class="invalid-feedback">Country is required.</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- State -->
+                                <div class="col-md-4">
+                                    <div class="input-group input-group-merge mb-3">
+                                        <span class="input-group-text"><i class="bi bi-map-fill"></i></span>
+                                        <div class="form-floating form-floating-outline flex-grow-1">
+                                            <select class="form-select" id="state" name="StateCode" required></select>
+                                            <label for="state">State</label>
+                                            <div class="invalid-feedback">State is required.</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- City -->
+                                <div class="col-md-6">
+                                    <div class="input-group input-group-merge mb-3">
+                                        <span class="input-group-text"><i class="bi bi-building-fill"></i></span>
+                                        <div class="form-floating form-floating-outline flex-grow-1">
+                                            <select class="form-select" id="city" name="CityId" required></select>
+                                            <label for="city">City</label>
+                                            <div class="invalid-feedback">City is required.</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- Payment Details -->
+                    <div class="form-section">
+                        <h5>Payment Details</h5>
+                        <div class="row">
+
+                            <!-- Bank Name -->
+                            <div class="col-md-6">
+                                <div class="input-group input-group-merge mb-3">
+                                    <span class="input-group-text"><i class="ri-bank-line"></i></span>
+                                    <div class="form-floating form-floating-outline flex-grow-1">
+                                        <select class="form-select" id="bankName" required>
+                                        </select>
+                                        <label for="bankName">Bank Name</label>
+                                        <div class="invalid-feedback">Please select a bank.</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Branch -->
+                            <div class="col-md-6">
+                                <div class="input-group input-group-merge mb-3">
+                                    <span class="input-group-text"><i class="ri-map-pin-line"></i></span>
+                                    <div class="form-floating form-floating-outline flex-grow-1">
+                                        <select class="form-select" id="branchName" name="BranchId" required>
+                                        </select>
+                                        <label for="branchName">Branch</label>
+                                        <div class="invalid-feedback">Please select a branch.</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Account Number -->
+                            <div class="col-md-6">
+                                <div class="input-group input-group-merge mb-3">
+                                    <span class="input-group-text"><i class="ri-file-text-line"></i></span>
+                                    <div class="form-floating form-floating-outline">
+                                        <input type="text" class="form-control" name="AccountNumber" id="accountNumber" placeholder="Account Number" required>
+                                        <label for="accountNumber">Account Number</label>
+                                        <div class="invalid-feedback">Account Number is required.</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- IFSC -->
+                            <div class="col-md-6">
+                                <div class="input-group input-group-merge mb-3">
+                                    <span class="input-group-text"><i class="ri-key-2-line"></i></span>
+                                    <div class="form-floating form-floating-outline">
+                                        <input type="text" class="form-control" name="IFSCCode" id="ifsc" placeholder="IFSC Code" required>
+                                        <label for="ifsc">IFSC Code</label>
+                                        <div class="invalid-feedback">IFSC is required.</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Swift -->
+                            <div class="col-md-6">
+                                <div class="input-group input-group-merge mb-3">
+                                    <span class="input-group-text"><i class="ri-exchange-dollar-line"></i></span>
+                                    <div class="form-floating form-floating-outline">
+                                        <input type="text" class="form-control" id="swift" name="SwiftCode" placeholder="Swift Code" required>
+                                        <label for="swift">Swift Code</label>
+                                        <div class="invalid-feedback">Swift Code is required.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <!-- Buttons -->
+                    <div class="d-flex justify-content-end gap-2 mt-3">
+                        <button type="button" class="btn btn-lg btn-danger btn-clear" data-bs-dismiss="modal">Clear</button>
+                        <button type="submit" class="btn btn-lg btn-success text-white">Save</button>
+                    </div>
+                </form>
+            </div>
+
+
+
+            <!-- Pending Vendor Approval -->
+            <div class="tab-content p-0 ps-1 pe-1 mt-2" id="approval">
+                <!-- Toolbar -->
+                <div class="table-toolbar d-flex justify-content-between align-items-center mb-3 p-3">
+
+                    <!-- Left Section: Date Picker + Export Buttons -->
+                    <div class="d-flex align-items-center flex-column gap-3 flex-wrap expbtndate">
+
+                        <!-- Date Range Picker -->
+                        <div class="input-group shadow-sm rounded w-25" style="min-width:250px;">
+                            <span class="input-group-text bg-primary text-white border-0">
+                                <i class="bi bi-calendar-date"></i>
+                            </span>
+                            <input type="text" id="vendorcreateddate"
+                                   class="form-control border-0 shadow-none ms-0"
+                                   placeholder="Select date range" readonly style="height:100%;" />
+                        </div>
+
+                        <!-- Export Buttons -->
+                        <div id="exportContainer" class="d-flex align-items-center gap-2 ps-0 ms-0">
+
+                        </div>
+                    </div>
+
+                    <!-- Right Section: Search Box -->
+                    <div id="searchContainer">
+                        @*<i class="ri-search-line text-primary me-2"></i>*@
+                        <!-- DataTables search input will be injected here -->
+                    </div>
+                </div>
+
+
+
+
+
+                <!--Pending Vendor Table -->
+                <div class="table-container">
+                    <table class="table table-striped table-bordered text-center align-middle erp-table" id="tblVendor">
+                        <thead class="table-dark text-center align-middle">
+                            <tr>
+                                <th>
+                                    <div class="d-flex align-items-center justify-content-center">
+                                        <input type="checkbox" id="selectAllVendor" class="me-1">
+                                        @*<label for="selectAllVendor" class="m-0">Select All</label>*@
+                                    </div>
+                                </th>
+                                <th>SRNO</th>
+                                <th class="d-none">VendorId</th>
+                                <th>Vendor Name</th>
+                                <th>Mobile No</th>
+                                <th class="d-none">Company Name</th>
+                                <th class="d-none">Industry Type</th>
+                                <th>Added By</th>
+                                <th>Added Date</th>
+                                <th class="d-none">Alternate No</th>
+                                <th class="d-none">Email</th>
+                                <th class="d-none">Address</th>
+                                <th class="d-none">Company Email</th>
+                                <th class="d-none">Company Mobile No</th>
+                                <th class="d-none">Company Alternate No</th>
+                                <th class="d-none">Company Address</th>
+                                <th class="d-none">Industry Type Id</th>
+                                <th class="d-none">City Id</th>
+                                <th class="d-none">Bank Name</th>
+                                <th class="d-none">Swift Code</th>
+                                <th class="d-none">Branch Name</th>
+                                <th class="d-none">IFSC Code</th>
+                                <th class="d-none">Account Number</th>
+                                <th class="d-none">Country Code</th>
+                                <th class="d-none">State Code</th>
+                                <th class="d-none">City Name</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+            </div>
+
+
+
+
+            <!-- =======================View pending Vendor MODAL ======================= -->
+            <div class="modal fade" id="viewvendorModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-xl modal-dialog-scrollable">
+                    <div class="modal-content">
+                        <div class="modal-header bg-primary text-white position-relative">
+                            <h5 class="d-flex justify-content-center text-center ms-auto text-white">
+                                Vendor Details
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+
+                        <div class="modal-body">
+
+                            <!-- Vendor Registration Form inside Modal -->
+                            <form id="Vendorform" class="row g-3 needs-validation" novalidate>
+
+                                <!-- Personal Details -->
+                                <div class="form-section">
+                                    <h5>Personal Details</h5>
+                                    <div class="row">
+                                        <!-- Full Name -->
+                                        <div class="col-md-6">
+                                            <div class="input-group input-group-merge mb-3">
+                                                <span class="input-group-text"><i class="ri-user-line"></i></span>
+                                                <div class="form-floating form-floating-outline">
+                                                    <input type="text" class="form-control" id="FullName" name="VendorName" placeholder="Full Name" readonly>
+                                                    <label for="fullName">Full Name</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!-- Mobile -->
+                                        <div class="col-md-6">
+                                            <div class="input-group input-group-merge mb-3">
+                                                <span class="input-group-text"><i class="ri-phone-fill"></i></span>
+                                                <div class="form-floating form-floating-outline">
+                                                    <input type="tel" class="form-control" id="Mobile" name="MobileNo" placeholder="Mobile Number" readonly>
+                                                    <label for="mobile">Mobile Number</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!-- Alternate Mobile -->
+                                        <div class="col-md-6">
+                                            <div class="input-group input-group-merge mb-3">
+                                                <span class="input-group-text"><i class="ri-phone-line"></i></span>
+                                                <div class="form-floating form-floating-outline">
+                                                    <input type="tel" class="form-control" id="AltMobile" name="AlternateNo" placeholder="Alternate Mobile" readonly>
+                                                    <label for="altMobile">Alternate Mobile</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!-- Personal Email -->
+                                        <div class="col-md-6">
+                                            <div class="input-group input-group-merge mb-3">
+                                                <span class="input-group-text"><i class="ri-mail-line"></i></span>
+                                                <div class="form-floating form-floating-outline">
+                                                    <input type="email" class="form-control" id="PersonalEmail" name="Email" placeholder="Email" readonly>
+                                                    <label for="personalEmail">Personal Email</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!-- Address -->
+                                        <div class="col-12">
+                                            <div class="input-group input-group-merge mb-3">
+                                                <span class="input-group-text"><i class="ri-map-pin-line"></i></span>
+                                                <div class="form-floating form-floating-outline">
+                                                    <textarea class="form-control" id="Address" name="Address" placeholder="Address" rows="2" readonly></textarea>
+                                                    <label for="address">Address</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-section">
+                                    <h5>Communication Details</h5>
+                                    <div class="row">
+                                        <!-- Company Email -->
+                                        <div class="col-md-6">
+                                            <div class="input-group input-group-merge mb-3">
+                                                <span class="input-group-text"><i class="ri-mail-line"></i></span>
+                                                <div class="form-floating form-floating-outline">
+                                                    <input type="text" class="form-control" id="companyEmail" name="CompanyEmail" placeholder="Company Email" readonly>
+                                                    <label for="CompanyEmail">Company Email</label>
+                                                    <div class="invalid-feedback">CompanyEmail is required.</div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Contact Mobile -->
+                                        <div class="col-md-6">
+                                            <div class="input-group input-group-merge mb-3">
+                                                <span class="input-group-text"><i class="ri-phone-fill"></i></span>
+                                                <div class="form-floating form-floating-outline">
+                                                    <input type="tel" class="form-control" name="CompanyMobileNo" id="companyMobileNo" placeholder="Mobile Number" readonly>
+                                                    <label for="contactMobile">Mobile Number</label>
+                                                    <div class="invalid-feedback">Mobile Number is required.</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!-- Alternate Mobile -->
+                                        <div class="col-md-6">
+                                            <div class="input-group input-group-merge mb-3">
+                                                <span class="input-group-text"><i class="ri-phone-fill"></i></span>
+                                                <div class="form-floating form-floating-outline">
+                                                    <input type="tel" class="form-control" id="companyAlternateNo" name="CompanyAlternateNo" placeholder="AlternateMobile Number" readonly>
+                                                    <label for="contactMobile">AlternateMobile Number</label>
+                                                    @*<div class="invalid-feedback">Mobile Number is required.</div>*@
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Company Name -->
+                                        <div class="col-md-6">
+                                            <div class="input-group input-group-merge mb-3">
+                                                <span class="input-group-text"><i class="ri-building-4-line"></i></span>
+                                                <div class="form-floating form-floating-outline">
+                                                    <input type="text" class="form-control" id="CompanyName" name="CompanyName" placeholder="Company Name" readonly>
+                                                    <label for="companyName">Company Name</label>
+                                                    <div class="invalid-feedback">Company Name is required.</div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Company Address -->
+                                        <div class="col-12">
+                                            <div class="input-group input-group-merge mb-3">
+                                                <span class="input-group-text"><i class="ri-map-pin-2-line"></i></span>
+                                                <div class="form-floating form-floating-outline">
+                                                    <textarea class="form-control" name="CompanyAddress" id="CompanyAddress" placeholder="Company Address" rows="2" readonly></textarea>
+                                                    <label for="companyAddress">Company Address</label>
+                                                    <div class="invalid-feedback">Company Address is required.</div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row g-3">
+
+                                            <!-- Industry Type -->
+                                            <div class="col-md-4">
+                                                <div class="input-group input-group-merge mb-3">
+                                                    <span class="input-group-text"><i class="bi bi-briefcase-fill"></i></span>
+                                                    <div class="form-floating form-floating-outline flex-grow-1">
+                                                        <input type="text" class="form-control" id="IndustryType" name="IndustryTypeId" placeholder="industry Type" readonly>
+                                                        <label for="industryType">Industry Type</label>
+                                                        <div class="invalid-feedback">Industry Type is required.</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!-- Country -->
+                                            <div class="col-md-4">
+                                                <div class="input-group input-group-merge mb-3">
+                                                    <span class="input-group-text"><i class="bi bi-globe2"></i></span>
+                                                    <div class="form-floating form-floating-outline flex-grow-1">
+                                                        <input type="text" class="form-control" id="Country" readonly>
+                                                        <label for="Country">Country</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- State -->
+                                            <div class="col-md-4">
+                                                <div class="input-group input-group-merge mb-3">
+                                                    <span class="input-group-text"><i class="bi bi-map-fill"></i></span>
+                                                    <div class="form-floating form-floating-outline flex-grow-1">
+                                                        <input type="text" class="form-control" id="State" readonly>
+                                                        <label for="State">State</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- City -->
+                                            <div class="col-md-6">
+                                                <div class="input-group input-group-merge mb-3">
+                                                    <span class="input-group-text"><i class="bi bi-building-fill"></i></span>
+                                                    <div class="form-floating form-floating-outline flex-grow-1">
+                                                        <input type="text" class="form-control" id="City" readonly>
+                                                        <label for="City">City</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                                <!-- Payment Details -->
+                                <div class="form-section">
+                                    <h5>Payment Details</h5>
+                                    <div class="row">
+
+                                        <!-- Bank Name -->
+                                        <div class="col-md-6">
+                                            <div class="input-group input-group-merge mb-3">
+                                                <span class="input-group-text"><i class="ri-bank-line"></i></span>
+                                                <div class="form-floating form-floating-outline flex-grow-1">
+                                                    <input type="text" class="form-control" name="BankName" id="BankName" placeholder="Bank Name" readonly>
+                                                    <label for="bankName">Bank Name</label>
+                                                    <div class="invalid-feedback">Please select a bank.</div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Branch -->
+                                        <div class="col-md-6">
+                                            <div class="input-group input-group-merge mb-3">
+                                                <span class="input-group-text"><i class="ri-map-pin-line"></i></span>
+                                                <div class="form-floating form-floating-outline flex-grow-1">
+                                                    <input type="text" class="form-control" id="BranchName" name="BranchId" placeholder="Account Number" readonly>
+                                                    <label for="branchName">Branch</label>
+                                                    <div class="invalid-feedback">Please select a branch.</div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Account Number -->
+                                        <div class="col-md-6">
+                                            <div class="input-group input-group-merge mb-3">
+                                                <span class="input-group-text"><i class="ri-file-text-line"></i></span>
+                                                <div class="form-floating form-floating-outline">
+                                                    <input type="text" class="form-control" name="AccountNumber" id="AccountNumber" placeholder="Account Number" readonly>
+                                                    <label for="accountNumber">Account Number</label>
+                                                    <div class="invalid-feedback">Account Number is required.</div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- IFSC -->
+                                        <div class="col-md-6">
+                                            <div class="input-group input-group-merge mb-3">
+                                                <span class="input-group-text"><i class="ri-key-2-line"></i></span>
+                                                <div class="form-floating form-floating-outline">
+                                                    <input type="text" class="form-control" name="IFSCCode" id="Ifsc" placeholder="IFSC Code" readonly>
+                                                    <label for="ifsc">IFSC Code</label>
+                                                    <div class="invalid-feedback">IFSC is required.</div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Swift -->
+                                        <div class="col-md-6">
+                                            <div class="input-group input-group-merge mb-3">
+                                                <span class="input-group-text"><i class="ri-exchange-dollar-line"></i></span>
+                                                <div class="form-floating form-floating-outline">
+                                                    <input type="text" class="form-control" id="Swift" name="SwiftCode" placeholder="Swift Code" readonly>
+                                                    <label for="swift">Swift Code</label>
+                                                    <div class="invalid-feedback">Swift Code is required.</div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </form>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        // SweetAlert2 configuration with Bootstrap button styles
+        const swalWithBootstrapButtons = Swal.mixin({
+            customClass: {
+                confirmButton: "btn btn-success",
+                cancelButton: "btn btn-danger"
+            },
+            buttonsStyling: false
+        });
+
+    // Global vendor table variable
+    var vendorTable;
+
+    // DOM Content Loaded event listener
+    document.addEventListener("DOMContentLoaded", function () {
+        // Tab functionality
+        const tabs = document.querySelectorAll(".tab-btn");
+        const contents = document.querySelectorAll(".tab-content");
+
+        tabs.forEach((tab) => {
+            tab.addEventListener("click", () => {
+                tabs.forEach((t) => t.classList.remove("active"));
+                contents.forEach((c) => c.classList.remove("active"));
+                tab.classList.add("active");
+                document.getElementById(tab.dataset.tab).classList.add("active");
+            });
+        });
+
+        // Form validation
+        const forms = document.querySelectorAll(".needs-validation");
+        Array.from(forms).forEach((form) => {
+            form.addEventListener("submit", (event) => {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add("was-validated");
+            }, false);
+        });
+    });
+
+    // jQuery document ready function
+    $(document).ready(function () {
+        // Clear processing state for all DataTable buttons
+        window.__dt_clearAllProcessing = function () {
+            try {
+                // Try to clear via DataTables API
+                var tables = $.fn.dataTable.tables();
+                for (var i = 0; i < tables.length; i++) {
+                    try {
+                        var api = $(tables[i]).DataTable();
+                        if (!api || !api.buttons) continue;
+                        var btnCount = (api.buttons().nodes && api.buttons().nodes().length) || 0;
+                        for (var j = 0; j < btnCount; j++) {
+                            try { api.button(j).processing(false); } catch (e) { }
+                        }
+                    } catch (e) { }
+                }
+            } catch (e) { }
+
+            // Fallback DOM cleanup
+            try {
+                $('.dt-button').removeClass('dt-button-processing');
+                $('.dt-button').prop('disabled', false);
+            } catch (e) { }
+        };
+
+        // Listen for print-done message from print window
+        window.addEventListener('message', function (ev) {
+            if (ev && ev.data === 'dt_print_done') {
+                window.__dt_clearAllProcessing();
+            }
+        });
+
+        // Load Country data
+        $.getJSON('@Url.Action("GetCountries", "Purchase")', function (countrieslst) {
+            console.log("Country Data", countrieslst);
+            $('#country').empty().append('<option value="">Select Country</option>');
+            $.each(countrieslst, function (i, country) {
+                $('#country').append(`<option value="${country.iso2}">${country.name}</option>`);
+            });
+        });
+
+        // Load Industry Types
+        $.getJSON('@Url.Action("FetchIndustryType","Purchase")', function (data) {
+            console.log("Industry Types : ", data.lsttype);
+            $('#industryType').empty().append(`<option value="0">Select IndustryType</option>`);
+            $.each(data.lsttype, function (i, type) {
+                $('#industryType').append(`<option value="${type.IndustryTypeId}">${type.IndustryType}</option>`);
+            });
+        });
+
+        // Load Banks data
+        var bankList = [];
+        $.getJSON('@Url.Action("FetchBankAndSwiftCodeOK","Purchase")', function (data) {
+            console.log("Bank Data : ", data.banks);
+            bankList = data.banks;
+
+            // Clear textboxes
+            $('#ifsc').val('');
+            $('#swift').val('');
+
+            // Load bank dropdown
+            $('#bankName').empty().append('<option value="0">Select Bank</option>');
+            $.each(bankList, function (i, bank) {
+                $('#bankName').append(`<option value="${bank.BankId}">${bank.BankName}</option>`);
+            });
+        });
+
+        // Set Specific Bank SwiftCode in TextBox
+        $('#bankName').change(function () {
+            var bankid = $(this).val();
+            console.log("BankId Is : ", bankid);
+
+            // Clear fields before setting
+            $('#swift').val('');
+            $('#ifsc').val('');
+            $('#branchName').empty().append('<option value="0">Select Branch</option>');
+
+            var bank = bankList.find(b => b.BankId == bankid);
+            $('#swift').val(bank ? bank.SwiftCode : '');
+        });
+
+        // Load Branch And IFSCCode
+        var BranchList = [];
+        $('#bankName').change(function () {
+            var Bankid = $(this).val();
+            $.getJSON('@Url.Action("FetchBranchAndIFSCCodeOK","Purchase")', { BankId: Bankid }, function (data) {
+                BranchList = data.Branch;
+                console.log("Branch Data : ", data.Branch);
+                $('#branchName').empty().append('<option value="0">Select Branch</option>');
+                $.each(BranchList, function (i, branch) {
+                    $('#branchName').append(`<option value="${branch.BranchId}">${branch.BranchName}</option>`);
+                });
+            });
+        });
+
+        // Set Specific Branch IFSCCode in textBox
+        $('#branchName').change(function () {
+            var branchid = $(this).val();
+            var branch = BranchList.find(b => b.BranchId == branchid);
+            $('#ifsc').val(branch ? branch.IFSCCode : '');
+        });
+
+        // Load State data based on country selection
+        $('#country').change(function () {
+            var countrycode = $(this).val();
+
+            $.getJSON('@Url.Action("GetState","Purchase")', { countrycode: countrycode }, function (lststate) {
+                console.log("State Data", lststate);
+                $('#state').empty().append(`<option value="">Select State</option>`);
+                $.each(lststate, function (i, state) {
+                    $('#state').append(`<option value=${state.iso2}>${state.name}</option>`);
+                });
+            });
+        });
+
+        // Load City data based on state selection
+        $('#state').change(function () {
+            var countryCode = $('#country').val();
+            var stateCode = $(this).val();
+            console.log("Country: " + countryCode + ", State: " + stateCode);
+
+            $.getJSON('@Url.Action("GetCities", "Purchase")', { countryCode: countryCode, stateCode: stateCode }, function (data) {
+                console.log("City Data", data);
+                $('#city').empty().append('<option>Select City</option>');
+                $.each(data, function (i, city) {
+                    $('#city').append('<option value="' + city.id + '">' + city.name + '</option>');
+                });
+            });
+        });
+
+        // PDF/Print customization function
+        function customizeDoc(doc) {
+            // Title Styling
+            doc.styles.title = {
+                color: '#000000',
+                fontSize: 16,
+                bold: true,
+                alignment: 'center'
+            };
+
+            // Generated on date
+            doc.content.splice(1, 0, {
+                text: 'Generated on: ' + new Date().toISOString().split('T')[0],
+                fontSize: 10,
+                italics: true,
+                alignment: 'center',
+                margin: [0, 0, 0, 12]
+            });
+
+            // Table Header Styling
+            doc.styles.tableHeader = {
+                fillColor: '#000000',
+                color: 'white',
+                bold: true,
+                fontSize: 11,
+                alignment: 'center'
+            };
+
+            // Table Border + Padding
+            var objLayout = {};
+            objLayout['hLineWidth'] = function () { return .5; };
+            objLayout['vLineWidth'] = function () { return .5; };
+            objLayout['hLineColor'] = function () { return '#aaa'; };
+            objLayout['vLineColor'] = function () { return '#aaa'; };
+            objLayout['paddingLeft'] = function () { return 6; };
+            objLayout['paddingRight'] = function () { return 6; };
+
+            // Get the table
+            var tableNode = doc.content[doc.content.length - 1];
+            tableNode.layout = objLayout;
+
+            // Set fixed widths for all columns
+            var colCount = tableNode.table.body[0].length;
+            tableNode.table.widths = Array(colCount).fill('*');
+
+            // Wrap in margin to simulate center alignment
+            tableNode.alignment = 'center';
+            tableNode.margin = [0, 0, 0, 0];
+        }
+
+        // Store original button actions if not already stored
+        if (!$.fn.dataTable.ext.buttons.pdfHtml5.__originalAction) {
+            $.fn.dataTable.ext.buttons.pdfHtml5.__originalAction =
+                $.fn.dataTable.ext.buttons.pdfHtml5.action;
+        }
+        if (!$.fn.dataTable.ext.buttons.print.__originalAction) {
+            $.fn.dataTable.ext.buttons.print.__originalAction =
+                $.fn.dataTable.ext.buttons.print.action;
+        }
+        if (!$.fn.dataTable.ext.buttons.excelHtml5.__originalAction) {
+            $.fn.dataTable.ext.buttons.excelHtml5.__originalAction =
+                $.fn.dataTable.ext.buttons.excelHtml5.action;
+        }
+        if (!$.fn.dataTable.ext.buttons.csvHtml5.__originalAction) {
+            $.fn.dataTable.ext.buttons.csvHtml5.__originalAction =
+                $.fn.dataTable.ext.buttons.csvHtml5.action;
+        }
+        // Toast notification function
+        // ✅ Configure toastr once
+        toastr.options = {
+            closeButton: true,
+            progressBar: true,
+            newestOnTop: true,
+            positionClass: "toast-top-right",
+            preventDuplicates: true,
+            timeOut: 3000,
+            extendedTimeOut: 1000,
+            showDuration: 300,
+            hideDuration: 300,
+            showMethod: "slideDown",
+            hideMethod: "fadeOut"
+        };
+
+        // ✅ Helper function for warning toast
+        function showExportToast() {
+            toastr.warning("Please select at least one row before exporting.", "Warning");
+        }
+        // Vendor DataTable initialization
+        vendorTable = $('#tblVendor').DataTable({
+            ajax: {
+                url: '@Url.Action("FetchPendingVendorOK", "Purchase")',
+                type: "GET",
+                dataSrc: function (json) {
+                    console.log("Vendor JSON:", json);
+                    return json.data;
+                },
+                error: function (xhr, error, thrown) {
+                    console.error("Vendor AJAX Error:", error, thrown, xhr.responseText);
+                    alert("Failed to load vendors. Check console for details.");
+                }
+            },
+
+            // Columns definition
+            columns: [
+                {
+                    data: null,
+                    orderable: false,
+                    className: 'select-checkbox',
+                    render: function (data, type, row) {
+                        return `<input type="checkbox" class="row-select" value="${row.VendorId}" />`;
+                    }
+                },
+                { data: "SRNO", title: 'Sr.No' },
+                { data: "VendorId", visible: false },
+                { data: "VendorName", title: "Vendor Name" },
+                { data: "MobileNo", title: "Mobile NO" },
+                { data: "CompanyName", title: "Company Name", visible: false },
+                { data: "IndustryType", title: "Industry Type", visible: false },
+                { data: "AddedBy", title: "Created By" },
+                {
+                    data: "AddedDateString", title: "Created Date",
+                    "render": function (data) {
+                        if (!data) return "";
+                        var match = /Date\((\d+)\)/.exec(data);
+                        if (match) {
+                            var dt = new Date(parseInt(match[1], 10));
+                            return dt.toLocaleDateString("en-GB"); 
+                        }
+                        var dt2 = new Date(data);
+                        if (!isNaN(dt2.getTime())) {
+                            return dt2.toLocaleDateString("en-GB");
+                        }
+
+                        return data; 
+                    }
+                },
+                { data: "AlternateNo", visible: false },
+                { data: "Email", visible: false },
+                { data: "Address", visible: false },
+                { data: "CompanyEmail", visible: false },
+                { data: "CompanyMobileNo", visible: false },
+                { data: "CompanyAlternateNo", visible: false },
+                { data: "CompanyAddress", visible: false },
+                { data: "IndustryTypeId", visible: false },
+                { data: "CityId", visible: false },
+                { data: "BankName", visible: false },
+                { data: "SwiftCode", visible: false },
+                { data: "BranchName", visible: false },
+                { data: "IFSCCode", visible: false },
+                { data: "AccountNumber", visible: false },
+                { data: "CountryCode", visible: false },
+                { data: "StateCode", visible: false },
+                { data: "CityName", visible: false },
+
+                // Action column
+                {
+                    data: null,
+                    render: function (data, type, row) {
+                        return `
+                            <div class="d-flex gap-2 justify-content-center">
+                                <!-- View Button with tooltip -->
+                                <button class="btn btn-sm btn-primary btn-view"
+                                        data-row='${JSON.stringify(row)}'
+                                        data-bs-toggle="tooltip"
+                                        data-bs-placement="top"
+                                        title="View Vendor">
+                                    <i class="bi bi-eye-fill"></i>
+                                </button>
+                                <button class="btn btn-sm btn-success btn-approve"
+                                        onclick="ApproveVendor(${row.VendorId})"
+                                        data-bs-toggle="tooltip"
+                                        data-bs-placement="top"
+                                        title="Approve">
+                                    <i class="bi bi-person-check-fill"></i>
+                                </button>
+                            </div>
+                        `;
+                    }
+                },
+            ],
+            paging: true,
+            searching: true,
+            lengthChange: false,
+            pageLength: 5,
+
+            select: {
+                style: 'multi',
+                selector: 'td:first-child input[type="checkbox"]'
+            },
+
+            // Export buttons configuration
+            dom: 'Bfrtip',
+            buttons: [
+                // Print button
+                {
+                    extend: 'print',
+                    text: '<i class="bi bi-printer-fill text-dark fs-5"></i>',
+                    titleAttr: 'Print',
+                    title: 'Vendor List',
+                    exportOptions: {
+                        columns: [1, 3, 4, 5, 6, 7, 8],
+                        rows: function (idx) {
+                            return $(vendorTable.row(idx).node()).find('input.row-select').prop('checked');
+                        },
+                        format: {
+                            body: function (data, rowIdx, colIdx) {
+                                if (colIdx === 1) return getExportSrNo(rowIdx, vendorTable);
+                                return data;
+                            }
+                        }
+                    },
+                    customize: function (win) {
+                        var $body = $(win.document.body);
+
+                        // Inject custom CSS for print
+                        $body.append(`
+                            <style>
+                                thead th {
+                                    background-color: black !important;
+                                    color: white !important;
+                                    text-align: center !important;
+                                    -webkit-print-color-adjust: exact !important;
+                                    print-color-adjust: exact !important;
+                                }
+                                table {
+                                    border-collapse: collapse !important;
+                                    width: 100% !important;
+                                }
+                                td, th {
+                                    border: 1px solid #000 !important;
+                                    padding: 6px !important;
+                                }
+                            </style>
+                        `);
+
+                        // Center title
+                        $body.find('h1').css('text-align', 'center');
+
+                        // Insert generated date
+                        $body.find('h1').after(
+                            '<div style="text-align:center;font-style:italic;font-size:10pt;margin-bottom:12px;">Generated on: '
+                            + new Date().toISOString().split('T')[0] + '</div>'
+                        );
+
+                        // Add bootstrap table styles
+                        $body.find('table')
+                            .addClass('table table-bordered table-striped')
+                            .css('width', '100%');
+
+                        // Font size
+                        $body.css('font-size', '12pt');
+                    },
+                    action: function (e, dt, button, config) {
+                        var selected = dt.rows().nodes().to$().find('input.row-select:checked').length;
+                        var btnApi = dt.button(button);
+
+                        if (selected === 0) {
+                            showExportToast();
+                            try { btnApi.processing(false); } catch (err) { }
+                            return;
+                        }
+
+                        // Show spinner
+                        try { btnApi.processing(true); } catch (err) { }
+
+                        // Call original print action
+                        try {
+                            $.fn.dataTable.ext.buttons.print.__originalAction.call(this, e, dt, button, config);
+                        } catch (err) {
+                            // Ensure spinner not left running
+                            setTimeout(function () { try { btnApi.processing(false); } catch (e) { } }, 300);
+                            throw err;
+                        }
+
+                        // Final fallback: if print window never reports, clear after 2s
+                        setTimeout(function () { try { btnApi.processing(false); } catch (err) { } }, 2000);
+                    }
+                },
+
+                // PDF Export button
+                {
+                    extend: 'pdfHtml5',
+                    text: '<i class="bi bi-file-earmark-pdf-fill text-danger fs-5"></i>',
+                    titleAttr: 'PDF',
+                    title: 'Vendor List',
+                    orientation: 'landscape',
+                    pageSize: 'A4',
+                    exportOptions: {
+                        columns: [1, 3, 4, 5, 6, 7, 8],
+                        rows: function (idx) {
+                            return $(vendorTable.row(idx).node()).find('input.row-select').prop('checked');
+                        },
+                        format: {
+                            body: function (data, rowIdx, colIdx) {
+                                if (colIdx === 1) return getExportSrNo(rowIdx, vendorTable);
+                                return data;
+                            }
+                        }
+                    },
+                    action: function (e, dt, button, config) {
+                        var selected = dt.rows().nodes().to$().find('input.row-select:checked').length;
+                        var btnApi = dt.button(button);
+
+                        if (selected === 0) {
+                            showExportToast();
+                            btnApi.processing(false);
+                            return;
+                        }
+
+                        btnApi.processing(true);
+
+                        // If pdfMake exists, wrap its download so we can stop spinner when done
+                        if (window.pdfMake && pdfMake.createPdf && !pdfMake._patchedForDT) {
+                            (function () {
+                                var origCreate = pdfMake.createPdf;
+                                pdfMake.createPdf = function (docDefinition) {
+                                    var pdfDoc = origCreate.call(pdfMake, docDefinition);
+                                    var origDownload = pdfDoc.download;
+                                    pdfDoc.download = function (filename, cb) {
+                                        origDownload.call(pdfDoc, filename, function () {
+                                            try { btnApi.processing(false); } catch (err) { }
+                                            if (typeof cb === 'function') cb();
+                                        });
+                                    };
+                                    return pdfDoc;
+                                };
+                                pdfMake._patchedForDT = true; // only patch once
+                            })();
+                        }
+
+                        // Call original action
+                        $.fn.dataTable.ext.buttons.pdfHtml5.__originalAction.call(this, e, dt, button, config);
+
+                        // Final fallback: clear after timeout just in case
+                        setTimeout(function () { try { btnApi.processing(false); } catch (err) { } }, 1500);
+                    },
+                    customize: customizeDoc
+                },
+
+                // Excel Export button
+                {
+                    extend: 'excelHtml5',
+                    text: '<i class="bi bi-file-earmark-excel-fill text-success fs-5"></i>',
+                    titleAttr: 'Excel',
+                    title: 'Vendor List',
+                    exportOptions: {
+                        columns: [1, 3, 4, 5, 6, 7, 8],
+                        rows: function (idx) {
+                            return $(vendorTable.row(idx).node()).find('input.row-select').prop('checked');
+                        },
+                        format: {
+                            body: function (data, rowIdx, colIdx) {
+                                if (colIdx === 1) return getExportSrNo(rowIdx, vendorTable);
+                                return data;
+                            }
+                        }
+                    },
+                    action: function (e, dt, button, config) {
+                        var selected = dt.rows().nodes().to$().find('input.row-select:checked').length;
+                        var btnApi = dt.button(button);
+
+                        if (selected === 0) {
+                            showExportToast();
+                            try { btnApi.processing(false); } catch (err) { }
+                            return;
+                        }
+
+                        try { btnApi.processing(true); } catch (err) { }
+
+                        // Call original excelHtml5 action
+                        $.fn.dataTable.ext.buttons.excelHtml5.__originalAction.call(this, e, dt, button, config);
+
+                        // Fallback clear spinner after 1.5s
+                        setTimeout(function () { try { btnApi.processing(false); } catch (err) { } }, 300);
+                    }
+                },
+
+                // CSV Export button
+                {
+                    extend: 'csvHtml5',
+                    text: '<i class="bi bi-filetype-csv text-success fs-5"></i>',
+                    titleAttr: 'CSV',
+                    title: 'Vendor List',
+                    exportOptions: {
+                        columns: [1, 3, 4, 5, 6, 7, 8],
+                        rows: function (idx) {
+                            return $(vendorTable.row(idx).node()).find('input.row-select').prop('checked');
+                        },
+                        format: {
+                            body: function (data, rowIdx, colIdx) {
+                                if (colIdx === 1) return getExportSrNo(rowIdx, vendorTable);
+                                return data;
+                            }
+                        }
+                    },
+                    action: function (e, dt, button, config) {
+                        var selected = dt.rows().nodes().to$().find('input.row-select:checked').length;
+                        var btnApi = dt.button(button);
+
+                        if (selected === 0) {
+                            showExportToast();
+                            try { btnApi.processing(false); } catch (err) { }
+                            return;
+                        }
+
+                        try { btnApi.processing(false); } catch (err) { }
+
+                        $.fn.dataTable.ext.buttons.csvHtml5.__originalAction.call(this, e, dt, button, config);
+
+                        // Stop spinner almost immediately (no real callback exists)
+                        setTimeout(function () {
+                            try { btnApi.processing(false); } catch (err) { }
+                        }, 300);
+                    }
+                }
+            ],
+
+            // Recalculate Sr.No on every draw
+            drawCallback: function (settings) {
+                var api = this.api();
+                api.column(1, { page: 'current' }).nodes().each(function (cell, i) {
+                    cell.innerHTML = i + 1 + settings._iDisplayStart;
+                });
+                initTooltips();
+            }
+        });
+
+        // Initialize Bootstrap tooltips
+        function initTooltips() {
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl, {
+                    customClass: 'tooltip-dark'
+                });
+            });
+        }
+        initTooltips();
+        // Tooltip click handler
+        $(document).on('click', '[data-bs-toggle="tooltip"]', function () {
+            let tooltip = bootstrap.Tooltip.getInstance(this);
+            if (tooltip) tooltip.hide();
+        })
+        // Move export buttons into export container
+        vendorTable.buttons().container().appendTo('#exportContainer');
+
+        // Move default DataTables search input into styled right container
+        $('.dt-search label').appendTo('#searchContainer');
+        $('.dt-search input[type="search"]').appendTo('#searchContainer');
+
+        // Select All Vendor functionality
+        $("#selectAllVendor").on("change", function () {
+            let isChecked = $(this).is(":checked");
+            $("#tblVendor tbody input[type='checkbox']").prop("checked", isChecked);
+        });
+
+        // Auto uncheck Select All if any row unchecked
+        $("#tblVendor").on("change", "tbody input[type='checkbox']", function () {
+            if (!$(this).is(":checked")) {
+                $("#selectAllVendor").prop("checked", false);
+            }
+        });
+
+        // Date Picker initialization
+        $('#vendorcreateddate').daterangepicker({
+            autoUpdateInput: false,
+            opens: "center",
+            drops: "down",
+            locale: {
+                cancelLabel: 'Clear',
+                format: 'DD/MM/YYYY' // set display format
+            },
+            ranges: {
+                'Today': [moment(), moment()],
+                'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                'This Month': [moment().startOf('month'), moment().endOf('month')],
+                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+            }
+        }, function (start, end) {
+            $('#vendorcreateddate').val(start.format('DD/MM/YYYY') + ' - ' + end.format('DD/MM/YYYY'));
+
+            $.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
+                var addedDate = moment(data[8], 'DD/MM/YYYY');
+                return addedDate.isBetween(start, end, undefined, '[]'); 
+            });
+
+            vendorTable.draw();
+            $.fn.dataTable.ext.search.pop();
+        });
+
+        $('#vendorcreateddate').on('cancel.daterangepicker', function () {
+            $(this).val('');
+            vendorTable.draw();
+        });
+
+
+       $('#Vendorform').submit(function (e) {
+            e.preventDefault();
+
+            const form = this;
+            let isValid = true;
+
+            // --- Custom Rules ---
+
+            // Mobile: 10 digits
+            const mobile = $("#mobile").val().trim();
+            if (!/^\d{10}$/.test(mobile)) {
+                isValid = false;
+                $("#mobile").addClass("is-invalid");
+                $("#mobile").next(".invalid-feedback").text("Please enter a 10-digit mobile number.");
+            } else {
+                $("#mobile").removeClass("is-invalid").addClass("is-valid");
+            }
+
+            // Personal Email
+            const email = $("#personalEmail").val().trim();
+            if (!/^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/.test(email)) {
+                isValid = false;
+                $("#personalEmail").addClass("is-invalid");
+                $("#personalEmail").next(".invalid-feedback").text("Please enter a valid personal email address.");
+            } else {
+                $("#personalEmail").removeClass("is-invalid").addClass("is-valid");
+            }
+
+            // Company Email
+            const cemail = $("#CompanyEmail").val().trim();
+            if (!/^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/.test(cemail)) {
+                isValid = false;
+                $("#CompanyEmail").addClass("is-invalid");
+                $("#CompanyEmail").next(".invalid-feedback").text("Please enter a valid company email address.");
+            } else {
+                $("#CompanyEmail").removeClass("is-invalid").addClass("is-valid");
+            }
+
+            // Account Number
+            const acc = $("#accountNumber").val().trim();
+            if (!/^\d{12}$/.test(acc)) {
+                isValid = false;
+                $("#accountNumber").addClass("is-invalid");
+                $("#accountNumber").next(".invalid-feedback").text("Please enter a 12-digit account number.");
+            } else {
+                $("#accountNumber").removeClass("is-invalid").addClass("is-valid");
+            }
+
+            // --- Bootstrap Required Validation ---
+            if (!form.checkValidity() || !isValid) {
+                e.stopPropagation();
+                $(form).addClass("was-validated");
+                return;
+            }
+
+            // --- If Valid → Confirmation + Save ---
+            let formdata = $(form).serialize();
+            console.log("FormData", formdata);
+
+            swalWithBootstrapButtons.fire({
+                title: "Are you sure?",
+                text: "Do you really want to save this vendor?",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Yes, save it!",
+                cancelButtonText: "No, cancel!",
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '@Url.Action("SaveVendorDetails", "Purchase")',
+                        type: 'POST',
+                        data: formdata,
+                        success: function (res) {
+                            if (res.success) {
+                                swalWithBootstrapButtons.fire({
+                                    title: "Saved!",
+                                    text: res.message,
+                                    icon: "success",
+                                    showConfirmButton: false,
+                                    timer: 1000
+                                }).then(() => {
+                                    // Reset form
+                                    form.reset();
+                                    $("#Vendorform select").val('0').trigger('change');
+                                    $("#Vendorform input[type=hidden]").val('');
+                                    $(form).removeClass("was-validated");
+                                    $("#Vendorform .is-valid, #Vendorform .is-invalid")
+                                        .removeClass("is-valid is-invalid");
+                                });
+                            } else {
+                                swalWithBootstrapButtons.fire({
+                                    title: "Error",
+                                    text: res.message,
+                                    icon: "error"
+                                });
+                            }
+                        },
+                        error: function () {
+                            swalWithBootstrapButtons.fire({
+                                title: "Error",
+                                text: "An unexpected error occurred.",
+                                icon: "error"
+                            });
+                        }
+                    });
+                }
+            });
+        });
+
+        // Utility function: hide all tooltips
+        function hideAllTooltips() {
+            document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
+                let tooltip = bootstrap.Tooltip.getInstance(el);
+                if (!tooltip) tooltip = new bootstrap.Tooltip(el); // ensure instance exists
+                tooltip.hide();
+            });
+        }
+        // Clear form fields
+        $(".btn-clear").on("click", function () {
+            console.log("Clear Button Active");
+
+            // Reset the form fields to their default values
+            $("#Vendorform")[0].reset();
+
+            // Set all select elements to '0'
+            $("#Vendorform select").val('0').trigger('change');
+
+            // Clear hidden input fields
+            $("#Vendorform input[type=hidden]").val('');
+
+            // Remove validation classes
+            $("#Vendorform").removeClass("was-validated");
+            $("#Vendorform .is-valid, #Vendorform .is-invalid").removeClass("is-valid is-invalid");
+        });
+    });
+
+    // View vendor details in modal
+    $(document).on("click", ".btn-view", function () {
+        let rowData = $(this).data("row");
+        $("#vendorModal").modal("show");
+        ViewVendor(rowData);
+    });
+
+    // View Pending Vendor details
+    function ViewVendor(rowData) {
+        console.log("Function Active");
+        if (!rowData) return;
+
+        console.log("Vendor Name : ", rowData.VendorName);
+
+        // Personal details
+        $("#FullName").val(rowData.VendorName);
+        $("#Mobile").val(rowData.MobileNo);
+        $("#AltMobile").val(rowData.AlternateNo);
+        $("#PersonalEmail").val(rowData.Email);
+        $("#Address").val(rowData.Address);
+
+        // Company details
+        $("#companyEmail").val(rowData.CompanyEmail);
+        $("#companyMobileNo").val(rowData.CompanyMobileNo);
+        $("#companyAlternateNo").val(rowData.CompanyAlternateNo);
+        $("#CompanyName").val(rowData.CompanyName);
+        $("#CompanyAddress").val(rowData.CompanyAddress);
+
+        // Industry/Location
+        $("#IndustryType").val(rowData.IndustryType);
+        $("#City").val(rowData.CityId);
+
+        // Payment details
+        $("#BankName").val(rowData.BankName);
+        $("#BranchName").val(rowData.BranchName);
+        $("#AccountNumber").val(rowData.AccountNumber);
+        $("#Ifsc").val(rowData.IFSCCode);
+        $("#Swift").val(rowData.SwiftCode);
+        console.log("CountryName", rowData.CountryName);
+
+        // Country, State, City data loading
+        $.getJSON("/Purchase/GetCountries", function (countries) {
+            console.log("View Country Data : ", countries);
+            // Find country name by code
+            const country = countries.find(c => c.iso2 === rowData.CountryCode);
+            const countryName = country ? country.name : "";
+            console.log("Country Name : ", countryName);
+            $('#Country').val(countryName);
+
+            // State data
+            $.getJSON("/Purchase/GetState", { countrycode: rowData.CountryCode }, function (states) {
+                const state = states.find(s => s.iso2 === rowData.StateCode);
+                const stateName = state ? state.name : "";
+                console.log("State Name : ", stateName);
+                $('#State').val(stateName);
+
+                // City data
+                $.getJSON("/Purchase/GetCities", { countryCode: rowData.CountryCode, stateCode: rowData.StateCode }, function (cities) {
+                    const city = cities.find(c => c.id === rowData.CityId);
+                    const cityName = city ? city.name : "";
+                    console.log("City Name : ", cityName);
+                    $('#City').val(cityName);
+                });
+            });
+        });
+
+        // Show modal
+        $("#viewvendorModal").modal("show");
+    }
+    // Approve Vendor function with confirmation
+    function ApproveVendor(VendorId) {
+        // Show confirm popup first
+        swalWithBootstrapButtons.fire({
+            title: "Are you sure?",
+            text: "Do you really want to approve this vendor?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Yes, approve it!",
+            cancelButtonText: "No, cancel!",
+            reverseButtons: true,
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Call AJAX only if user confirmed
+                $.ajax({
+                    url: '@Url.Action("ApproveVendorOK","Purchase")',
+                    type: 'POST',
+                    data: { VendorId: VendorId },
+                    dataType: "json",
+                    success: function (res) {
+                        if (res.success) {
+                            // Show success SweetAlert
+                            swalWithBootstrapButtons.fire({
+                                title: "Approved!",
+                                text: res.message,
+                                icon: "success",
+                                showConfirmButton: false,
+                                timer: 1000
+                            }).then(() => {
+                                // Reload table only after user closes the alert
+                                if (vendorTable) {
+                                    vendorTable.ajax.reload(null, false); // false = keep current page
+                                    setTimeout(() => {
+                                        showToast(res.message, 'success');
+                                    }, 1000);
+                                }
+                            });
+                        } else {
+                            swalWithBootstrapButtons.fire({
+                                title: "Error",
+                                text: res.message,
+                                icon: "error"
+                            });
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("AJAX Error:", status, error, xhr.responseText);
+                        swalWithBootstrapButtons.fire({
+                            title: "Error",
+                            text: "An unexpected error occurred.",
+                            icon: "error"
+                        });
+                    }
+                });
+            }
+            // If cancelled, show cancelled message
+            else if (result.dismiss === Swal.DismissReason.cancel) {
+                document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
+                    let tooltip = bootstrap.Tooltip.getInstance(el);
+                    if (!tooltip) {
+                        tooltip = new bootstrap.Tooltip(el); // create if missing
+                    }
+                    tooltip.hide();
+                });
+                swalWithBootstrapButtons.fire({
+                    title: "Cancelled",
+                    text: "Vendor approval cancelled.",
+                    icon: "error"
+                });
+            }
+
+        });
+    }
+
+    // Helper function to recalc SrNo for export across all pages
+    function getExportSrNo(rowIdx, tbl) {
+        // Get all rows nodes
+        let allRows = tbl.rows({ order: 'applied', search: 'applied' }).nodes().toArray();
+        // Filter only the checked rows
+        let checkedRows = allRows.filter(row => $(row).find('input.row-select').prop('checked'));
+        // Find the position of this row in the checkedRows array
+        let sr = checkedRows.findIndex(row => tbl.row(row).index() === rowIdx) + 1;
+        return sr; // consecutive Sr.No
+    }
+    </script>
+
+</body>
+</html>

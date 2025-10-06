@@ -1,0 +1,626 @@
+﻿@{
+    ViewBag.Title = "Received Material Report";
+}
+
+
+<style>
+    #receivedTable th, #receivedTable td {
+        text-align: center !important;
+        vertical-align: middle !important;
+    }
+
+    .chart-card {
+        background: #fff;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        min-height: 350px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .chart-title {
+        text-align: center;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+
+    .hidden-clm {
+        display: none;
+    }
+
+    .control-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .left-controls {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .dt-buttons {
+    }
+</style>
+
+<div id="receivedSection" class="container-fluid">
+
+    <div class="container bg-white rounded m-2 shadow p-2">
+        <h2 class="text-center text-primary">Received Material Report</h2>
+
+        <!-- Charts -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="chart-card">
+                    <div class="chart-title">Top 10 Items by Quantity</div>
+                    <div id="itemsChart" style="width:100%; height:100%;"></div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="chart-card">
+                    <div class="chart-title">Bin Assignment Status</div>
+                    <div id="binStatusChart" style="width:100%; height:100%;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Control Container -->
+        <div class="control-container">
+            <!-- Left side: Datepicker + Buttons -->
+            <div class="left-controls">
+                <!-- Datepicker -->
+                <div class="input-group" style="height:40px; max-width:280px;">
+                    <span class="input-group-text bg-primary text-white" style="height:100%;">
+                        <i class="bi bi-calendar-date"></i>
+                    </span>
+                    <input type="text" id="ReceivedDatepicker" class="form-control" placeholder="Select date range" readonly style="height:100%;" />
+                </div>
+
+                <!-- Buttons Container
+                                <div id="dtButtonsContainer" class="dt-buttons"></div>
+                -->
+            </div>
+
+            <!-- Right side: Search input -->
+            <div class="right-controls">
+                <div id="dtSearchContainer" class="dt-search"></div>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <table id="receivedTable" class="table table-bordered table-striped" style="width:100%">
+            <thead class="table-dark text-white text-center fw-bold">
+                <tr>
+                    <th><input type="checkbox" id="selectAllReceived"></th>
+                    <th>Sr. No</th>
+                    <th class="hidden-clm">GRN Code</th>
+                    <th class="hidden-clm">PO Code</th>
+                    <th>Item Code</th>
+                    <th>Item Name</th>
+                    <th>Item Category</th>
+                    <th>Ordered Qty</th>
+                    <th>Received Qty</th>
+                    <th>Warehouse</th>
+                    <th>Bin Code</th>
+                    <th>Received Date</th>
+
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Bin Modal -->
+<div class="modal fade" id="binModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="binModalTitle">Bin Assignment Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <table id="binDetailTable" class="display" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>Received Date</th>
+                            <th>Item Code</th>
+                            <th>Item Name</th>
+                            <th>Item Category</th>
+                            <th>Received Qty</th>
+                            <th>Warehouse</th>
+                            <th>Bin Code</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="toastContainer" class="position-fixed top-0 end-0 p-3" style="z-index:9999;"></div>
+
+<script>
+    let receivedTable, allData = [];
+
+    function showToast(message, type = 'warning') {
+        const toastId = 'toast-' + Date.now();
+        let bgClass = '';
+        let icon = '';
+
+        switch (type) {
+            case 'success':
+                bgClass = 'bg-success text-white';
+                icon = '<i class="bi bi-check-circle-fill me-2"></i>';
+                break;
+            case 'danger':
+                bgClass = 'bg-danger text-white';
+                icon = '<i class="bi bi-x-circle-fill me-2"></i>';
+                break;
+            default: // warning
+                bgClass = 'bg-warning text-white';
+                icon = '<i class="bi bi-exclamation-triangle-fill me-2"></i>';
+                break;
+        }
+
+        const toastHTML = `
+      <div id="${toastId}" class="toast align-items-center ${bgClass} border-0 mb-2 shadow"
+           role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex flex-column w-100">
+          <div class="d-flex">
+            <div class="toast-body flex-grow-1 d-flex align-items-center">
+              ${icon} <span>${message}</span>
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                    data-bs-dismiss="toast" aria-label="Close"></button>
+          </div>
+          <!-- Progress bar -->
+          <div class="progress" style="height:3px;">
+            <div class="progress-bar bg-dark" role="progressbar" style="width: 100%"></div>
+          </div>
+        </div>
+      </div>
+    `;
+
+        $('#toastContainer').append(toastHTML);
+        const toastEl = document.getElementById(toastId);
+        const bsToast = new bootstrap.Toast(toastEl, { delay: 3000 }); // 3 sec timeout
+        bsToast.show();
+
+        // Animate progress bar
+        let progressBar = $(toastEl).find('.progress-bar');
+        progressBar.animate({ width: "0%" }, 3000, "linear");
+
+        // Remove toast when hidden
+        toastEl.addEventListener('hidden.bs.toast', () => {
+            $(toastEl).remove();
+        });
+    }
+
+    // Create / reload DataTable
+    function loadReceivedTable(fromDate, toDate) {
+        if (receivedTable) receivedTable.destroy();
+        receivedTable = $('#receivedTable').DataTable({
+            ajax: { url: '/Inventory/GetReceivedMaterialReportAMG', data: { fromDate, toDate }, dataSrc: 'data' },
+            //dom: '<"top d-flex justify-content-between mt-3 mb-2"Bf>rtip',
+            dom: '<"d-flex justify-content-between align-items-center mt-1 mb-2"Bf>rt<"d-flex justify-content-between mt-2"<"datatable-info"i><"datatable-pagination"p>>',
+            buttons: [
+                {
+                    extend: 'print',
+                    text: '<i class="bi bi-printer-fill text-dark fs-5"></i>',
+                    title: '', // remove default title
+                    customize: function (win) {
+                        const now = moment().format('DD/MM/YYYY');
+
+                        // Add heading and generated date
+                        $(win.document.body)
+                            .css('font-size', '12pt')
+                            .prepend(
+                                `<h2 style="text-align:center; margin-bottom:5px;">Received Material Report</h2>
+             <div style="text-align:center; margin-bottom:10px; font-size:10pt;">Generated Date: ${now}</div>`
+                            );
+
+
+                        $(win.document.body).append(`
+
+
+                        <style>
+        thead th {
+            background-color: black !important;
+            color: white !important;
+            text-align: center !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        table {
+            border-collapse: collapse !important;
+            width: 100% !important;
+        }
+        td, th {
+            border: 1px solid #000 !important;
+            padding: 6px !important;
+        }
+    </style>
+
+
+
+                        `)
+
+
+                        // Find the table created by DataTables print
+                        const $table = $(win.document.body).find('table');
+
+                        // Apply table classes and styles
+                        $table.addClass('table table-bordered').css({
+                            'border-collapse': 'collapse',
+                            'width': '100%',
+                            'text-align': 'center'
+                        });
+
+                        // Apply border and padding to all cells
+                        $table.find('th, td').css({
+                            'border': '1px solid black',
+                            'padding': '5px',
+                            'text-align': 'center'
+                        });
+
+                        // Apply black header
+                        $table.find('thead th').each(function () {
+                            $(this).css({
+                                'background-color': 'black',
+                                'color': 'white'
+                            });
+                        });
+                    }
+                    ,
+                    action: function (e, dt, button, config) {
+                        if ($('#receivedTable tbody input.row-check:checked').length === 0) {
+                            showToast("Please select at least one row to Print!");
+                            return;
+                        }
+                        $.fn.dataTable.ext.buttons.print.action.call(this, e, dt, button, config);
+                    },
+                    exportOptions: {
+                        rows: function (idx, data, node) { return $(node).find('.row-check').prop('checked'); },
+                        columns: ':visible:not(:first-child)',
+                        format: {
+                            body: function (data, row, column, node) {
+                                if (column === 1) {
+                                    return $('#receivedTable tbody input.row-check:checked')
+                                        .index($(node).closest('tr').find('.row-check')) + 1;
+                                }
+                                if (column === 2 && data) { // date column
+                                    let parts = data.split("-");
+                                    if (parts.length === 3) data = `${parts[0]}/${parts[1]}/${parts[2]}`;
+                                }
+                                return data;
+                            }
+                        }
+                    }
+                }
+
+                ,
+
+                {
+                    extend: 'pdfHtml5',
+                    text: '<i class="bi bi-file-earmark-pdf text-danger fs-5"></i>',
+                    title: 'Received Material',
+                    customize: function (doc) {
+                        // Add Generated Date under title
+                        doc.content.splice(1, 0, {
+                            text: 'Generated Date: ' + moment().format('DD/MM/YYYY'),
+                            alignment: 'center',
+                            margin: [0, 0, 0, 10],
+                            fontSize: 10
+                        });
+
+                        // Header styling
+                        doc.styles.tableHeader = {
+                            fillColor: '#000000',
+                            color: '#ffffff',
+                            alignment: 'center',
+                            bold: true
+                        };
+
+                        // Table borders
+                        var objLayout = {};
+                        objLayout['hLineWidth'] = function () { return 0.8; };
+                        objLayout['vLineWidth'] = function () { return 0.8; };
+                        objLayout['hLineColor'] = function () { return '#000000'; };
+                        objLayout['vLineColor'] = function () { return '#000000'; };
+                        objLayout['paddingLeft'] = function () { return 4; };
+                        objLayout['paddingRight'] = function () { return 4; };
+                        objLayout['paddingTop'] = function () { return 4; };
+                        objLayout['paddingBottom'] = function () { return 4; };
+                        doc.content[2].layout = objLayout;
+
+                        // Center align
+                        doc.styles.tableBodyEven = { alignment: 'center' };
+                        doc.styles.tableBodyOdd = { alignment: 'center' };
+                    },
+                    action: function (e, dt, button, config) {
+                        if ($('#receivedTable tbody input.row-check:checked').length === 0) {
+                            showToast("Please select at least one row to export PDF!");
+                            return;
+                        }
+                        $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, button, config);
+                    },
+                    exportOptions: {
+                        rows: function (idx, data, node) {
+                            return $(node).find('.row-check').prop('checked');
+                        },
+                        columns: ':visible:not(:first-child)',
+                        format: {
+                            body: function (data, row, column, node) {
+                                if (column === 1) {
+                                    return $('#receivedTable tbody input.row-check:checked')
+                                        .index($(node).closest('tr').find('.row-check')) + 1;
+                                }
+                                if (column === 2 && data) {
+                                    let parts = data.split("-");
+                                    if (parts.length === 3) {
+                                        return `${parts[0]}/${parts[1]}/${parts[2]}`;
+                                    }
+                                }
+                                return data;
+                            }
+                        }
+                    }
+                },
+                {
+                    extend: 'excelHtml5',
+                    text: '<i class="bi bi-file-earmark-excel text-success fs-5"></i>',
+                    title: 'Received Material',
+                    messageTop: 'Generated Date: ' + moment().format('DD/MM/YYYY'),
+                    action: function (e, dt, button, config) {
+                        if ($('#receivedTable tbody input.row-check:checked').length === 0) {
+                            showToast("Please select at least one row to export Excel!");
+                            return;
+                        }
+                        $.fn.dataTable.ext.buttons.excelHtml5.action.call(this, e, dt, button, config);
+                    },
+                    exportOptions: {
+                        rows: function (idx, data, node) {
+                            return $(node).find('.row-check').prop('checked');
+                        },
+                        columns: ':visible:not(:first-child)',
+                        format: {
+                            body: function (data, row, column, node) {
+                                if (column === 1) {
+                                    return $('#receivedTable tbody input.row-check:checked')
+                                        .index($(node).closest('tr').find('.row-check')) + 1;
+                                }
+                                if (column === 2 && data) {
+                                    let parts = data.split("-");
+                                    if (parts.length === 3) {
+                                        return `${parts[0]}/${parts[1]}/${parts[2]}`;
+                                    }
+                                }
+                                return data;
+                            }
+                        }
+                    }
+                },
+
+
+                {
+                    extend: 'csvHtml5', text: '<i class="bi bi-filetype-csv text-primary fs-5"></i>',
+                    title: 'Received Material',
+                    action: function (e, dt, button, config) {
+                        if ($('#receivedTable tbody input.row-check:checked').length === 0) {
+                            showToast("Please select at least one row to export CSV!"); return;
+                        }
+                        $.fn.dataTable.ext.buttons.csvHtml5.action.call(this, e, dt, button, config);
+                    },
+                    exportOptions: {
+                        rows: function (idx, data, node) { return $(node).find('.row-check').prop('checked'); },
+                        columns: ':visible:not(:first-child)',
+                        format: {
+                            body: function (data, row, column, node) {
+                                if (column === 1) {
+                                    return $('#receivedTable tbody input.row-check:checked').index($(node).closest('tr').find('.row-check')) + 1;
+                                }
+                                return data;
+                            }
+                        }
+                    }
+                },
+
+            ],
+            columns: [
+                { data: null, orderable: false, render: () => `<input type="checkbox" class="row-check">` },
+                { data: null, render: (data, type, row, meta) => meta.row + 1 },
+                { data: 'GRNCode', visible: false },
+                { data: 'POCode', visible: false },
+                { data: 'ItemCode' },
+                { data: 'ItemName' },
+                { data: 'ItemCategory' },
+                { data: 'GRNQuantity' },
+                { data: 'ReceivedQuantity' },
+                { data: 'WarehouseName' },
+                { data: 'BinCode' },
+                // { data: 'ReceivedDate', render: data => moment(data).format('DD-MM-YYYY') }
+                {
+                    data: "ReceivedDate", type: "string",   // ✅ override datetime detection
+                    render: function (data, type, row) {
+
+
+                        if (!data) return "";
+
+                        // Ensure format like "2025-08-06"
+                        let parts = data.split(" ")[0].split("-"); // ["2025","08","06"]
+                        if (parts.length !== 3) return data;
+
+                        let yyyy = parts[0];
+                        let mm = parts[1];
+                        let dd = parts[2];
+
+                        return `${dd}/${mm}/${yyyy}`;
+                    }
+                }
+
+            ],
+            initComplete: function () {
+                this.api().buttons().container().appendTo('#dtButtonsContainer');
+                $('#selectAllReceived').off('change').on('change', function () {
+                    $('#receivedTable tbody input.row-check').prop('checked', $(this).prop('checked'));
+                });
+
+
+                // bind select all checkbox
+                $('#selectAllReceived').off('change').on('change', function () {
+                    $('#receivedTable tbody input.row-check').prop('checked', $(this).prop('checked'));
+                });
+            }
+        });
+    }
+
+    // Helper to apply/remove only the bin filter (we tag the function with _isBinFilter)
+    function applyBinFilter(showAssigned) {
+        // Remove any existing bin filter(s)
+        $.fn.dataTable.ext.search = $.fn.dataTable.ext.search.filter(f => !f._isBinFilter);
+
+        // If showAssigned is null -> just clear bin filter and redraw
+        if (showAssigned === null) {
+            receivedTable.draw();
+            return;
+        }
+
+        // New bin filter
+        const binFilter = function (settings, data/*row array*/, dataIndex) {
+            if (settings.nTable.id !== 'receivedTable') return true; // other tables unaffected
+            // BinCode column index is 11 (0-based array of displayed columns)
+            const bin = (data[11] || "").toString().trim().toLowerCase();
+            return showAssigned
+                ? (bin !== "" && bin !== "bin not assigned yet")
+                : (bin === "" || bin === "bin not assigned yet");
+        };
+        // mark it so we can remove it later
+        binFilter._isBinFilter = true;
+
+        $.fn.dataTable.ext.search.push(binFilter);
+        receivedTable.draw();
+    }
+
+    // Load charts and attach click + dblclick handlers to pie
+    function loadCharts(fromDate, toDate) {
+        $.getJSON('/Inventory/GetReceivedMaterialReportAMG', { fromDate, toDate }, function (result) {
+            allData = result.data || [];
+
+            // Top 10 Items
+            const itemMap = {};
+            allData.forEach(d => { itemMap[d.ItemName] = (itemMap[d.ItemName] || 0) + (Number(d.ReceivedQuantity) || 0); });
+            const topItems = Object.entries(itemMap).sort((a, b) => b[1] - a[1]).slice(0, 10);
+
+            Highcharts.chart('itemsChart', {
+                chart: { type: 'column', height: 300 },
+                title: { text: '' },
+                xAxis: { categories: topItems.map(x => x[0]), title: { text: 'Item Name' } },
+                yAxis: { min: 0, title: { text: 'Received Qty' } },
+                series: [{ name: 'Received Qty', data: topItems.map(x => x[1]) }],
+                credits: { enabled: false }
+            });
+
+            // Bin Status counts
+            let assigned = 0, notAssigned = 0;
+            allData.forEach(d => {
+                const bin = d.BinCode ? d.BinCode.toString().trim().toLowerCase() : "";
+                if (bin !== "" && bin !== "bin not assigned yet") assigned++; else notAssigned++;
+            });
+
+            // Create pie chart and keep reference
+            const binChart = Highcharts.chart('binStatusChart', {
+                chart: { type: 'pie', height: 300 },
+                title: { text: '' },
+                tooltip: { pointFormat: '<b>{point.y}</b>' },
+                plotOptions: {
+                    pie: {
+                        allowPointSelect: true,
+                        cursor: 'pointer',
+                        dataLabels: { enabled: true, format: '{point.name}: {point.y}' },
+                        // use point.events.click inside plotOptions.point
+                        point: {
+                            events: {
+                                click: function () {
+                                    // When user clicks a slice -> apply filter on main table
+                                    const showAssigned = this.name === 'Assigned to Bin';
+                                    applyBinFilter(showAssigned);
+                                }
+                            }
+                        }
+                    }
+                },
+                series: [{
+                    name: 'Count', colorByPoint: true, data: [
+                        { name: 'Assigned to Bin', y: assigned },
+                        { name: 'Not Assigned to Bin', y: notAssigned }
+                    ]
+                }],
+                credits: { enabled: false }
+            });
+
+            // Double-click on the chart container resets the bin filter
+            if (binChart && binChart.container) {
+                // remove previous dblclick listeners to avoid duplicates
+                try { binChart.container.removeEventListener('dblclick', binChart._dblClickHandler); } catch (e) { }
+                binChart._dblClickHandler = function () { applyBinFilter(null); };
+                binChart.container.addEventListener('dblclick', binChart._dblClickHandler);
+            }
+        });
+    }
+
+    $(document).ready(function () {
+        $('#binDetailTable').DataTable(); // still ok to have modal's table ready
+        loadReceivedTable();
+        loadCharts();
+
+        $('#ReceivedDatepicker').daterangepicker({
+            autoUpdateInput: false,
+            opens: "center",
+            drops: "down",
+            ranges: {
+                'Today': [moment(), moment()],
+                'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                'This Month': [moment().startOf('month'), moment().endOf('month')],
+                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+            },
+            locale: { cancelLabel: 'Clear' }
+        }, function (start, end) {
+            $('#ReceivedDatepicker').val(start.format('DD-MM-YYYY') + ' - ' + end.format('DD-MM-YYYY'));
+
+            // Apply date filter for table display (this filter only active for immediate draw)
+            $.fn.dataTable.ext.search.push(function (settings, data) {
+                if (settings.nTable.id !== 'receivedTable') return true;
+                const receivedDate = moment(data[11], 'DD-MM-YYYY');
+                return receivedDate.isBetween(start, end, undefined, '[]');
+            });
+            receivedTable.draw();
+            // remove that date filter (so it doesn't persist accidentally)
+            $.fn.dataTable.ext.search.pop();
+
+            // reload charts using the selected date range
+            loadCharts(start.format('DD-MM-YYYY'), end.format('DD-MM-YYYY'));
+        });
+
+        $('#ReceivedDatepicker').on('cancel.daterangepicker', function () {
+            $(this).val('');
+            receivedTable.draw();
+            loadCharts();
+        });
+        // Assuming your first column (index 0) is Serial No
+        receivedTable.on('draw.dt', function () {
+            var pageInfo = receivedTable.page.info();
+            receivedTable.column(1, { page: 'current' }).nodes().each(function (cell, i) {
+                cell.innerHTML = i + 1 + pageInfo.start;
+            });
+        });
+
+    });
+</script>

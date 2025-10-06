@@ -1,0 +1,320 @@
+﻿
+<!-- GRN Table -->
+<div class="container mt-5 card shadow-sm">
+    <div class="row align-items-center my-3">
+        <!-- 🔹 Date Range Picker (Left aligned) -->
+        <div class="col-md-3">
+            <div class="input-group" style="max-width: 280px;">
+                <span class="input-group-text bg-primary text-white">
+                    <i class="bi bi-calendar-event"></i>
+                </span>
+                <input type="text" id="tblGrn" class="form-control" readonly placeholder="Select Date Range" />
+
+            </div>
+        </div>
+
+        <!--Centered Heading -->
+        <div class="col-md-6 text-center">
+            <h4 class="mb-0">GRN List</h4>
+        </div>
+
+        <!--  Empty right column (optional) -->
+        <div class="col-md-3"></div>
+    </div>
+    <div class="table-responsive mb-3">
+        <table id="grnTable" class="table table-striped table-bordered wrap" style="width:100%">
+            <thead class="table-dark">
+                <tr>
+                    <th><input type="checkbox" id="selectAll" /></th>
+                    <th>Sr No</th>
+                    <th>GRN Code</th>
+                    <th>PO Code</th>
+                    <th>Status</th>
+                    <th>Added Date</th>
+                </tr>
+            </thead>
+
+        </table>
+    </div>
+</div>
+
+<style>
+    #toast-container {
+        z-index: 99999 !important;
+    }
+
+    div.dataTables_wrapper div.dataTables_paginate {
+        text-align: right;
+    }
+</style>
+<script>
+    $(document).ready(function () {
+        //  Initialize Date Range Picker
+        $('#tblGrn').daterangepicker({
+            autoUpdateInput: false,
+            opens: "center",
+            drops: "down",
+            locale: { cancelLabel: 'Clear' },
+            ranges: {
+                'Today': [moment(), moment()],
+                'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                'This Month': [moment().startOf('month'), moment().endOf('month')],
+                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+            }
+        });
+
+        //  Custom filter for "Add Date" column (index 4)
+        $.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
+            if (settings.nTable.id !== 'grnTable') return true;
+
+            const start = $('#tblGrn').data('start');
+            const end = $('#tblGrn').data('end');
+            const addDateStr = data[4];
+
+            if (!addDateStr) return false;
+
+            const addDate = moment(addDateStr, 'YYYY-MM-DD');
+            if (!start || !end) return true;
+
+            return addDate.isSameOrAfter(start) && addDate.isSameOrBefore(end);
+        });
+
+        //  Apply button logic
+        $('#tblGrn').on('apply.daterangepicker', function (ev, picker) {
+            $(this).val(picker.startDate.format('YYYY-MM-DD') + ' - ' + picker.endDate.format('YYYY-MM-DD'));
+            $(this).data('start', picker.startDate);
+            $(this).data('end', picker.endDate);
+            $('#grnTable').DataTable().draw();
+        });
+
+        //  Clear logic
+        $('#tblGrn').on('cancel.daterangepicker', function (ev, picker) {
+            $(this).val('');
+            $(this).removeData('start').removeData('end');
+            $('#grnTable').DataTable().draw();
+        });
+    });
+</script>
+
+<script>
+    $(document).ready(function () {
+
+        // Global Toastr options - define once here for all usage
+        toastr.options = {
+            "closeButton": true,
+            "progressBar": true,
+            "positionClass": "toast-top-right",
+            "timeOut": "3000"
+        };
+
+        const table = $('#grnTable').DataTable({
+            processing: true,
+            serverSide: false,
+            responsive: true,
+
+            dom: '<"d-flex justify-content-between align-items-center mb-2"Bf>rt<"d-flex justify-content-between align-items-center mt-2"ip>',
+
+            ajax: {
+                url: '@Url.Action("GRNShowListPSR", "Quality")',
+                type: 'GET',
+                dataSrc: 'data',
+                error: function (xhr, error, thrown) {
+                    console.log("Ajax Error:", xhr.responseText);
+                    alert("Error: " + xhr.status + " - " + xhr.statusText);
+                }
+            },
+
+            columns: [
+                {
+                    data: null,
+                    orderable: false,
+                    className: 'text-center',
+                    render: function (data, type, row) {
+                        return `<input type="checkbox" class="row-select" value="${row.GRNCode}" />`;
+                    }
+                },
+                {
+                    data: null,
+                    title: 'Sr No',
+                    orderable: false,
+                    searchable: false,
+                    className: 'text-center',
+                    render: function (data, type, row, meta) {
+                        return meta.row + 1;
+                    }
+                },
+                { data: "GRNCode", className: 'text-center' },
+                { data: "POCode", className: 'text-center' },
+                { data: "StatusName", className: 'text-center' },
+                { data: "AddedDate", className: 'text-center' }
+            ],
+
+
+            buttons: [
+
+                //  PRINT
+                {
+                    extend: 'print',
+                    text: '<i class="bi bi-printer-fill text-dark fs-5"></i>',
+                    title: '',
+                    exportOptions: {
+                        rows: function (idx, data, node) {
+                            return $(node).find('.row-select').prop('checked');
+                        },
+                        columns: ':not(:first-child)'
+                    },
+                    action: function (e, dt, button, config) {
+                        const selected = $('input.row-select:checked').length;
+                        if (selected === 0) {
+                            toastr.warning('Please select at least one row before exporting.');
+                            return;
+                        }
+                        $.fn.dataTable.ext.buttons.print.action.call(this, e, dt, button, config);
+                    },
+                    customize: function (win) {
+                        $(win.document.body).css({
+                            'font-size': '12px',
+                            'font-family': 'Arial, sans-serif'
+                        });
+                        $(win.document.body).prepend(`
+                <h3 style="text-align:center;">GRN</h3>
+                <p style="text-align:center;">Generated on: ${moment().format("YYYY-MM-DD")}</p>
+            `);
+                        $(win.document.body).find('table')
+                            .addClass('compact')
+                            .css({
+                                'font-size': '12px',
+                                'border-collapse': 'collapse',
+                                'margin': '0 auto'
+                            });
+                        $(win.document.body).find('thead').css({
+                            'background-color': '#343a40',
+                            'color': 'white'
+                        });
+                        $(win.document.body).find('table th, table td').css({
+                            'border': '1px solid #000',
+                            'padding': '6px',
+                            'text-align': 'center'
+                        });
+                    }
+                },
+
+                //  PDF
+                {
+                    extend: 'pdf',
+                    text: '<i class="bi bi-file-earmark-pdf text-danger fs-5"></i>',
+                    title: 'GRN',
+                    exportOptions: {
+                        rows: function (idx, data, node) {
+                            return $(node).find('.row-select').prop('checked');
+                        },
+                        columns: ':not(:first-child)'
+                    },
+                    action: function (e, dt, button, config) {
+                        const selected = $('input.row-select:checked').length;
+                        if (selected === 0) {
+                            toastr.warning('Please select at least one row before exporting.');
+                            return;
+                        }
+                        $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, button, config);
+                    },
+                    customize: function (doc) {
+                        doc.pageMargins = [40, 60, 40, 40];
+                        doc.styles.title = {
+                            fontSize: 16,
+                            bold: true,
+                            alignment: 'center',
+                            margin: [0, 0, 0, 10]
+                        };
+                        doc.content.splice(1, 0, {
+                            text: `Generated on: ${moment().format("YYYY-MM-DD")}`,
+                            alignment: 'center',
+                            margin: [0, 0, 0, 10],
+                            fontSize: 10,
+                            italics: true
+                        });
+                        const table = doc.content.find(n => n.table);
+                        if (table) {
+                            table.table.widths = Array(table.table.body[0].length).fill('*');
+                            table.layout = {
+                                hLineWidth: () => 0.5,
+                                vLineWidth: () => 0.5,
+                                hLineColor: () => '#aaa',
+                                vLineColor: () => '#aaa',
+                                fillColor: (i) => i === 0 ? '#343a40' : null,
+                                paddingLeft: () => 5,
+                                paddingRight: () => 5
+                            };
+                            table.table.body[0].forEach(cell => {
+                                cell.fillColor = '#343a40';
+                                cell.color = 'white';
+                                cell.alignment = 'center';
+                                cell.fontSize = 11;
+                            });
+                        }
+                    }
+                },
+
+                //  EXCEL
+                {
+                    extend: 'excel',
+                    text: '<i class="bi bi-file-earmark-excel text-success fs-5"></i>',
+                    title: 'GRN',
+                    exportOptions: {
+                        rows: function (idx, data, node) {
+                            return $(node).find('.row-select').prop('checked');
+                        },
+                        columns: ':not(:first-child)'
+                    },
+                    action: function (e, dt, button, config) {
+                        const selected = $('input.row-select:checked').length;
+                        if (selected === 0) {
+                            toastr.warning('Please select at least one row before exporting.');
+                            return;
+                        }
+                        $.fn.dataTable.ext.buttons.excelHtml5.action.call(this, e, dt, button, config);
+                    }
+                },
+
+                //  CSV
+                {
+                    extend: 'csv',
+                    text: '<i class="bi bi-filetype-csv text-success fs-5"></i>',
+                    title: 'GRN',
+                    exportOptions: {
+                        rows: function (idx, data, node) {
+                            return $(node).find('.row-select').prop('checked');
+                        },
+                        columns: ':not(:first-child)'
+                    },
+                    action: function (e, dt, button, config) {
+                        const selected = $('input.row-select:checked').length;
+                        if (selected === 0) {
+                            toastr.warning('Please select at least one row before exporting.');
+                            return;
+                        }
+                        $.fn.dataTable.ext.buttons.csvHtml5.action.call(this, e, dt, button, config);
+                    }
+                }
+
+            ]
+
+        });
+
+        // Select/Deselect all checkboxes
+        $('#selectAll').on('click', function () {
+            const checked = this.checked;
+            $('.row-select').prop('checked', checked);
+        });
+
+        $('#grnTable tbody').on('change', '.row-select', function () {
+            if (!this.checked) {
+                $('#selectAll').prop('checked', false);
+            } else if ($('.row-select:checked').length === $('.row-select').length) {
+                $('#selectAll').prop('checked', true);
+            }
+        });
+    });
+</script>

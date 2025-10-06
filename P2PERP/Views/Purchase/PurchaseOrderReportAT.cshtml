@@ -1,0 +1,674 @@
+﻿@model IEnumerable<P2PLibray.Purchase.Purchase>
+
+
+<div id="pagecontent" class="main-content">
+    <div class="container mt-5">
+        <!-- Date Range Picker -->
+        <div class="row mb-3">
+            <div class="col-md-3">
+                <div class="input-group">
+                    <span class="input-group-text bg-primary text-white">
+                        <i class="bi bi-calendar-event"></i>
+                    </span>
+                    <input type="text" id="dateRange" class="form-control" placeholder="Select Date Range" />
+                </div>
+            </div>
+        </div>
+
+        <!-- Bar Chart + Total -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card p-3 shadow h-100">
+                    <h4 class="text-primary fw-bold text-center mb-3">Purchase Orders by Vendor</h4>
+                    <div id="poBarChart" style="height:400px;"></div>
+                </div>
+            </div>
+        </div>
+
+
+
+        <!-- Toast warning -->
+        <div class="position-fixed top-0 end-0 p-3" style="z-index:1100">
+            <div id="exportToast" class="toast align-items-center text-bg-warning border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body">⚠️ Select at least one row before exporting.</div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="card p-3 shadow">
+            <h3 class="mb-3 text-center text-primary">Purchase Order List</h3>
+            <div class="table-responsive">
+                <table id="poTable" class="table table-striped table-bordered nowrap w-100">
+                    <thead class="table-dark">
+                        <tr>
+                            <th><input type="checkbox" id="selectAll" /></th>
+                            <th>Sr.</th>
+                            <th>PO Code</th>
+                            <th>Vendor Name</th>
+                            <th>Company Name</th>
+                            <th>Added By</th>
+                            <th>Approved By</th>
+                            <th>Approved Date</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var po in Model)
+                        {
+                            <tr>
+                                <td><input type="checkbox" class="rowCheckbox" value="@po.POCode" /></td>
+                                <td></td> <!-- serial number -->
+                                <td>@po.POCode</td>
+                                <td>@po.VendorName</td>
+                                <td>@po.VendorCompanyName</td>
+                                <td>@po.AddedByName</td>
+                                <td>@po.ApprovedRejectedByName</td>
+                                <td>@(po.ApprovedRejectedDateAT.HasValue? po.ApprovedRejectedDateAT.Value.ToString("dd'/'MM'/'yyyy", System.Globalization.CultureInfo.InvariantCulture): "")</td>
+                                <td>
+                                    <span class="@(po.StatusName == "Approved" ? "badge bg-success" :
+                                           po.StatusName == "Rejected" ? "badge bg-danger" : "badge bg-secondary")">
+                                        @po.StatusName
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <button id="btnview" type="button"
+                                            class="btn btn-sm btn-primary view-items"
+                                            data-pocode="@po.POCode">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+@*Modal View*@
+<div class="modal fade" data-bs-backdrop="true" id="poItemsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <div class="w-100 text-center">
+                    <h5 class="modal-title text-white bg-gradient-primary mb-0">Purchase Order Items</h5>
+                </div>
+
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <table id="poItemsTable" class="table table-striped table-bordered w-100">
+                    <thead class="table-dark">
+                        <tr>
+                            <th class="text-center">Item Name</th>
+                            <th class="text-center">Quantity</th>
+                            <th class="text-center">Cost Per Unit</th>
+                            <th class="text-center">Discount</th>
+                            <th class="text-center">Tax Rate</th>
+                            <th class="text-center">Total Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<style>
+    #poTable th, #poTable td {
+        text-align: center !important;
+        vertical-align: middle !important;
+    }
+</style>
+<style>
+    /* Center headings and cells in the modal table */
+    #poItemsTable thead th {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    #poItemsTable tbody td {
+        text-align: center;
+        vertical-align: middle;
+    }
+</style>
+
+
+
+<script>
+    var table, poChart;
+    var startDate = null, endDate = null;
+
+    $(document).ready(function () {
+
+        // Toastr settings
+        toastr.options = {
+            closeButton: true,
+            progressBar: true,
+            preventDuplicates: true,
+            newestOnTop: true,
+            positionClass: "toast-top-right",
+            timeOut: "3000"
+        };
+
+        function showExportToast() {
+            toastr.warning("⚠️ Select at least one row before exporting.");
+        }
+
+        // Initialize DataTable
+
+        table = $('#poTable').DataTable({
+            scrollX: false,
+            autoWidth: false,
+            renderer: 'bootstrap',
+            dom: "<'row mb-2'<'col-6'B><'col-6 text-end'f>>" +
+                "<'row'<'col-12'tr>>" +
+                "<'row mt-2'<'col-5'i><'col-7 text-end'p>>",
+
+            columnDefs: [
+                { targets: 0, orderable: false, searchable: false },
+                { targets: 1, orderable: false, searchable: false },
+                { targets: -1, orderable: false, searchable: false }, // Action column
+                { targets: 5, visible: false, searchable: false }
+            ],
+
+            //color of status
+            createdRow: function (row, data, dataIndex) {
+                var status = data[8]; // Status column index (0-based)
+                if (status === "Approved") {
+                    $('td', row).eq(8).addClass('text-success');
+                } else if (status === "Rejected") {
+                    $('td', row).eq(8).addClass('text-danger');
+                }
+            },
+
+            order: [[9, 'asc'], [2, 'asc']],
+
+            //print
+            buttons: [
+                //print
+                {
+                    extend: 'print',
+                    title: 'RFQ List',
+                    text: '<i class="bi bi-printer-fill text-dark fs-5"></i>',
+                    exportOptions: {
+                        rows: function (idx, data, node) {
+                            return $(node).find('input.rowCheckbox').prop('checked');
+                        },
+                        columns: [1, 2, 3, 4, 5, 6, 7, 8, 9],
+                        format: {
+                            body: function (data, row, column, node) {
+                                if (column === 1) {
+                                    // Serial number based on filtered & checked rows
+                                    var filteredIndexes = table.rows({ filter: 'applied' }).indexes().toArray();
+                                    var checkedIndexes = filteredIndexes.filter(i => {
+                                        var node = table.row(i).node();
+                                        return $(node).find('input.rowCheckbox').prop('checked');
+                                    });
+                                    return checkedIndexes.indexOf(row) + 1;
+                                }
+                                if (typeof data === 'string') return data.replace(/<\/?[^>]+(>|$)/g, "").trim();
+                                return data;
+                            }
+                        }
+                    },
+                    action: function (e, dt, button, config) {
+                        if ($('.rowCheckbox:checked').length === 0) {
+                            showExportToast();
+                            return;
+                        }
+                        $.fn.dataTable.ext.buttons.print.action.call(this, e, dt, button, config);
+                    },
+                    customize: function (win) {
+                        // Center the title
+                        $(win.document.body).find('h1').css({
+                            'text-align': 'center',
+                            'font-size': '16pt'
+                        }).text('RFQ List');
+
+                        // Add export date below the title
+                        var exportDate = new Date().toLocaleDateString('en-GB');
+                        $(win.document.body).find('h1').after('<div style="text-align:center; margin-bottom:10px;">Export Date: ' + exportDate + '</div>');
+
+                        // Style table header black
+                        $(win.document.body).find('table thead').css({
+                            'background-color': '#212529',
+                            'color': '#ffffff',
+                            'text-align': 'center'
+                        });
+
+                        // Center table cells
+                        $(win.document.body).find('table tbody td').css('text-align', 'center');
+                    }
+                },
+
+
+                //pdf
+
+                {
+                    extend: 'pdfHtml5',
+                    title: 'Purchase Order List',
+                    text: '<i class="bi bi-file-earmark-pdf text-danger fs-5"></i>',
+                    orientation: 'landscape',
+                    pageSize: 'A4',
+                    exportOptions: {
+                        rows: function (idx, data, node) {
+                            return $(node).find('input.rowCheckbox').prop('checked');
+                        },
+                        columns: [1, 2, 3, 4, 5, 6, 7, 8], // exclude Action column
+                        format: {
+                            body: function (data, row, column, node) {
+                                // Strip HTML tags
+                                if (typeof data === 'string') {
+                                    data = data.replace(/<\/?[^>]+(>|$)/g, "").trim();
+                                }
+                                return data;
+                            }
+                        }
+                    },
+                    action: function (e, dt, button, config) {
+                        if ($('.rowCheckbox:checked').length === 0) {
+                            showExportToast();
+                            return;
+                        }
+                        $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, button, config);
+                    },
+                    customize: function (doc) {
+                        // Center the title
+                        doc.content[0].alignment = 'center';
+                        doc.content[0].fontSize = 14;
+
+                        // Add export date below title
+                        var exportDate = new Date().toLocaleDateString('en-GB');
+                        doc.content.splice(1, 0, {
+                            text: 'Export Date: ' + exportDate,
+                            alignment: 'center',
+                            margin: [0, 0, 0, 8],
+                            fontSize: 10
+                        });
+
+                        // Table header styling
+                        doc.styles.tableHeader.alignment = 'center';
+                        doc.styles.tableHeader.fillColor = '#212529';
+                        doc.styles.tableHeader.color = '#ffffff';
+                        doc.styles.tableHeader.bold = true;
+
+                        // Add serial numbers in first column
+                        var body = doc.content[doc.content.length - 1].table.body;
+                        for (var i = 1; i < body.length; i++) {
+                            body[i][0].text = i; // first column = serial number
+                            body[i][0].alignment = 'center';
+                        }
+
+                        // Table border layout
+                        var objLayout = {};
+                        objLayout['hLineWidth'] = function () { return 0.5; };
+                        objLayout['vLineWidth'] = function () { return 0.5; };
+                        objLayout['hLineColor'] = function () { return '#aaa'; };
+                        objLayout['vLineColor'] = function () { return '#aaa'; };
+                        objLayout['paddingLeft'] = function () { return 4; };
+                        objLayout['paddingRight'] = function () { return 4; };
+                        doc.content[doc.content.length - 1].layout = objLayout;
+                    }
+                },
+
+
+                // Excel
+                {
+                    extend: 'excelHtml5',
+                    title: 'Purchase Order List',
+                    text: '<i class="bi bi-file-earmark-excel text-success fs-5"></i>',
+                    exportOptions: {
+                        rows: function (idx, data, node) {
+                            return $(node).find('input.rowCheckbox').prop('checked');
+                        },
+                        columns: [1, 2, 3, 4, 5, 6, 7, 8], // exclude Action column
+                        format: {
+                            body: function (data, row, column, node) {
+                                // Serial number column
+                                if (column === 0) return row + 1;
+                                // Remove HTML tags from other cells
+                                if (typeof data === 'string') return data.replace(/<\/?[^>]+(>|$)/g, "").trim();
+                                return data;
+                            }
+                        }
+                    },
+                    action: function (e, dt, button, config) {
+                        if ($('.rowCheckbox:checked').length === 0) {
+                            showExportToast();
+                            return;
+                        }
+                        $.fn.dataTable.ext.buttons.excelHtml5.action.call(this, e, dt, button, config);
+                    }
+                },
+
+                // CSV
+                {
+                    extend: 'csvHtml5',
+                    title: 'Purchase Order List',
+                    text: '<i class="bi bi-filetype-csv text-success fs-5"></i>',
+                    exportOptions: {
+                        rows: function (idx, data, node) {
+                            return $(node).find('input.rowCheckbox').prop('checked');
+                        },
+                        columns: [1, 2, 3, 4, 5, 6, 7, 8], // exclude Action column
+                        format: {
+                            body: function (data, row, column, node) {
+                                // Serial number column
+                                if (column === 0) return row + 1;
+                                // Remove HTML tags from other cells
+                                if (typeof data === 'string') return data.replace(/<\/?[^>]+(>|$)/g, "").trim();
+                                return data;
+                            }
+                        }
+                    },
+                    action: function (e, dt, button, config) {
+                        if ($('.rowCheckbox:checked').length === 0) {
+                            showExportToast();
+                            return;
+                        }
+                        $.fn.dataTable.ext.buttons.csvHtml5.action.call(this, e, dt, button, config);
+                    }
+                },
+
+                'colvis'
+            ]
+        });
+
+
+        // Date filter (Approved Date index 7)
+        //$.fn.dataTable.ext.search.push(function (settings, data) {
+        //    var approveDateStr = data[7];
+        //    if (!approveDateStr || approveDateStr === '-') return true;
+        //    var parts = approveDateStr.split("-");
+        //    var approveDate = new Date(parts[2], parts[1] - 1, parts[0]);
+        //    if (startDate && approveDate < startDate) return false;
+        //    if (endDate && approveDate > endDate) return false;
+        //    return true;
+        //});
+        $.fn.dataTable.ext.search.push(function (settings, data) {
+            var approveDateStr = data[7]; // Approved Date column
+            if (!approveDateStr) return true;
+
+            // Split by slash '/' since your date format is dd/MM/yyyy
+            var parts = approveDateStr.split("/");
+            if (parts.length !== 3) return true;
+
+            var approveDate = new Date(parts[2], parts[1] - 1, parts[0]);
+            approveDate.setHours(0, 0, 0, 0);
+
+            var s = startDate ? new Date(startDate) : null;
+            var e = endDate ? new Date(endDate) : null;
+            if (s) s.setHours(0, 0, 0, 0);
+            if (e) e.setHours(0, 0, 0, 0);
+
+            if (s && approveDate < s) return false;
+            if (e && approveDate > e) return false;
+
+            return true;
+        });
+
+
+
+
+        // Fill serial number
+        table.on('draw.dt', function () {
+            var pageInfo = table.page.info();
+            table.column(1, { page: 'current' }).nodes().each(function (cell, i) {
+                cell.innerHTML = pageInfo.start + i + 1;
+            });
+        }).draw();
+
+        // Checkbox logic
+        $(document).on('change', '#selectAll', function () {
+            $('.rowCheckbox').prop('checked', this.checked);
+        });
+        $(document).on('change', '.rowCheckbox', function () {
+            $('#selectAll').prop('checked', $('.rowCheckbox:checked').length === $('.rowCheckbox').length);
+        });
+
+        // Date Range Picker
+        $('#dateRange').daterangepicker({
+            autoUpdateInput: false,
+            locale: {
+                cancelLabel: 'Clear',
+                format: 'DD-MM-YYYY',
+                applyLabel: 'Apply'
+            },
+            ranges: {
+                'Today': [moment(), moment()],
+                'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                'Last 1 Month': [moment().subtract(1, 'months'), moment()],
+                'Last 3 Months': [moment().subtract(3, 'months'), moment()],
+                'Last 1 Year': [moment().subtract(12, 'months'), moment()]
+            }
+        }, function (start, end) {
+            startDate = start.toDate();
+            endDate = end.toDate();
+            $('#dateRange').val(start.format('DD-MM-YYYY') + ' - ' + end.format('DD-MM-YYYY'));
+            table.draw();
+        });
+        $('#dateRange').on('cancel.daterangepicker', function () {
+            $(this).val('Select Date Range');
+            startDate = endDate = null;
+            table.draw();
+        });
+        $('#dateRange').val('Select Date Range');
+
+        // Highcharts Bar Chart
+        function buildBarChart(data) {
+            var categories = []; // Vendor names
+            var counts = [];     // PO counts
+            var totalCount = 0;
+
+            for (var key in data) {
+                categories.push(key);
+                counts.push(data[key]);
+                totalCount += data[key];
+            }
+
+            poChart = Highcharts.chart('poBarChart', {
+                chart: { type: 'column' },
+                title: { text: '' },
+                xAxis: { categories: categories, title: { text: 'Vendors' } },
+                yAxis: {
+                    min: 0,
+                    title: { text: 'PO Count' },
+                    allowDecimals: false
+                },
+                tooltip: {
+                    pointFormat: 'PO Count: <b>{point.y}</b>'
+                },
+                plotOptions: {
+                    column: {
+                        cursor: 'pointer',
+                        dataLabels: { enabled: true },
+                        events: {
+                            click: function () { console.log('column clicked'); }
+                        }
+                    },
+                    series: {
+                        point: {
+                            events: {
+                                click: function () {
+                                    var vendorName = this.category;
+                                    table.column(3).search(vendorName).draw();
+                                }
+                            }
+                        }
+                    }
+                },
+                series: [{ name: 'PO Count', data: counts, colorByPoint: true }]
+            });
+
+            // Optional: show total count above chart
+            if (poChart.totalLabel) poChart.totalLabel.destroy();
+            poChart.totalLabel = poChart.renderer.text(
+                'Total: ' + totalCount,
+                20, 20
+            ).css({ color: '#000', fontSize: '20px', fontWeight: 'bold' }).add();
+        }
+
+        // Update chart based on filtered table
+        function updateBarChart() {
+            var vendorCounts = {}, totalCount = 0;
+
+            table.rows({ filter: 'applied' }).every(function () {
+                var vendor = this.data()[3] || "Unknown";
+                vendorCounts[vendor] = (vendorCounts[vendor] || 0) + 1;
+                totalCount++;
+            });
+
+            var categories = [];
+            var counts = [];
+            for (var key in vendorCounts) {
+                categories.push(key);
+                counts.push(vendorCounts[key]);
+            }
+
+            if (poChart) {
+                poChart.xAxis[0].setCategories(categories, false);
+                poChart.series[0].setData(counts, true);
+
+                if (poChart.totalLabel) poChart.totalLabel.destroy();
+                poChart.totalLabel = poChart.renderer.text(
+                    'Total: ' + totalCount,
+                    20, 20
+                ).css({ color: '#000', fontSize: '20px', fontWeight: 'bold' }).add();
+            } else {
+                buildBarChart(vendorCounts);
+            }
+        }
+
+        // Initial chart build and redraw on table draw
+        updateBarChart();
+        table.on('draw', function () { updateBarChart(); });
+
+        // Reset chart and table on double-click
+        $('#poBarChart').on('dblclick', function () {
+            // Clear DataTable filter
+            table.column(3).search('').draw();
+
+            // Rebuild chart based on full table data
+            updateBarChart();
+        });
+
+
+
+
+
+
+
+
+
+        // View Modal Button
+        $('#poTable').on('click', '.view-items', function () {
+            var poCode = $(this).data('pocode');
+
+            $.ajax({
+                url: '/Purchase/GetPOItems',
+                type: 'GET',
+                data: { poCode: poCode },
+                success: function (response) {
+                    if (response.success) {
+                        if ($.fn.DataTable.isDataTable('#poItemsTable')) $('#poItemsTable').DataTable().clear().destroy();
+                        $('#poItemsTable tbody').empty();
+                        $.each(response.data, function (i, item) {
+                            $('#poItemsTable tbody').append(
+                                `<tr>
+                                    <td>${item.ItemName}</td>
+                                    <td>${item.UnitQuantity}</td>
+                                    <td>${item.CostPerUnit}</td>
+                                    <td>${item.Discount}</td>
+                                    <td>${item.TaxRate}</td>
+                                    <td>${item.FinalAmount}</td>
+                                </tr>`
+                            );
+                        });
+
+
+                        $('#poItemsTable').DataTable({ scrollX: true, paging: true, searching: true, ordering: true });
+
+                        new bootstrap.Modal(document.getElementById('poItemsModal')).show();
+                    } else { alert('No items found for this PO.'); }
+                },
+                error: function () { alert('Error fetching PO items.'); }
+
+            });
+        });
+
+
+        $('#poTable').on('click', '.view-items', function () {
+            var poCode = $(this).data('pocode');
+
+            $.ajax({
+                url: '/Purchase/GetPOItems',
+                type: 'GET',
+                data: { poCode: poCode },
+                success: function (response) {
+                    if (response.success) {
+                        // 🔹 Destroy & clean up existing DataTable
+                        if ($.fn.DataTable.isDataTable('#poItemsTable')) {
+                            $('#poItemsTable').DataTable().clear().destroy();
+                            // Remove DT-generated wrapper markup
+                            $('#poItemsTable').find('thead').find('tr').find('th').removeClass('sorting sorting_asc sorting_desc');
+                        }
+
+                        // 🔹 Rebuild rows
+                        $('#poItemsTable tbody').empty();
+                        $.each(response.data, function (i, item) {
+                            $('#poItemsTable tbody').append(
+                                `<tr>
+                            <td>${item.ItemName}</td>
+                            <td>${item.UnitQuantity}</td>
+                            <td>₹${item.CostPerUnit}</td>
+                            <td>${item.Discount}</td>
+                            <td>${item.TaxRate}</td>
+                            <td>₹${item.FinalAmount}</td>
+                        </tr>`
+                            );
+                        });
+
+                        // 🔹 Initialise DataTable again with center alignment & no length/info
+                        $('#poItemsTable').DataTable({
+                            scrollX: true,
+                            paging: false,
+                            searching: false,
+                            ordering: false,
+                            lengthChange: false,  // hide "Show X entries"
+                            info: false,          // hide "Showing 1 to X"
+                            destroy: true,        // <-- this allows reinit safely
+                            columnDefs: [
+                                { className: 'text-center', targets: '_all' } // center everything
+                            ]
+                        });
+
+                        // 🔹 Show modal
+                        new bootstrap.Modal(document.getElementById('poItemsModal')).show();
+                    } else {
+                        alert('No items found for this PO.');
+                    }
+                },
+                error: function () {
+                    alert('Error fetching PO items.');
+                }
+            });
+        });
+
+
+    });
+</script>
+

@@ -1,0 +1,304 @@
+﻿@{
+    ViewBag.Title = "Inspection Form";
+    Layout = null; // Important for modal partial
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewBag.Title</title>
+
+    <style>
+        #ncModal::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 1045;
+            display: none;
+        }
+
+        #ncModal.show::before {
+            display: block;
+        }
+
+        #ncModal .modal-dialog {
+            z-index: 1050;
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-3">
+
+        <div class="card shadow-lg border-0 rounded-4">
+            <div class="card-body p-4">
+                <form class="row g-4">
+                    <input type="hidden" id="itemcode" value="@ViewBag.ItemCode" />
+                    <input type="hidden" id="GRNItemCode" value="@ViewBag.GRNItemCode" />
+
+                    <!-- GRN & Item Type -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">GRN No</label>
+                        <input type="text" class="form-control" id="GRN" value="@ViewBag.GRN" readonly>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Item Type</label>
+                        <input type="text" class="form-control" value="@ViewBag.ItemType" readonly>
+                    </div>
+
+                    <!-- Item & Plan -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Item Name</label>
+                        <input type="text" class="form-control" value="@ViewBag.ItemName" readonly>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Plan Name</label>
+                        <input type="text" class="form-control" value="@ViewBag.PlanName">
+                    </div>
+
+                    <!-- Parameters & Inspection -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Parameters</label>
+                        <input type="text" class="form-control" id="parameter" value="@ViewBag.Parameters">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Inspection Type</label>
+                        <input type="text" class="form-control" value="@ViewBag.InspectionType">
+                    </div>
+
+                    <!-- Assigned Date -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Assigned Date</label>
+                        <input type="text" class="form-control" value="@ViewBag.AddedDate" readonly>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Quantity</label>
+                        <input type="text" class="form-control" value="@ViewBag.Quantity" readonly>
+                    </div>
+
+                    <!-- Frequency & Sample -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Inspection Frequency</label>
+                        <input type="number" id="txtinspfreq" class="form-control" placeholder="Enter Inspection Frequency" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Sample Quality Checked</label>
+                        <input type="number" id="txtSamplequalitycheck" class="form-control" placeholder="Enter Sample Quality" />
+                    </div>
+
+                    <!-- Parameter Table -->
+                    <div class="col-12">
+                        <div class="table-responsive mt-3">
+                            <table class="table table-striped table-hover table-bordered align-middle text-center" id="paramTable">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th style="width:10%">Sr No</th>
+                                        <th>Parameter</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Buttons -->
+                    <div class="col-12 d-flex justify-content-end gap-2 mt-3">
+                        <button type="button" class="btn btn-success px-4" onclick="confirmModal()">
+                            <i class="bi bi-check-circle me-1"></i> Confirm
+                        </button>
+                        <button type="button" class="btn btn-warning text-white px-4" onclick="InitiateNc()">
+                            <i class="bi bi-exclamation-triangle me-1"></i> Initiate NC
+                        </button>
+                      
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- NonConfirm Modal -->
+        <div class="modal fade" data-bs-backdrop="false" id="ncModal" tabindex="-1" aria-labelledby="ncModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+                <div class="modal-content shadow-lg rounded-4">
+                    <div class="modal-header bg-primary text-white position-relative">
+                        <h4 class="modal-title w-100 text-center text-white" id="ncModalLabel">
+                            Non Confirmation Form
+                        </h4>
+                        <button type="button" class="btn-close btn-close-white position-absolute end-0 me-3" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body" id="ncModalBody">
+                        <div class="text-center text-muted">Loading...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* Scripts *@
+    <script>
+        // (Your existing jQuery/AJAX scripts here...)
+    </script>
+    <script>
+        // Load parameter list
+        $(document).ready(function () {
+            var id = $('#itemcode').val();
+
+            $.ajax({
+                url: '/Quality/ParameterTableRG',
+                type: 'GET',
+                dataType: 'json',
+                data: { id: id },
+                success: function (res) {
+                    $('#tbody').empty();
+
+                    if (res && res.length > 0) {
+                        res.forEach((item, index) => {
+                            $('#tbody').append(`
+                                <tr>
+                                    <td class="text-center">${index + 1}</td>
+                                    <td>${item.Parameters || ''}</td>
+                                </tr>
+                            `);
+                        });
+                    } else {
+                        $('#tbody').append('<tr><td colspan="2" class="text-center text-muted">No parameters found</td></tr>');
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error fetching parameters:", error);
+                    $('#tbody').html(`<tr><td colspan="2" class="text-danger text-center">Failed to load parameters</td></tr>`);
+                }
+            });
+        });
+
+        // Confirm QC
+        function confirmModal() {
+            var id = $('#GRNItemCode').val();
+            var sqc = $('#txtSamplequalitycheck').val();
+            var Inf = $('#txtinspfreq').val();
+            var GRNCode = $('#GRN').val();
+
+            if (!sqc || !Inf) {
+                Swal.fire("⚠️ Missing Data", "Please enter Inspection Frequency and Sample Quality Checked.", "warning");
+                return;
+            }
+
+            $.ajax({
+                url: '/Quality/qualitycheckitemRG',
+                type: 'POST',
+                data: { id: id, sqc: sqc, Inf: Inf, GRNCode: GRNCode },
+                success: function () {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Updated Successfully',
+                        showConfirmButton: false,
+                        timer: 1500,
+                        timerProgressBar: true
+                    });
+
+                    setTimeout(() => {
+                        // 1️⃣ Close modal
+                        closeModal();
+
+                        // 2️⃣ Refresh GRN table
+                        initGrnTable();
+
+                        const grnCode = $("#GRN").val();
+                        if (grnCode) {
+                            $("#grnGridSection").hide();
+                            $("#taskSection").show();
+
+                            // ✅ Directly load Completed tab with GRNCode
+                            new bootstrap.Tab($('#completed-task-tab')).show();
+                            $("#completedTaskContent").load(`/Quality/CompletedTaskListRG?id=${grnCode}`);
+                        }
+                        
+                    }, 1500);
+                },
+                error: function () {
+                    Swal.fire("❌ Error", "Failed to update.", "error");
+                }
+            });
+        }
+
+        // Initiate NC
+        function InitiateNc() {
+            var GRIcode = $('#GRNItemCode').val();
+            var sqc = $('#txtSamplequalitycheck').val();
+            var Inf = $('#txtinspfreq').val();
+            var itemcode = $('#itemcode').val();
+
+            if (!sqc || !Inf) {
+                Swal.fire("⚠️ Missing Data", "Please enter Inspection Frequency and Sample Quality Checked before initiating NC.", "warning");
+                return;
+            }
+
+            $.ajax({
+                url: '/Quality/NonconfirmRG',
+                type: 'GET',
+                dataType: 'html',
+                data: { GRIcode: GRIcode, sqc: sqc, Inf: Inf, itemcode: itemcode },
+                success: function (resp) {
+                    $('#ncModalBody').html(resp);
+
+                    var ncModalEl = document.getElementById('ncModal');
+                    var ncModal = new bootstrap.Modal(ncModalEl);
+                    ncModal.show();
+
+                    // ✅ Show custom backdrop automatically
+                    $(ncModalEl).addClass("show");
+
+                    $('#ncModal').on('hidden.bs.modal', function () {
+                        $(this).removeClass("show");
+                    });
+
+                    initGrnTable();
+                },
+                error: function () {
+                    Swal.fire("❌ Error", "Failed to load Non-confirmation form.", "error");
+                }
+            });
+        }
+
+
+        // Close both modals if open
+        function closeModal() {
+            var inspecModalEl = window.parent.document.getElementById('inspecModal');
+            if (inspecModalEl) {
+                var inspecModal = bootstrap.Modal.getInstance(inspecModalEl);
+                if (inspecModal) inspecModal.hide();
+            }
+
+            var ncModalEl = document.getElementById('ncModal');
+            if (ncModalEl) {
+                var ncModal = bootstrap.Modal.getInstance(ncModalEl);
+                if (ncModal) ncModal.hide();
+            }
+        }
+
+
+    </script>
+
+    <script>
+        // Multiple modal backdrop fix
+        $(document).on('hidden.bs.modal', '.modal', function () {
+            if ($('.modal.show').length) {
+                $('body').addClass('modal-open');
+            }
+        });
+
+        // Ensure z-index for stacked modals
+        $(document).on('show.bs.modal', '.modal', function () {
+            const zIndex = 1050 + (10 * $('.modal:visible').length);
+            $(this).css('z-index', zIndex);
+            setTimeout(() => {
+                $('.modal-backdrop')
+                    .not('.modal-stack')
+                    .css('z-index', zIndex - 1)
+                    .addClass('modal-stack');
+            }, 0);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,136 @@
+﻿@{
+    ViewBag.Title = "ShowRejectedPR";
+}
+
+<!-- ✅ CSS: Bootstrap + DataTables -->
+<!--<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+<link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet" />-->
+
+<div class="container mt-4">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="text-danger fw-bold">Rejected PR List</h2>
+    </div>
+
+    <!-- Data Table -->
+    <div class="table-responsive">
+        <table id="rejectedPRTable" class="table table-bordered table-hover align-middle shadow-sm">
+            <thead class="table-dark text-center">
+                <tr>
+                    <th>PR Code</th>
+                    <th>Added Date</th>
+                    <th>Approved/Rejected Date</th>
+                    <th>Status</th>
+                    <th>Priority</th>
+                    <th>Description</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody class="text-center"></tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+    .modal-backdrop {
+        display: none;
+    }
+</style>
+
+<!-- Modal for PR Items -->
+<div class="modal fade" id="prModal" tabindex="-1" aria-labelledby="prModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-danger">Purchase Requisition Rejected Items</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="prModalBody">
+                <!-- Partial view will load here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ✅ JS: jQuery + Bootstrap + DataTables -->
+<!--<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>-->
+
+<script>
+    $(document).ready(function () {
+        let table = null;
+
+        // Load rejected PR list
+        $.ajax({
+            url: '/Purchase/ShowRejectPRK',
+            type: 'GET',
+            success: function (data) {
+                let $tbody = $('#rejectedPRTable tbody');
+                $tbody.empty();
+
+                if (!data || data.length === 0) {
+                    $tbody.append('<tr><td colspan="7" class="text-center text-muted">No records found</td></tr>');
+                    return;
+                }
+
+                data.forEach(i => {
+                    $tbody.append(`
+                        <tr>
+                            <td><span class="badge bg-primary">${i.PRCode}</span></td>
+                            <td>${i.AddedDate}</td>
+                            <td>${i.ApprovedRejectedDate}</td>
+                            <td><span class="badge bg-info text-dark">${i.StatusName}</span></td>
+                            <td><span class="badge bg-warning text-dark">${i.Priority}</span></td>
+                            <td>${i.Description}</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-danger btnAction" data-id="${i.PRCode}">
+                                    <i class="bi bi-eye"></i> View
+                                </button>
+                            </td>
+                        </tr>
+                    `);
+                });
+
+                // Initialize or Re-initialize DataTables
+                if ($.fn.DataTable.isDataTable('#rejectedPRTable')) {
+                    table.destroy(); // Destroy existing
+                }
+
+                table = $('#rejectedPRTable').DataTable({
+                    paging: true,
+                    searching: true,
+                    ordering: true,
+                    responsive: true,
+                    language: {
+                        searchPlaceholder: "Search PR..."
+                    }
+                });
+            },
+            error: function () {
+                alert("⚠ Error loading rejected PR list");
+            }
+        });
+
+        // View PR Items in Modal
+        $(document).on("click", ".btnAction", function () {
+            let prCode = $(this).data("id");
+            $.ajax({
+                url: '/Purchase/ShowRejectedPRItemPRK',
+                type: 'GET',
+                data: { prCode: prCode },
+                success: function (partialView) {
+                    $("#prModalBody").html(partialView);
+                    const modalEl = document.getElementById("prModal");
+                    const bsModal = new bootstrap.Modal(modalEl);
+                    bsModal.show();
+                },
+                error: function () {
+                    alert("⚠ Error loading PR items");
+                }
+            });
+        });
+    });
+</script>

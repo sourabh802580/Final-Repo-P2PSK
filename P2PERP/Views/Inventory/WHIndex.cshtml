@@ -1,0 +1,67 @@
+﻿
+
+<ul class="nav nav-pills container nav-justified " id="warehousesTabs" role="tablist">
+    <li class="nav-item card shadow" role="presentation">
+        <button class="nav-link active" id="warehouse-tab" data-bs-toggle="tab" data-bs-target="#warehouse" type="button" role="tab">
+            Warehouse
+        </button>
+    </li>
+    <li class="nav-item card shadow" role="presentation">
+        <button class="nav-link" id="section-tab" data-bs-toggle="tab" data-bs-target="#section" type="button" role="tab">
+            Section
+        </button>
+    </li>
+    <li class="nav-item card shadow" role="presentation">
+        <button class="nav-link" id="rack-tab" data-bs-toggle="tab" data-bs-target="#rack" type="button" role="tab">
+            Rack
+        </button>
+    </li>
+    <li class="nav-item card shadow" role="presentation">
+        <button class="nav-link" id="row-tab" data-bs-toggle="tab" data-bs-target="#row" type="button" role="tab">
+            Row
+        </button>
+    </li>
+    <li class="nav-item card shadow" role="presentation">
+        <button class="nav-link" id="bin-tab" data-bs-toggle="tab" data-bs-target="#bin" type="button" role="tab">
+            Bin
+        </button>
+    </li>
+</ul>
+
+@*-------------------------------CONTAINER FOR TABS---------------*@
+<div class="tab-content container mt-3" id="warehousesTabsContent">
+    <!-- Warehouse Tab -->
+    <div class="tab-pane fade show active" id="warehouse" role="tabpanel" aria-labelledby="warehouse-tab">
+        <div class="card p-3 shadow-sm">
+            @Html.Partial("_WarehouseSK")
+        </div>
+    </div>
+
+    <!-- Section Tab -->
+    <div class="tab-pane fade" id="section" role="tabpanel" aria-labelledby="section-tab">
+        <div class="card p-3 shadow-sm">
+            @Html.Partial("_SectionSK")
+        </div>
+    </div>
+
+    <!-- Rack Tab -->
+    <div class="tab-pane fade" id="rack" role="tabpanel" aria-labelledby="rack-tab">
+        <div class="card p-3 shadow-sm">
+            @Html.Partial("_RackSK")
+        </div>
+    </div>
+
+    <!-- Row Tab -->
+    <div class="tab-pane fade" id="row" role="tabpanel" aria-labelledby="row-tab">
+        <div class="card p-3 shadow-sm">
+            @Html.Partial("_RowSK")
+        </div>
+    </div>
+
+    <!-- Bin Tab -->
+    <div class="tab-pane fade" id="bin" role="tabpanel" aria-labelledby="bin-tab">
+        <div class="card p-3 shadow-sm">
+            @Html.Partial("_BinSK")
+        </div>
+    </div>
+</div>
