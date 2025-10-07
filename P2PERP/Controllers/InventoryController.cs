@@ -155,7 +155,7 @@ namespace P2PERP.Controllers
                     InventoryDRB ReceiveMaterial = new InventoryDRB
                     {
                         GRNCode = dr["GRNCode"].ToString(),
-                        AddedDate = Convert.ToDateTime(dr["AddedDate"]).ToString("yyyy-MM-dd"),
+                        AddedDate = Convert.ToDateTime(dr["AddedDate"]).ToString("dd/MM/yyyy"),
                         StatusName = dr["StatusName"].ToString(),
                     };
 
