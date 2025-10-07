@@ -1023,17 +1023,29 @@ namespace P2PERP.Controllers
         [HttpPost]
         public async Task<ActionResult> CreatePR(PurchaseHeader purchase)
         {
+
             var validationMessage = ValidatePurchase(purchase);
+
             if (!string.IsNullOrEmpty(validationMessage))
             {
-                ModelState.AddModelError("", validationMessage);
-                return View(purchase); // return same view with validation messages
+                // Determine which field caused the error
+                string fieldName = "";
+                if (string.IsNullOrWhiteSpace(purchase.PRCode))
+                    fieldName = "PRCode";
+                else if (purchase.RequiredDate == DateTime.MinValue || purchase.RequiredDate < DateTime.Today)
+                    fieldName = "ToDate";
+                else if (purchase.PriorityId <= 0)
+                    fieldName = "PriorityId";
+                else if (string.IsNullOrWhiteSpace(purchase.Description))
+                    fieldName = "Description";
+
+                return Json(new { success = false, message = validationMessage, field = fieldName });
             }
 
             purchase.AddedBy = Session["StaffCode"].ToString();
             await bal.CreatePR(purchase);
-            TempData["Success"] = "Purchase Requisition created successfully!";
-            return RedirectToAction("CreatePR");
+
+            return Json(new { success = true });
         }
         private string ValidatePurchase(PurchaseHeader purchase)
         {
