@@ -212,7 +212,7 @@
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label fw-bold">Expected Date</label>
-                                    <input type="date" id="ExpectedDate" name="ExpectedDate" class="form-control" readonly />
+                                    <input type="text" id="ExpectedDate" class="form-control" readonly placeholder="DD/MM/YYYY" />
                                 </div>
                             </div>
 
@@ -1158,18 +1158,50 @@
                         ]
                     });
 
-                    if (items.length > 0 && items[0].RequiredDate) {
-                        let rawDate = items[0].RequiredDate;
+                 
+                   /* let rawDate = items[0].RequiredDate;
+                    let jsDate;
 
-                        let timestamp = rawDate.includes("/Date")
-                            ? parseInt(rawDate.replace(/[^0-9]/g, ''))
-                            : Date.parse(rawDate);
-
-                        if (!isNaN(timestamp)) {
-                            let formatted = moment(timestamp).format('YYYY-DD-MM');
-                            $('#ExpectedDate').val(formatted);
-                        }
+                    if (typeof rawDate === "string" && rawDate.includes("/Date")) {
+                        let timestamp = parseInt(rawDate.match(/\d+/)[0], 10);
+                        jsDate = new Date(timestamp);
+                    } else {
+                        jsDate = new Date(rawDate);
                     }
+
+                    if (!isNaN(jsDate)) {
+                        let yyyy = jsDate.getFullYear();
+                        let mm = String(jsDate.getMonth() + 1).padStart(2, "0");
+                        let dd = String(jsDate.getDate()).padStart(2, "0");
+
+                        $("#ExpectedDate").val(`${yyyy}-${mm}-${dd}`);
+
+                    }*/
+
+                    let rawDate = items[0].RequiredDate;
+                    let jsDate;
+
+                    if (typeof rawDate === "string" && rawDate.includes("/Date")) {
+                        let timestamp = parseInt(rawDate.match(/\d+/)[0], 10);
+                        jsDate = new Date(timestamp);
+                    } else {
+                        jsDate = new Date(rawDate);
+                    }
+
+                    if (!isNaN(jsDate)) {
+                        let dd = String(jsDate.getDate()).padStart(2, "0");
+                        let mm = String(jsDate.getMonth() + 1).padStart(2, "0");
+                        let yyyy = jsDate.getFullYear();
+
+                        // Set value in DD/MM/YYYY format
+                        $("#ExpectedDate").val(`${dd}/${mm}/${yyyy}`);
+                    }
+
+
+
+                   
+
+
 
                     $("#rfqModal").modal("show");
 
