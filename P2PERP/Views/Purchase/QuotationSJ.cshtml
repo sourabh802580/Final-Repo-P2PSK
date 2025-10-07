@@ -1158,25 +1158,6 @@
                         ]
                     });
 
-                 
-                   /* let rawDate = items[0].RequiredDate;
-                    let jsDate;
-
-                    if (typeof rawDate === "string" && rawDate.includes("/Date")) {
-                        let timestamp = parseInt(rawDate.match(/\d+/)[0], 10);
-                        jsDate = new Date(timestamp);
-                    } else {
-                        jsDate = new Date(rawDate);
-                    }
-
-                    if (!isNaN(jsDate)) {
-                        let yyyy = jsDate.getFullYear();
-                        let mm = String(jsDate.getMonth() + 1).padStart(2, "0");
-                        let dd = String(jsDate.getDate()).padStart(2, "0");
-
-                        $("#ExpectedDate").val(`${yyyy}-${mm}-${dd}`);
-
-                    }*/
 
                     let rawDate = items[0].RequiredDate;
                     let jsDate;
@@ -2274,27 +2255,24 @@
 
         // Handle Send button
         $(document).on("click", "#btnSendToSelected", function () {
-            // collect checked vendors
-            const selectedVendors = $(".row-select:checked")
-                .map(function () {
-                    return $(this).val();
-                })
-                .get(); // converts jQuery collection to array
+            var selectedVendors = [];
+            $(".row-select:checked").each(function () {
+                selectedVendors.push($(this).val());
+            });
 
-            // if none selected, show warning and stop
             if (selectedVendors.length === 0) {
                 Swal.fire({
                     icon: 'warning',
                     title: 'No Vendors Selected',
-                    text: 'Please select at least one vendor before sending.',
+                    text: 'Please select at least one vendor.',
                     confirmButtonText: 'OK'
                 });
-                return false; // stop execution completely
+                return; // stop execution if no vendors selected
             }
 
             console.log("Selected Vendors:", selectedVendors);
 
-            // show loading alert
+            // Only show loading alert if at least one vendor is selected
             Swal.fire({
                 title: 'Sending RFQ...',
                 text: 'Please wait while emails are being sent to selected vendors.',
@@ -2304,7 +2282,6 @@
                 }
             });
 
-            // AJAX call
             $.ajax({
                 url: "/Purchase/SendRFQToVendorsSJ",
                 type: "POST",
@@ -2320,12 +2297,12 @@
                         title: 'Success!',
                         text: 'RFQ sent successfully to selected vendors!',
                         showConfirmButton: false,
-                        timer: 1200,
+                        timer: 1000,
                         timerProgressBar: true,
                         didClose: () => {
                             $("#vendorContainer").hide();
                             $("#rfqList").show();
-                            loadAllRFQ();
+                            loadAllRFQ();  // reload the data
                         }
                     });
                 },
@@ -2339,9 +2316,8 @@
                     console.error(xhr.responseText);
                 }
             });
+
         });
-
-
 
             // Load Country
          $.getJSON('@Url.Action("GetCountriesSJ", "Purchase")', function (countrieslst) {
