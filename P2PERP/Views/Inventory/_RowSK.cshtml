@@ -121,7 +121,7 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-outline-danger px-4" data-bs-dismiss="modal">
+                <button type="button" class="btn btn-outline-danger bg-danger text-white px-4" data-bs-dismiss="modal">
                     <i class="bi bi-x-circle me-2"></i>Close
                 </button>
                 <button type="submit" form="rowForm" class="btn btn-success px-4" id="saveRow">
@@ -265,12 +265,11 @@
             },
             dom: '<"d-flex justify-content-between align-items-center mt-1 mb-2"Bf>rt<"d-flex justify-content-between mt-2"<"datatable-info"i><"datatable-pagination"p>>',
             buttons: [
-
                 // --- Print ---
                 {
                     extend: 'print',
                     text: '<i class="bi bi-printer-fill text-dark fs-5"></i>',
-                    title: 'Row List',
+                    title: '',
                     exportOptions: {
                         columns: ':visible:not(:first-child):not(:last-child)',
                         rows: function (idx, data, node) {
@@ -282,21 +281,20 @@
                             toastr.warning("Please select at least one row before printing.", "No Selection");
                             return;
                         }
-
-                        var newConfig = $.extend({}, config, {
-                            exportOptions: {
-                                columns: config.exportOptions.columns,
-                                modifier: {
-                                    selected: null
-                                },
-                                rows: function (idx, data, node) {
-                                    return selectedRowIds.has(data.RowId.toString());
-                                }
-                            }
-                        });
-                        $.fn.dataTable.ext.buttons.print.action.call(this, e, dt, button, newConfig);
+                        $.fn.dataTable.ext.buttons.print.action.call(this, e, dt, button, config);
                     },
                     customize: function (win) {
+                        let serialNumber = 1;
+                        $(win.document.body).find('table tbody tr').each(function() {
+                            $(this).find('td:eq(0)').text(serialNumber++);
+                        });
+
+                        $(win.document.body).prepend(
+                            '<h2 style="text-align: center; margin-bottom: 10px;">Row List</h2>' +
+                            '<p style="text-align: center; margin-bottom: 20px; color: #666;">Generated on: ' + new Date().toLocaleDateString("en-GB") + '</p>' +
+                            '<hr style="margin-bottom: 20px;">'
+                        );
+
                         $(win.document.body).find('table')
                             .css('border', '1px solid black')
                             .css('border-collapse', 'collapse')
@@ -310,16 +308,15 @@
                     }
                 },
 
-
                 // --- PDF ---
                 {
                     extend: 'pdfHtml5',
                     text: '<i class="bi bi-file-earmark-pdf text-danger fs-5"></i>',
-                    title: 'Row List',
+                    title: '',
                     exportOptions: {
                         columns: ':visible:not(:first-child):not(:last-child)',
                         rows: function (idx, data, node) {
-                            return selectedRowIds.has(data.RowId);
+                            return selectedRowIds.has(data.RowId.toString());
                         }
                     },
                     action: function (e, dt, button, config) {
@@ -330,19 +327,105 @@
                         $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, button, config);
                     },
                     customize: function (doc) {
-                        doc.styles.tableHeader.fillColor = 'black';
-                        doc.styles.tableHeader.color = 'white';
-                        doc.styles.tableHeader.alignment = 'center';
-                        doc.styles.tableHeader.bold = true;
+                        let selectedData = [];
+                        $('#rowTable').DataTable().rows().every(function() {
+                            let rowData = this.data();
+                            if (selectedRowIds.has(rowData.RowId.toString())) {
+                                selectedData.push(rowData);
+                            }
+                        });
 
-                        var objLayout = {};
-                        objLayout['hLineWidth'] = function (i) { return 0.5; };
-                        objLayout['vLineWidth'] = function (i) { return 0.5; };
-                        objLayout['hLineColor'] = function (i) { return '#000000'; };
-                        objLayout['vLineColor'] = function (i) { return '#000000'; };
-                        objLayout['paddingLeft'] = function (i) { return 5; };
-                        objLayout['paddingRight'] = function (i) { return 5; };
-                        doc.content[1].layout = objLayout;
+                        doc.content = [];
+
+                        doc.content.push(
+                            {
+                                text: 'Row List',
+                                alignment: 'center',
+                                fontSize: 16,
+                                bold: true,
+                                margin: [0, 0, 0, 10]
+                            },
+                            {
+                                text: 'Generated on: ' + new Date().toLocaleDateString("en-GB"),
+                                alignment: 'center',
+                                fontSize: 10,
+                                color: '#666',
+                                margin: [0, 0, 0, 15]
+                            }
+                        );
+
+                        let tableBody = [];
+
+                        tableBody.push([
+                            { text: 'Sr No', style: 'tableHeader', alignment: 'center' },
+                            { text: 'Row Code', style: 'tableHeader', alignment: 'center' },
+                            { text: 'Row Name', style: 'tableHeader', alignment: 'center' },
+                            { text: 'Rack Name', style: 'tableHeader', alignment: 'center' },
+                            { text: 'Section Name', style: 'tableHeader', alignment: 'center' },
+                            { text: 'Warehouse Name', style: 'tableHeader', alignment: 'center' },
+                            { text: 'Added Date', style: 'tableHeader', alignment: 'center' },
+                            { text: 'Added By', style: 'tableHeader', alignment: 'center' },
+                            { text: 'Description', style: 'tableHeader', alignment: 'center' }
+                        ]);
+
+                        selectedData.forEach(function(row, index) {
+                            let addedDate = "";
+                            if (row.AddedDate) {
+                                let match = /Date\((\d+)\)/.exec(row.AddedDate);
+                                if (match) {
+                                    let dt = new Date(parseInt(match[1], 10));
+                                    addedDate = dt.toLocaleDateString("en-GB");
+                                } else {
+                                    let dt2 = new Date(row.AddedDate);
+                                    if (!isNaN(dt2.getTime())) {
+                                        addedDate = dt2.toLocaleDateString("en-GB");
+                                    }
+                                }
+                            }
+
+                            tableBody.push([
+                                { text: (index + 1).toString(), alignment: 'center', fontSize: 9 },
+                                { text: row.RowCode || '-', alignment: 'center', fontSize: 9 },
+                                { text: row.RowName || '-', alignment: 'center', fontSize: 9 },
+                                { text: row.RackName || '-', alignment: 'center', fontSize: 9 },
+                                { text: row.SectionName || '-', alignment: 'center', fontSize: 9 },
+                                { text: row.WarehouseName || '-', alignment: 'center', fontSize: 9 },
+                                { text: addedDate || '-', alignment: 'center', fontSize: 9 },
+                                { text: row.AddedBy || '-', alignment: 'center', fontSize: 9 },
+                                { text: row.Description || '-', alignment: 'center', fontSize: 9 }
+                            ]);
+                        });
+
+                        doc.content.push({
+                            table: {
+                                headerRows: 1,
+                                widths: ['8%', '12%', '12%', '12%', '12%', '12%', '10%', '10%', '12%'],
+                                body: tableBody
+                            },
+                            layout: {
+                                hLineWidth: function(i, node) { return 0.5; },
+                                vLineWidth: function(i, node) { return 0.5; },
+                                hLineColor: function(i, node) { return '#000000'; },
+                                vLineColor: function(i, node) { return '#000000'; },
+                                paddingLeft: function(i, node) { return 5; },
+                                paddingRight: function(i, node) { return 5; }
+                            }
+                        });
+
+                        doc.styles = {
+                            tableHeader: {
+                                bold: true,
+                                fontSize: 10,
+                                color: 'white',
+                                fillColor: '#000000',
+                                alignment: 'center'
+                            }
+                        };
+
+                        doc.defaultStyle = {
+                            fontSize: 9,
+                            alignment: 'center'
+                        };
                     }
                 },
 
@@ -351,10 +434,11 @@
                     extend: 'excelHtml5',
                     text: '<i class="bi bi-file-earmark-excel text-success fs-5"></i>',
                     title: 'Row List',
+                    message: 'Generated on: ' + new Date().toLocaleDateString("en-GB"),
                     exportOptions: {
                         columns: ':visible:not(:first-child):not(:last-child)',
                         rows: function (idx, data, node) {
-                            return selectedRowIds.has(data.RowId);
+                            return selectedRowIds.has(data.RowId.toString());
                         }
                     },
                     action: function (e, dt, button, config) {
@@ -371,10 +455,11 @@
                     extend: 'csvHtml5',
                     text: '<i class="bi bi-filetype-csv text-success fs-5"></i>',
                     title: 'Row List',
+                    message: 'Generated on: ' + new Date().toLocaleDateString("en-GB"),
                     exportOptions: {
                         columns: ':visible:not(:first-child):not(:last-child)',
                         rows: function (idx, data, node) {
-                            return selectedRowIds.has(data.RowId);
+                            return selectedRowIds.has(data.RowId.toString());
                         }
                     },
                     action: function (e, dt, button, config) {
@@ -411,32 +496,24 @@
                     "data": "AddedDate",
                     "render": function (data) {
                         if (!data) return "";
-
-                        // .NET JSON format: /Date(1736985600000)/
                         var match = /Date\((\d+)\)/.exec(data);
                         if (match) {
                             var dt = new Date(parseInt(match[1], 10));
                             return dt.toLocaleDateString("en-GB");
                         }
-
-                        // Agar normal ISO string hai to
                         var dt2 = new Date(data);
                         if (!isNaN(dt2.getTime())) {
                             return dt2.toLocaleDateString("en-GB");
                         }
-
                         return data;
                     }
-
                 },
                 { data: "AddedBy" },
                 {
                     data: "Description",
                     render: function (data, type, row) {
                         if (!data) return "-";
-                        // Short display (truncate agar lamba ho)
                         let shortText = data.length > 30 ? data.substring(0, 30) + "..." : data;
-
                         return `
             <span data-bs-toggle="tooltip" data-bs-placement="top" title="${data.replace(/"/g, '&quot;')}">
                 ${shortText}
@@ -444,13 +521,12 @@
         `;
                     }
                 },
-
                 {
                     data: null,
                     render: function (data, type, row) {
                         return `
                        <div class="d-flex justify-content-center gap-1">
-            <button class="btn btn-sm btn-info viewRow" data-id="${row.RowId}"
+            <button class="btn btn-sm btn-primary viewRow" data-id="${row.RowId}"
                 data-bs-toggle="tooltip" data-bs-placement="top" title="View Row Details">
                 <i class="bi bi-eye"></i>
             </button>
@@ -469,7 +545,10 @@
                     },
                     orderable: false
                 }
-            ]
+            ],
+            columnDefs: [
+                { orderable: false, targets: "_all" }
+            ],
         });
 
         $("#rowTable_wrapper").prepend(`
@@ -481,7 +560,6 @@
   </div>
 `);
 
-        // ✅ Date Range Picker Initialization
         $('#rowDateRange').daterangepicker({
             autoUpdateInput: false,
             locale: {
@@ -499,7 +577,6 @@
             }
         });
 
-        // ✅ Apply Filter on DataTable
         $.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
             if (settings.nTable.id !== "rowTable") return true;
 
@@ -510,14 +587,12 @@
             var min = moment(minMax[0], 'YYYY-MM-DD');
             var max = moment(minMax[1], 'YYYY-MM-DD');
 
-
             var date = moment(data[8], 'DD/MM/YYYY');
             if (!date.isValid()) return true;
 
             return date.isBetween(min, max, 'day', '[]');
         });
 
-        // ✅ On Apply / Cancel
         $('#rowDateRange').on('apply.daterangepicker', function (ev, picker) {
             $(this).val(picker.startDate.format('YYYY-MM-DD') + ' to ' + picker.endDate.format('YYYY-MM-DD'));
             $('#rowTable').DataTable().draw();
@@ -528,14 +603,9 @@
             $('#rowTable').DataTable().draw();
         });
 
-
-
-        // ✅ Show modal on button click
         $(document).on("click", "#btnAddrow", function () {
             $("#rowModal").modal("show");
             loadWarehouses();
-            // ✅ Get Next Row Code
-
 
             $.get("/Inventory/GetNextRowCodeSKK", function (res) {
                 if (res && res.RnextCode) {
@@ -545,14 +615,10 @@
                 }
             });
 
-
             $("#sectionDropdown").empty().append('<option value="">-- Select Section --</option>');
             $("#rackDropdown").empty().append('<option value="">-- Select Rack --</option>');
         });
 
-
-
-        // ✅ Save (Add/Edit)
         $('#rowForm').on('submit', function (e) {
             e.preventDefault();
 
@@ -603,7 +669,7 @@
                 }
             });
         });
-        // ✅ View Row
+
         $(document).on("click", ".viewRow", function () {
             var rowId = $(this).data("id");
 
@@ -613,7 +679,6 @@
                 data: { rowId: rowId },
                 success: function (res) {
                     if (res) {
-                        // Fill modal with data - .val() for input fields
                         $("#vRowId").val(res.RowId);
                         $("#vRowCode").val(res.RowCode);
                         $("#vRowName").val(res.RowName);
@@ -623,7 +688,6 @@
                         $("#vDescription").val(res.Description || "-");
                         $("#vAddedBy").val(res.AddedBy);
 
-                        // Date parsing
                         let rowDate = res.AddedDate;
                         let timestamp = parseInt(rowDate.replace(/[^0-9]/g, ''));
                         let date = new Date(timestamp);
@@ -634,7 +698,6 @@
                         });
                         $("#vAddedDate").val(formattedDate);
 
-                        // Show modal
                         $("#viewRowModal").modal("show");
                     } else {
                         Swal.fire("Error", "Row details not found", "error");
@@ -646,27 +709,21 @@
             });
         });
 
-
-        // ✅ Edit Row
         $(document).on("click", ".editRow", function () {
             var rowId = $(this).data("id");
 
-            // Get row data from server
             $.ajax({
                 url: "/Inventory/GetRowByIdSSK",
                 type: "GET",
                 data: { rowId: rowId },
                 success: function (res) {
                     if (res) {
-                        // Open modal
                         $("#rowModal").modal("show");
-
 
                         $("#RowId").val(res.RowId);
                         $("#RowCode").val(res.RowCode);
                         $("#rowName").val(res.RowName);
                         $("#Descriptions").val(res.Description);
-
 
                         loadWarehousess(res.WarehouseCode, res.SectionCode, res.RackCode);
                     } else {
@@ -679,75 +736,68 @@
             });
         });
 
-
         function loadWarehousess(selectedWarehouse, selectedSection, selectedRack) {
-    $.ajax({
-        url: '@Url.Action("GetWarehousesListSK", "Inventory")',
-        type: 'GET',
-        success: function (data) {
-            let $ddl = $("#warehouseDropdown");
-            $ddl.empty().append('<option value="">-- Select Warehouse --</option>');
-            $.each(data, function (i, item) {
-                $ddl.append('<option value="' + item.WarehouseCode + '">' + item.WarehouseName + '</option>');
+            $.ajax({
+                url: '@Url.Action("GetWarehousesListSK", "Inventory")',
+                type: 'GET',
+                success: function (data) {
+                    let $ddl = $("#warehouseDropdown");
+                    $ddl.empty().append('<option value="">-- Select Warehouse --</option>');
+                    $.each(data, function (i, item) {
+                        $ddl.append('<option value="' + item.WarehouseCode + '">' + item.WarehouseName + '</option>');
+                    });
+
+                    if (selectedWarehouse) {
+                        $ddl.val(selectedWarehouse).trigger('change');
+                        loadSections(selectedWarehouse, selectedSection, selectedRack);
+                    }
+                }
             });
-
-            if (selectedWarehouse) {
-                $ddl.val(selectedWarehouse).trigger('change');
-
-                // Load sections after warehouse is selected
-                loadSections(selectedWarehouse, selectedSection, selectedRack);
-            }
         }
-    });
-}
-function loadSections(warehouseCode, selectedSection, selectedRack) {
-    if (!warehouseCode) return;
 
-    $.ajax({
-        url: '@Url.Action("GetSectionsSKK", "Inventory")',
-        type: 'GET',
-        data: { warehouseCode: warehouseCode },
-        success: function (data) {
-            let $ddl = $("#sectionDropdown");
-            $ddl.empty().append('<option value="">-- Select Section --</option>');
-            $.each(data, function (i, item) {
-                $ddl.append('<option value="' + item.SectionCode + '">' + item.SectionName + '</option>');
+        function loadSections(warehouseCode, selectedSection, selectedRack) {
+            if (!warehouseCode) return;
+
+            $.ajax({
+                url: '@Url.Action("GetSectionsSKK", "Inventory")',
+                type: 'GET',
+                data: { warehouseCode: warehouseCode },
+                success: function (data) {
+                    let $ddl = $("#sectionDropdown");
+                    $ddl.empty().append('<option value="">-- Select Section --</option>');
+                    $.each(data, function (i, item) {
+                        $ddl.append('<option value="' + item.SectionCode + '">' + item.SectionName + '</option>');
+                    });
+
+                    if (selectedSection) {
+                        $ddl.val(selectedSection).trigger('change');
+                        loadRacks(selectedSection, selectedRack);
+                    }
+                }
             });
-
-            if (selectedSection) {
-                $ddl.val(selectedSection).trigger('change');
-
-                // Load racks after section is selected
-                loadRacks(selectedSection, selectedRack);
-            }
-        }
-    });
         }
 
+        function loadRacks(sectionCode, selectedRack) {
+            if (!sectionCode) return;
 
-function loadRacks(sectionCode, selectedRack) {
-    if (!sectionCode) return;
+            $.ajax({
+                url: '@Url.Action("GetRackss", "Inventory")',
+                type: 'GET',
+                data: { sectionCode: sectionCode },
+                success: function (data) {
+                    let $ddl = $("#rackDropdown");
+                    $ddl.empty().append('<option value="">-- Select Rack --</option>');
+                    $.each(data, function (i, item) {
+                        $ddl.append('<option value="' + item.RackCodes + '">' + item.RackNames + '</option>');
+                    });
 
-    $.ajax({
-        url: '@Url.Action("GetRackss", "Inventory")',
-        type: 'GET',
-        data: { sectionCode: sectionCode },
-        success: function (data) {
-            let $ddl = $("#rackDropdown");
-            $ddl.empty().append('<option value="">-- Select Rack --</option>');
-            $.each(data, function (i, item) {
-                $ddl.append('<option value="' + item.RackCodes + '">' + item.RackNames + '</option>');
+                    if (selectedRack) {
+                        $ddl.val(selectedRack);
+                    }
+                }
             });
-
-            if (selectedRack) {
-                $ddl.val(selectedRack);
-            }
         }
-    });
-}
 
-
-        // ✅ Load Warehouses
         function loadWarehouses() {
             $.ajax({
                 url: '@Url.Action("GetWarehousesListSK", "Inventory")',
@@ -762,7 +812,6 @@ function loadRacks(sectionCode, selectedRack) {
             });
         }
 
-        // ✅ Load Sections based on Warehouse
         $("#warehouseDropdown").change(function () {
             let warehouseId = $(this).val();
             if (warehouseId) {
@@ -785,7 +834,6 @@ function loadRacks(sectionCode, selectedRack) {
             }
         });
 
-        // ✅ Load Racks based on Section
         $("#sectionDropdown").change(function () {
             let sectionId = $(this).val();
             if (sectionId) {
@@ -806,14 +854,11 @@ function loadRacks(sectionCode, selectedRack) {
             }
         });
 
-        // ✅ Select/Deselect All
-        // ✅ Select All -> saare rowCheckbox select/deselect
         $(document).on('change', '#selectAll', function () {
             let isChecked = $(this).prop('checked');
             $('#rowTable tbody .rowCheckbox').prop('checked', isChecked).trigger('change');
         });
 
-        // ✅ Row wise checkbox -> selectedRowIds update
         $(document).on('change', '#rowTable tbody .rowCheckbox', function () {
             let rowId = $(this).val();
             if ($(this).prop('checked')) {
@@ -822,20 +867,16 @@ function loadRacks(sectionCode, selectedRack) {
                 selectedRowIds.delete(rowId);
             }
 
-            // SelectAll ka sync
             let total = $('#rowTable tbody .rowCheckbox').length;
             let checked = $('#rowTable tbody .rowCheckbox:checked').length;
             $('#selectAll').prop('checked', total > 0 && total === checked);
         });
 
-        // ✅ Jab DataTable redraw ho -> SelectAll reset & selectedRowIds clear
         $('#rowTable').on('draw.dt', function () {
             $('#selectAll').prop('checked', false);
             selectedRowIds.clear();
         });
 
-
-        // DELETE
         $('#rowTable').on('click', '.deleteRow', function () {
             var id = $(this).data("id");
 
@@ -889,7 +930,6 @@ function loadRacks(sectionCode, selectedRack) {
             });
         });
 
-
         function initTooltips() {
             const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
             tooltipTriggerList.map(function (tooltipTriggerEl) {
@@ -897,16 +937,11 @@ function loadRacks(sectionCode, selectedRack) {
             });
         }
 
-        // ✅ Initialize tooltips initially
         initTooltips();
 
-        // ✅ Reinitialize after DataTable redraw (important for pagination/sorting)
         $('#rowTable').on('draw.dt', function () {
             initTooltips();
         });
-
-
-
     });
 </script>
 
