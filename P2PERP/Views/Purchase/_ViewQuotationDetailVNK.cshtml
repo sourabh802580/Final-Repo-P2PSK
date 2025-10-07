@@ -162,19 +162,19 @@
                         const c = calcLine(r.Quantity, r.CostPerUnit, r.Discount, r.GST);
                         subTotal += c.lineTot;
                         $tb.append(`
-                            <tr>
-                                <td class="text-center">${idx + 1}</td>
-                                <td class="text-center">${r.ItemCode}</td>
-                                <td>${r.ItemName || ""}</td>
-                                <td class="text-center" title="${r.Description || ''}" data-bs-toggle="tooltip">${r.Description || ""}</td>
-                                <td class="text-end">${Number(r.Quantity || 0)}</td>
-                                <td class="text-center">${r.UOMName || ""}</td>
-                                <td class="text-end">${Number(r.CostPerUnit || 0).toFixed(2)}</td>
-                                <td class="text-end">${Number(r.Discount || 0).toFixed(2)}%</td>
-                                <td class="text-end">${Number(r.GST || 0).toFixed(2)}%</td>
-                                <td class="text-end">₹ ${c.lineTot.toFixed(2)}</td>
-                            </tr>
-                        `);
+                                <tr>
+                                    <td class="text-center">${idx + 1}</td>
+                                    <td class="text-center">${r.ItemCode}</td>
+                                    <td>${r.ItemName || ""}</td>
+                                    <td class="text-center" title="${r.Description || ''}" data-bs-toggle="tooltip">${r.Description || ""}</td>
+                                    <td class="text-end">${Number(r.Quantity || 0)}</td>
+                                    <td class="text-center">${r.UOMName || ""}</td>
+                                    <td class="text-end">₹ ${Number(r.CostPerUnit || 0).toFixed(2)}</td>
+                                    <td class="text-end">${Number(r.Discount || 0).toFixed(2)}%</td>
+                                    <td class="text-end">${Number(r.GST || 0).toFixed(2)}%</td>
+                                    <td class="text-end">₹ ${c.lineTot.toFixed(2)}</td>
+                                </tr>
+                            `);
                     });
                     $("#ftSubTotal").text("₹ " + subTotal.toFixed(2));
                     const shipping = Number($("#ftShipping").text().replace("₹", "").trim() || 0);

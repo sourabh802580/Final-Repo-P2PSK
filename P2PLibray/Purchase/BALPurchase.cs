@@ -655,7 +655,8 @@ namespace P2PLibray.Purchase
                             ItemCode = row["ItemCode"].ToString(),
                             ItemName = row["ItemName"].ToString(),
                             UOMName = row["UOMName"]?.ToString(),
-                            Description = row["Description"]?.ToString()
+                            Description = row["Description"]?.ToString(),
+                            Quantity = Convert.ToInt32(row["RequiredQuantity"]?.ToString())
                         });
                     }
                 }
