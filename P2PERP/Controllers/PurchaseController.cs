@@ -407,7 +407,8 @@ namespace P2PERP.Controllers
                 ItemCode = x.ItemCode,
                 ItemName = x.ItemName,
                 UOMName = x.UOMName,
-                Description = x.Description
+                Description = x.Description,
+                quantity = x.Quantity
             });
 
             return Json(result, JsonRequestBehavior.AllowGet);
