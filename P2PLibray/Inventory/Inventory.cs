@@ -376,7 +376,7 @@ namespace P2PLibray.Inventory
         public string ItemName { get; set; }
         public string Description { get; set; }
         public string RequiredQuantity { get; set; }
-        public string RequiredDate { get; set; }
+        public DateTime RequiredDate { get; set; }
         public string RequestType { get; set; }
 
         public string PlanName { get; set; }
