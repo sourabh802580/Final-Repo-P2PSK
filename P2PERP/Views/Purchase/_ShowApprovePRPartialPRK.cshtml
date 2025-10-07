@@ -60,7 +60,15 @@
                             <td>${i.PRCode}</td>
                             <td>${addedDate}</td>
                             <td>${approvedDate}</td>
-                            <td>${i.Priority}</td>
+                           <td>${
+                        i.Priority
+                            ? `<span class="${i.Priority.toLowerCase() === 'cold' ? 'badge bg-success' :
+                                i.Priority.toLowerCase() === 'warm' ? 'badge bg-warning' :
+                                    i.Priority.toLowerCase() === 'hot' ? 'badge bg-danger' :
+                                        'badge bg-secondary'
+                            }">${i.Priority}</span>`
+                            : ''
+        }</td>
                         </tr>
                     `);
                 });
@@ -73,7 +81,7 @@
                 $(tableId).DataTable({
                     paging: true,
                     searching: true,
-                    ordering: true,
+                    ordering: false,
                     responsive: true,
                     lengthChange: false,   // ✅ Show "entries per page"
                     info: true,           // ✅ Show "Showing 1 to 10 of N entries"

@@ -60,7 +60,15 @@
                                 <td>${item.PRCode}</td>
                                 <td>${addedDate}</td>
                                 <td>${item.FullName}</td>
-                                <td>${item.Priority}</td>
+                                                   <td>${
+                            item.Priority
+                            ? `<span class="${item.Priority.toLowerCase() === 'cold' ? 'badge bg-success' :
+                                item.Priority.toLowerCase() === 'warm' ? 'badge bg-warning' :
+                                    item.Priority.toLowerCase() === 'hot' ? 'badge bg-danger' :
+                                            'badge bg-secondary'
+                            }">${item.Priority}</span>`
+                                : ''
+}</td>
                             </tr>
                         `);
                     });
@@ -73,7 +81,7 @@
                     $('#pendingPRTable').DataTable({
                         paging: true,
                         searching: true,
-                        ordering: true,
+                        ordering: false,
                         responsive: true,
                         lengthChange: false,  // ✅ Show "entries per page" dropdown
                         info: true,          // ✅ Show "Showing X to Y of Z entries"
