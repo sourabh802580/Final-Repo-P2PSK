@@ -419,7 +419,7 @@
                             title: "Purchase Requisition Created",
                             text: "Your PR has been created successfully!",
                             timer: 2000,
-                            showConfirmButton: false
+                            showConfirmButton: false,
                         }).then(() => {
                             window.location.href = '/Purchase/AllRequisitionSP';
                         });
@@ -427,8 +427,15 @@
                         Swal.fire({
                             icon: "error",
                             title: "Error",
-                            text: response.message || "Failed to create PR!"
+                            text: response.message || "Failed to create PR!",
+                            timer: 2000,
+                            showConfirmButton: false
                         });
+
+                        // Focus on the field that has error
+                        if (response.field) {
+                            $('#' + response.field).focus();
+                        }
                     }
                 },
                 error: function (xhr, status, error) {
@@ -440,6 +447,7 @@
                     });
                 }
             });
+
         });
 
     });
