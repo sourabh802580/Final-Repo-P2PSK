@@ -40,10 +40,12 @@
                     <th>Supplier Quotation Code</th>
                     <th>Date</th>
                     <th>Vendor Name</th>
-                    <th>Company</th>
+                   
                     <th>Total Amount</th>
+                    <th>Delivery Speed</th>
+                    <th>Evaluation Score</th>
+                    <th>Recommendation</th>
                     <th>Action</th>
-
                 </tr>
             </thead>
             <tbody></tbody>
@@ -337,72 +339,83 @@
                             }
                         ],
                         columns: [
-                            {
-                                data: null,
-                                orderable: false,
-                                render: () => `<input type="checkbox" class="row-check">`
-                            },
+                            { data: null, orderable: false, render: () => `<input type="checkbox" class="row-check">` },
                             { data: null, render: (data, type, row, meta) => meta.row + 1 },
                             { data: "RFQCode" },
                             { data: "RegisterQuotationCode" },
+                            //{
+                            //    data: "AddedDate",
+                            //    render: (data) => data || ""
+                            //},
+
                             {
-                                data: "AddedDate", type: "string",   // ✅ override datetime detection
-                                render: function (data, type, row) {
+                                data: "AddedDate", title: "AddedDate",
+                                "render": function (data) {
                                     if (!data) return "";
 
-                                    let parts = data.split(" ")[0].split("-");
-                                    if (parts.length !== 3) return data;
+                                    // .NET JSON format: /Date(1736985600000)/
+                                    var match = /Date\((\d+)\)/.exec(data);
+                                    if (match) {
+                                        var dt = new Date(parseInt(match[1], 10));
+                                        return dt.toLocaleDateString("en-GB"); // dd/mm/yyyy
+                                    }
 
-                                    let yyyy = parts[0];
-                                    let mm = parts[1];
-                                    let dd = parts[2];
+                                    // Agar normal ISO string hai to
+                                    var dt2 = new Date(data);
+                                    if (!isNaN(dt2.getTime())) {
+                                        return dt2.toLocaleDateString("en-GB");
+                                    }
 
-                                    return `${dd}/${mm}/${yyyy}`;
+                                    return data; // fallback
                                 }
                             },
+
+
+
                             { data: "VenderName" },
-                            { data: "CompanyName" },
                             {
                                 data: "TotalAmount",
                                 render: data => parseFloat(data).toLocaleString('en-IN', { style: 'currency', currency: 'INR' })
                             },
+                            { data: "DeliverySpeed" },
+                            { data: "AffordableRank" },
                             {
-                                data: null,
-                                orderable: false,
-                                render: function (data, type, row) {
-                                    let quotationCode = row.RegisterQuotationCode || '';  // fallback if null
+                                data: "RecommendedQuotation",
+                                render: data => data === "Recommended"
+                                    ? `<span class="badge bg-success">${data}</span>`
+                                    : `<span class="badge bg-secondary">-</span>`
+                            },
+                            {
+                                data: null, orderable: false, render: function (data, type, row) {
+                                    let quotationCode = row.RegisterQuotationCode || ''; // fallback if null 
                                     let amount = parseFloat(row.TotalAmount);
                                     let isHighAmount = amount > 500000;
-
                                     let approveIcon = isHighAmount
-                                        ? `<i class="bi bi-send-fill text-white"
-           data-bs-toggle="tooltip" data-bs-placement="top"
-           title="Send Approve Request"
-           style="cursor:pointer; font-size:18px;"
-           data-id="${quotationCode}"></i>`
-                                        : `<i class="bi bi-check-circle text-white"
-           data-bs-toggle="tooltip" data-bs-placement="top"
-           title="Approve"
-           style="cursor:pointer; font-size:18px;"
-           data-id="${quotationCode}"></i>`;
-
-                                    return `
-    <div class="d-flex gap-3 justify-content-center">
-        <button class="btn btn-sm btn-primary action-approve " data-id="${quotationCode}">
-            ${approveIcon}
-        </button>
-        <button class="btn btn-sm btn-primary btn-view"
-                data-id="${quotationCode}"
-                data-bs-toggle="tooltip"
-                data-bs-placement="top"
-                title="View Details">
-            <i class="bi bi-eye-fill text-white" style="font-size:18px;"></i>
-        </button>
-    </div>
-`;
+                                        ? `<i class="bi bi-send-fill text-white" 
+                  data-bs-toggle="tooltip" 
+                  data-bs-placement="top" 
+                  title="Send for Admin Approval" 
+                  style="cursor:pointer; font-size:18px;" 
+                  data-id="${quotationCode}"></i>`
+                                        : `<i class="bi bi-check-circle text-white" 
+                  data-bs-toggle="tooltip" 
+                  data-bs-placement="top" 
+                  title="Approve" 
+                  style="cursor:pointer; font-size:18px;" 
+                  data-id="${quotationCode}"></i>`;                                    return `
+                <div class="d-flex gap-3 justify-content-center">
+                    <button class="btn btn-sm btn-primary action-approve" data-id="${quotationCode}">
+                        ${approveIcon}
+                    </button>
+                    <button class="btn btn-sm btn-primary btn-view" data-id="${quotationCode}" title="View Details">
+                        <i class="bi bi-eye-fill text-white" style="font-size:18px;"></i>
+                    </button>
+                </div>
+            `;
                                 }
                             }
                         ],
+
                         drawCallback: function () {
                             $('[data-bs-toggle="tooltip"]').tooltip();
                         },
@@ -428,7 +441,7 @@
         $(document).on("click", ".action-approve", function () {
             var id = $(this).data("id");
             var row = $(this).closest('tr');
-            var amountText = row.find('td').eq(7).text().replace(/[^\d.]/g, '');
+            var amountText = row.find('td').eq(6).text().replace(/[^\d.]/g, '');
             var amount = parseFloat(amountText);
             var url = amount > 500000 ? "/Purchase/ApproveRequestAdminAMG" : "/Purchase/ApproveQuotAMG";
             var vname = row.find('td').eq(5).text();
@@ -446,8 +459,17 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     $.post(url, { quotationCode: id }, function (res) {
-                        Swal.fire('Done!', res.message, 'success');
-                        loadPendingQuotations();
+                        Swal.fire({
+                            title: 'Done!',
+                            text: res.message,
+                            icon: 'success',
+                            timer: 2000, // auto close after 2 seconds
+                            showConfirmButton: false,
+                            timerProgressBar: true,
+                            didClose: () => {
+                                loadPendingQuotations(); // reload table after auto-close
+                            }
+                        });
                     }).fail(function () {
                         Swal.fire('Error', 'Something went wrong', 'error');
                     });

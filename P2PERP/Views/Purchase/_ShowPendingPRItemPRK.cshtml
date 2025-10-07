@@ -85,7 +85,7 @@ function initPRModal(prCode) {
         $('#prItemsTable').DataTable({
             paging: true,
             searching: true,
-            ordering: true,
+            ordering: false,
             responsive: true,
             lengthChange: false,  // ✅ Enables "Entries per page"
             info: true,          // ✅ Enables "Showing X of Y entries"
@@ -109,12 +109,22 @@ function initPRModal(prCode) {
             icon: 'question',
             showCancelButton: true,
             confirmButtonText: 'Yes, Approve',
+            confirmButtonColor: '#198754',
+            cancelButtonColor: '#dc3545',
             showLoaderOnConfirm: true,
             allowOutsideClick: () => !Swal.isLoading()
         }).then(result => {
             if (result.isConfirmed) {
+                // Show temporary SweetAlert without OK button
+                Swal.fire({
+                    title: 'Approved!',
+                    icon: 'success',
+                    timer: 1000, // Auto close after 1 sec
+                    showConfirmButton: false
+                });
+
                 $.post("/Purchase/UpdatePRStatusPRK", { prCode: prCode, statusId: 1, note: note }, function () {
-                    Swal.close();
+                    // Toaster remains as-is
                     if (typeof showToast === "function") {
                         showToast("✔ PR Approved successfully", "success");
                     }
@@ -124,7 +134,6 @@ function initPRModal(prCode) {
                     if (window.table && $.fn.DataTable.isDataTable('#pendingPRTable')) {
                         window.table.ajax.reload(null, false);
                     }
-
                 });
             }
         });
@@ -146,12 +155,22 @@ function initPRModal(prCode) {
             icon: 'warning',
             showCancelButton: true,
             confirmButtonText: 'Yes, Reject',
+            confirmButtonColor:'#dc3545',
+            cancelButtonColor: '#dc3545',
             showLoaderOnConfirm: true,
             allowOutsideClick: () => !Swal.isLoading()
         }).then(result => {
             if (result.isConfirmed) {
+                // Show temporary SweetAlert without OK button
+                Swal.fire({
+                    title: 'Rejected!',
+                    icon: 'error',
+                    timer: 1000, // Auto close after 1 sec
+                    showConfirmButton: false
+                });
+
                 $.post("/Purchase/UpdatePRStatusRejectPRK", { prCode: prCode, statusId: 2, note: note }, function () {
-                    Swal.close();
+                    // Toaster remains as-is
                     if (typeof showToast === "function") {
                         showToast("✖ PR Rejected", "danger");
                     }
@@ -161,11 +180,11 @@ function initPRModal(prCode) {
                     if (window.table && $.fn.DataTable.isDataTable('#pendingPRTable')) {
                         window.table.ajax.reload(null, false);
                     }
-
                 });
             }
         });
     });
+
 }
 
 // Initialize when modal loads
