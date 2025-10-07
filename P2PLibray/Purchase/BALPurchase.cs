@@ -1153,9 +1153,9 @@ namespace P2PLibray.Purchase
             try
             {
                 Dictionary<string, string> param = new Dictionary<string, string>
-                {
-                    { "@Flag", "PendingSupplierQuotAMG" }
-                };
+        {
+            { "@Flag", "PendingSupplierQuotAMG" }
+        };
 
                 using (SqlDataReader dr = await obj.ExecuteStoredProcedureReturnDataReader("PurchaseProcedure", param))
                 {
@@ -1168,11 +1168,20 @@ namespace P2PLibray.Purchase
                         {
                             RFQCode = row["RFQCode"].ToString(),
                             RegisterQuotationCode = row["RegisterQuotationCode"].ToString(),
-                            AddedDate = Convert.ToDateTime(row["AddedDate"])
-                 .ToString("dd/MM/yyyy"),
+                            AddedDate = Convert.ToDateTime(row["AddedDate"]).ToString("dd/MM/yyyy"),
                             VenderName = row["VenderName"].ToString(),
                             CompanyName = row["CompanyName"].ToString(),
-                            TotalAmount = row["TotalAmount"].ToString()
+                            TotalAmount = row["TotalAmount"].ToString(),
+
+                            ExpectedDate = row["ExpectedDate"] != DBNull.Value
+                                ? Convert.ToDateTime(row["ExpectedDate"]).ToString("dd/MM/yyyy")
+                                : string.Empty,
+                            VendorDeliveryDate = row["VendorDeliveryDate"] != DBNull.Value
+                                ? Convert.ToDateTime(row["VendorDeliveryDate"]).ToString("dd/MM/yyyy")
+                                : string.Empty,
+                            DeliverySpeed = row["DeliverySpeed"].ToString(),
+                            AffordableRank = row["AffordableRank"].ToString(),
+                            RecommendedQuotation = row["RecommendedQuotation"].ToString()
                         };
 
                         list.Add(item);
@@ -1181,12 +1190,12 @@ namespace P2PLibray.Purchase
             }
             catch (Exception ex)
             {
-                // Log exception (or rethrow as needed)
                 throw new Exception("Error while retrieving pending supplier quotations.", ex);
             }
 
             return list;
         }
+
 
         /// <summary>
         /// Retrieves the header information of a specific quotation (AMG).
