@@ -6,108 +6,112 @@
 }
 
 
+<div class="container-fluid bg-white " style="min-height:auto">
+    <h2 class="mb-4 text-center text-primary"> Material Requirement Planning</h2>
 
-<h2 class="mb-4 text-center text-primary"> Material Requirement Planning</h2>
+
+    <form id="stockForm">
+        <div class="row g-3 ">
+
+            <!-- Item Dropdown -->
+            <div class="col-md-6">
+                <label for="itemName" class="form-label">Item Name</label>
+                <select id="itemName" class="form-select">
+                    <option value="">-- Select Item --</option>
+                </select>
+            </div>
+
+            <!-- Plan Name -->
+            <div class="col-md-6">
+                <label for="planName" class="form-label">Plan Name *</label>
+                <input type="text" id="planName" class="form-control" required />
+            </div>
+
+            <!-- Year (auto) -->
+            <div class="col-md-2">
+                <label for="year" class="form-label">Year</label>
+                <input type="text" id="year" class="form-control" readonly />
+            </div>
+
+            <!-- Item Code -->
+            <div class="col-md-5">
+                <label for="itemCode" class="form-label">Item Code</label>
+                <input type="text" id="itemCode" class="form-control" readonly />
+            </div>
+
+            <!-- UOM -->
+            <div class="col-md-5">
+                <label for="uom" class="form-label">UOM</label>
+                <input type="text" id="uom" class="form-control" readonly />
+            </div>
+
+            <!-- Quantity (no required here) -->
+            <div class="col-md-6">
+                <label for="quantity" class="form-label">Quantity</label>
+                <input type="number" id="quantity" class="form-control" />
+            </div>
+
+            <!-- Description -->
+            <div class="col-md-6">
+                <label for="description" class="form-label">Description</label>
+                <textarea id="description" class="form-control" readonly></textarea>
+            </div>
+
+            <!-- Add Button -->
+            <div class="col-md-12 text-end">
+                <button type="button" id="btnAdd" class="btn btn-primary mt-2">➕ Add Item</button>
+            </div>
 
 
-<form id="stockForm" style="padding:50px">
-    <div class="row g-3">
+            <hr />
 
-        <!-- Item Dropdown -->
-        <div class="col-md-6">
-            <label for="itemName" class="form-label">Item Name</label>
-            <select id="itemName" class="form-select">
-                <option value="">-- Select Item --</option>
-            </select>
+            <!-- Table to Display Added Items -->
+            <!-- ✅ Items Table with DataTable support -->
+            <div class="table-responsive mt-4">
+                <table id="itemsTable" class="table table-striped table-bordered align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Item Name</th>
+                            <th>Item Code</th>
+                            <th>Quantity</th>
+                            <th>UOM</th>
+                            <th>Description</th>
+                            <th>Request Type</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+
+            <!-- Dates -->
+            <div class="row mt-3">
+                <div class="col-md-3">
+                    <label>From Date</label>
+                    <input type="date" id="fromDate" class="form-control " required />
+                </div>
+                <div class="col-md-3">
+                    <label>To Date</label>
+                    <input type="date" id="toDate" class="form-control " required />
+                </div>
+            </div>
+
+
+            <!-- Submit Button -->
+            <div class="text-center mt-4">
+                <button type="submit" class="btn btn-success">📤 Send for Approval</button>
+            </div>
+            <br><br>
+            <br />
+
+            <!-- Warning Alert -->
+            <div id="warning" class="alert alert-warning mt-3 d-none">
+                ⚠️ Warning! Kindly enter a Plan Name and at least one item.
+            </div>
         </div>
+    </form>
 
-        <!-- Plan Name -->
-        <div class="col-md-6">
-            <label for="planName" class="form-label">Plan Name *</label>
-            <input type="text" id="planName" class="form-control" required />
-        </div>
-
-        <!-- Year (auto) -->
-        <div class="col-md-2">
-            <label for="year" class="form-label">Year</label>
-            <input type="text" id="year" class="form-control" readonly />
-        </div>
-
-        <!-- Item Code -->
-        <div class="col-md-5">
-            <label for="itemCode" class="form-label">Item Code</label>
-            <input type="text" id="itemCode" class="form-control" readonly />
-        </div>
-
-        <!-- UOM -->
-        <div class="col-md-5">
-            <label for="uom" class="form-label">UOM</label>
-            <input type="text" id="uom" class="form-control" readonly />
-        </div>
-
-        <!-- Quantity (no required here) -->
-        <div class="col-md-6">
-            <label for="quantity" class="form-label">Quantity</label>
-            <input type="number" id="quantity" class="form-control" />
-        </div>
-
-        <!-- Description -->
-        <div class="col-md-6">
-            <label for="description" class="form-label">Description</label>
-            <textarea id="description" class="form-control" readonly></textarea>
-        </div>
-
-        <!-- Add Button -->
-        <div class="col-md-12 text-end">
-            <button type="button" id="btnAdd" class="btn btn-primary mt-2">➕ Add Item</button>
-        </div>
-    </div>
-
-    <hr />
-
-    <!-- Table to Display Added Items -->
-    <!-- ✅ Items Table with DataTable support -->
-    <div class="table-responsive mt-4">
-        <table id="itemsTable" class="table table-striped table-bordered align-middle">
-            <thead class="table-dark">
-                <tr>
-                    <th>Item Name</th>
-                    <th>Item Code</th>
-                    <th>Quantity</th>
-                    <th>UOM</th>
-                    <th>Description</th>
-                    <th>Request Type</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-    </div>
-
-    <!-- Dates -->
-    <div class="row mt-3">
-        <div class="col-md-3">
-            <label>From Date</label>
-            <input type="date" id="fromDate" class="form-control" required />
-        </div>
-        <div class="col-md-3">
-            <label>To Date</label>
-            <input type="date" id="toDate" class="form-control" required />
-        </div>
-    </div>
-    <br>
-
-    <!-- Submit Button -->
-    <div class="text-center mt-4">
-        <button type="submit" class="btn btn-success">📤 Send for Approval</button>
-    </div>
-    <br><br>
-
-    <!-- Warning Alert -->
-    <div id="warning" class="alert alert-warning mt-3 d-none">
-        ⚠️ Warning! Kindly enter a Plan Name and at least one item.
-    </div>
-</form>
+</div>
 
 <style>
     label {
@@ -118,8 +122,19 @@
         background-color: #f8f9fa;
     }
 
+    .container-fluid {
+        max-width: 1400px !important;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
     #itemsTable_wrapper {
         margin-top: 20px;
+    }
+
+    #itemsTable th, #itemsTable td {
+        text-align: center !important;
+        vertical-align: middle !important;
     }
 </style>
 
@@ -139,6 +154,7 @@
         $('#fromDate').on('change', function () {
             $('#toDate').attr("min", $(this).val());
         });
+
 
         // Load Item Dropdown
         $.get('/Inventory/GetItemListMHB', function (items) {
@@ -161,9 +177,11 @@
 
         table = $('#itemsTable').DataTable({
             paging: true,
-            searching: false,
+            searching: true,
             ordering: false,
             info: false,
+            lengthChange: false,
+
             language: {
                 emptyTable: "No items added yet."
             }
@@ -244,7 +262,7 @@
                         title: 'Submitting...',
                         text: 'Please wait...',
                         allowOutsideClick: false,
-                       
+
                         didOpen: () => Swal.showLoading()
                     });
 
@@ -301,12 +319,26 @@
                 item.ItemCode,
                 item.Quantity,
                 item.UOM,
-                item.Description,
+                `<span data-bs-toggle="tooltip" title="${item.Description}">
+                ${item.Description}
+             </span>`,
                 item.RequestType,
-                `<button type="button" class="btn btn-sm btn-danger btn-delete" data-index="${i}">Remove</button>`
+
+                ` <button class="btn btn-outline-danger btn-sm  btn-delete " data-bs-toggle="tooltip" title="Remove">
+             <i class="bi bi-trash-fill"></i>
+
+            </button>`
+
+
+
             ]);
         });
         table.draw();
+
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
     }
 
 
