@@ -240,6 +240,7 @@ namespace P2PLibray.Inventory
         public string Status { get; set; }
         public string ExpiryDate { get; set; }
         public string BinName { get; set; }
+        public string BinsList { get; set; }
         public string RowName { get; set; }
         public string RackName { get; set; }
         public int TransferQty { get; set; }

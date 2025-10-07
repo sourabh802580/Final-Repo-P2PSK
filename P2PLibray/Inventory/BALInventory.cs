@@ -982,6 +982,7 @@ namespace P2PLibray.Inventory
                         ItemName = dr["ItemName"].ToString(),
                         CurrentQty = Convert.ToInt32(dr["ItemsCounts"]),
                         ReorderQuantity = Convert.ToInt32(dr["ReorderQuantity"]),
+                        BinsList = dr["Bins"].ToString(),
                         BinName = dr["BinList"].ToString()
                     });
                 }
