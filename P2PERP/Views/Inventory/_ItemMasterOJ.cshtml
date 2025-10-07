@@ -1,5 +1,5 @@
 ﻿<!DOCTYPE html>
-@*<style>
+<style>
     .modal-backdrop {
         display: none;
     }
@@ -13,7 +13,7 @@
         background-color: #ffc107 !important; /* yellow background */
         color: #ffffff !important; /* white text */
     }
-</style>*@
+</style>
 <html lang="en">
 <body>
     <div id="overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1040;"></div>
@@ -305,6 +305,8 @@
 
         // get list of item
         $(document).ready(function () {
+            dom: '<"d-flex justify-content-between align-items-center mb-3"<"dt-left"B><"dt-search"f>>rt<"bottom d-flex justify-content-between align-items-center"ip>'
+
             let table = $('#table').DataTable({
                 ajax: {
                     url: '/Inventory/GetItemsOJ',
@@ -371,19 +373,22 @@
                     {
                         data: null,
                         render: function (data, type, row) {
-                            return `<button class="btn btn-secondary btnedit"
+                            return `<button class="btn btn-primary btnedit"
                         data-id="${row.ItemIdOJ}" data-code="${row.ItemCode}"
                         data-bs-toggle="tooltip" data-bs-placement="top"
-                        title="View Item"><i class="bi bi-pencil-square"></i></button>`;
+                        title="View Item"><i class="bi bi-eye-fill text-white"></i></button>`;
                         }
                     }
                 ],
+                ordering: false,
                 columnDefs: [
                     {
                         targets: 0,
                         title: `<input type="checkbox" id="select-all">`,
                         orderable: false
-                    }
+                    },
+                    { targets: "_all", className: "text-center" }
+
                 ],
                 layout: {
                     topStart: {
@@ -407,35 +412,45 @@
                                 },
                                 customize: function (win) {
                                     var css = `
-                                           <style type="text/css">
+                                            <style type="text/css">
                                             body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
                                             table thead th {
                                             background-color: #000 !important;
                                             color: #fff !important;
                                             border: 1px solid #000 !important;
+                                            text-align: center !important;
                                             }
                                             table td, table th {
                                             border: 1px solid #000 !important;
+                                            text-align: center !important;
                                             }
-                                            h1 { text-align: center; font-size: 18px; margin-bottom: 10px; }
-                                          </style>`;
+                                            h1, h5 { text-align: center; margin: 0; }
+                                            h1 { font-size: 18px; margin-bottom: 5px; }
+                                            h5 { font-size: 14px; margin-bottom: 10px; }
+                                            </style>
+                                            `;
                                     $(win.document.head).append(css);
 
+                                    // Remove any existing header
+                                    $(win.document.body).find('h1, h5').remove();
 
-                                    var title = "Inventory List - " + moment().format("DD/MM/YYYY");
-                                    $(win.document.body).find('h1').remove(); // remove any existing
-                                    $(win.document.body).prepend('<h1>' + title + '</h1>');
+                                    // Add header
+                                    var title = "Inventory List";
+                                    var date = "Generated Date: " + moment().format("DD/MM/YYYY");
+                                    $(win.document.body).prepend('<h1>' + title + '</h1><h5>' + date + '</h5>');
 
+                                    // Reset serial numbers for tbody
                                     $(win.document.body).find('table tbody tr').each(function (i) {
                                         $(this).find('td:first').text(i + 1);
                                     });
                                 }
+
                             },
 
                             {
                                 extend: 'pdfHtml5',
                                 text: '<i class="bi bi-file-earmark-pdf text-danger fs-5"></i>',
-                                title: "Inventory List",
+                                title: " ",
                                 action: function (e, dt, button, config) {
                                     if ($('.row-checkbox:checked').length === 0) {
                                         showExportToast(); // 🔔 will now work
@@ -463,7 +478,20 @@
                                         cell.bold = true;
                                         cell.alignment = 'center';
                                     });
+
+                                    // ✅ Add title and date above the table
+                                    var title = "Inventory List";
+                                    var date = "Generated Date: " + moment().format("DD/MM/YYYY");
+                                    doc.content.unshift(
+                                        { text: title, style: 'header', alignment: 'center', margin: [0, 0, 0, 2] },
+                                        { text: date, style: 'subheader', alignment: 'center', margin: [0, 0, 0, 10] }
+                                    );
+
+                                    // Styles
+                                    doc.styles.header = { fontSize: 16, bold: true };
+                                    doc.styles.subheader = { fontSize: 12, italics: true };
                                 }
+
                             },
                             {
                                 extend: 'excelHtml5',
@@ -1227,12 +1255,15 @@
 
 
     function loadParameterList(planCode) {
+
         // Destroy existing DataTable if exists
         if ($.fn.dataTable.isDataTable('#paralistTable')) {
             $('#paralistTable').DataTable().clear().destroy();
         }
 
         $.ajax({
+            dom: '<"d-flex justify-content-between align-items-center mb-3"<"dt-left"B><"dt-search"f>>rt<"bottom d-flex justify-content-between align-items-center"ip>',
+
             url: '/Inventory/ShowPlanOJ',
             type: 'GET',
             data: { planCode: planCode },
@@ -1260,7 +1291,12 @@
                         { data: 'QualityParametersName', title: 'Quality Parameters' },
                         { data: 'PQuality', title: 'Quantity' },
                         { data: 'PUOMName', title: 'UOM' },
-                        { data: 'Action', title: 'Action', orderable: false }
+                        { data: 'Action', title: 'Action', orderable: false },
+
+                    ],
+
+                    columnDefs: [
+                        { targets: "_all", className: "text-center" }
                     ],
                     paging: true,
                     searching: true,

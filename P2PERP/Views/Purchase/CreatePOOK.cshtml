@@ -195,7 +195,7 @@
                     <div class="col-md-4">
                         <div class="input-wrapper position-relative">
                             <i class="bi bi-envelope position-absolute" style="top: 50%; left: 12px; transform: translateY(-50%);"></i>
-                            <select class="form-select ps-5 border-0" name="Usercode" id="ddlAccountant">
+                            <select class="form-select ps-5 border-0" name="Usercode" id="ddlAccountant" required>
                                 <option value="">Select Accountant Email</option>
                                 <!-- Options will be dynamically populated via AJAX -->
                             </select>
@@ -538,9 +538,6 @@
                 console.log("Subamount:", subamount);
             }
 
-            // ====================================================
-            // ✅ Create PO Function with SweetAlert Confirmation
-            // ====================================================
             function CretePO(e) {
                 e.preventDefault();
 
@@ -583,7 +580,7 @@
 
                 // Build model (for debug)
                 let model = {
-                    RegisterQuotationCode: $("#QuotationID").val(),
+                    RegisterQuotationCode: $("#QuotationNo").val(),
                     UserCode: $("#ddlAccountant").val(),
                     TotalAmount: $("#grandTotal").val(),
                     TermsConditionId: idsString,
@@ -591,8 +588,45 @@
                     POItems: poItems
                 };
                 console.log("Model", model);
+                //$("#QuotationNo").val(header.QuotationID);
 
-                // SweetAlert Confirmation
+                //-----------------------------------------------
+                // ✅ VALIDATION SECTION
+                //-----------------------------------------------
+                let accountant = $("#ddlAccountant").val();
+                let billingAddress = $("#BillingAddress").val().trim();
+                let termChecked = checkedTermIds.length > 0;
+
+                if (!accountant) {
+                    swalWithBootstrapButtons.fire({
+                        title: "Missing Information",
+                        text: "Please select an Accountant Email before proceeding.",
+                        icon: "warning"
+                    });
+                    return; // Stop further execution
+                }
+
+                if (!billingAddress) {
+                    swalWithBootstrapButtons.fire({
+                        title: "Missing Information",
+                        text: "Please enter a Billing Address before proceeding.",
+                        icon: "warning"
+                    });
+                    return;
+                }
+
+                if (!termChecked) {
+                    swalWithBootstrapButtons.fire({
+                        title: "Missing Information",
+                        text: "Please select at least one Term & Condition.",
+                        icon: "warning"
+                    });
+                    return;
+                }
+
+                //-----------------------------------------------
+                // ✅ Confirmation Alert (runs only if validation passes)
+                //-----------------------------------------------
                 swalWithBootstrapButtons.fire({
                     title: "Are you sure?",
                     text: "Do you really want to create this Purchase Order?",
@@ -600,7 +634,7 @@
                     showCancelButton: true,
                     confirmButtonText: "Yes, create it!",
                     cancelButtonText: "No, cancel!",
-                    reverseButtons: true
+                    reverseButtons: false // Yes first, Cancel second
                 }).then((result) => {
                     if (result.isConfirmed) {
                         $.ajax({
@@ -613,9 +647,8 @@
                                         title: "Created!",
                                         text: res.message,
                                         icon: "success",
-                                        showConfirmButton: false, // Hide OK button
-                                        timer: 1500              // Auto-close after 1.5 seconds
-                                        //timerProgressBar: true
+                                        showConfirmButton: false,
+                                        timer: 1500
                                     }).then(() => {
                                         setTimeout(function () {
                                             window.location.href = "/Purchase/SelectedQuotationListShowOK";
@@ -641,6 +674,7 @@
                     }
                 });
             }
+
 
             // ====================================================
             // ✅ End of Script

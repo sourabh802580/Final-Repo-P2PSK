@@ -4,6 +4,26 @@
 <html>
 <head>
     <style>
+        .modal-backdrop {
+            display: none;
+        }
+
+        body.modal-open .main-content {
+            position: relative;
+        }
+
+            body.modal-open .main-content::after {
+                content: '';
+                position: fixed;
+                inset: 0;
+                background-color: rgba(0, 0, 0, 0.5);
+                z-index: 1040;
+                pointer-events: none;
+            }
+
+        .modal {
+            z-index: 1055 !important;
+        }
 
         #tblApproved thead th, #tblApproved tbody td {
             text-align: center !important;
@@ -143,7 +163,7 @@
         <div class="modal-dialog modal-xl modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header bg-primary text-white justify-content-center">
-                    <h5 class="modal-title fw-bold mb-0 text-white">  Pending Purchase Order Details</h5>
+                    <h5 class="modal-title fw-bold mb-0 text-white">Purchase Order Details</h5>
                     <button type="button" class="btn-close btn-close-white position-absolute end-0 me-3" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body" id="poModalBody"></div>
@@ -156,7 +176,7 @@
         <div class="modal-dialog modal-xl modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header bg-primary text-white justify-content-center">
-                    <h5 class="modal-title fw-bold mb-0 text-white">   Purchase Order Details</h5>
+                    <h5 class="modal-title fw-bold mb-0 text-white">Purchase Order Details</h5>
                     <button type="button" class="btn-close btn-close-white position-absolute end-0 me-3" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body" id="NewModalBody">
@@ -222,32 +242,32 @@
 
                                 // prepend title and generated date
                                 $(win.document.body).prepend(`
-                    <div style="text-align:center; margin-bottom:10px;">
-                        <h2 style="margin:0;">${title}</h2>
-                        <div style="font-size:12px;">Generated on: ${formattedDate}</div>
-                    </div>
-                `);
+                        <div style="text-align:center; margin-bottom:10px;">
+                            <h2 style="margin:0;">${title}</h2>
+                            <div style="font-size:12px;">Generated on: ${formattedDate}</div>
+                        </div>
+                    `);
 
                                 // Inject custom print styling
                                 $(win.document.body).append(`
-                    <style>
-                        thead th {
-                            background-color: black !important;
-                            color: white !important;
-                            text-align: center !important;
-                            -webkit-print-color-adjust: exact !important;
-                            print-color-adjust: exact !important;
-                        }
-                        table {
-                            border-collapse: collapse !important;
-                            width: 100% !important;
-                        }
-                        td, th {
-                            border: 1px solid #000 !important;
-                            padding: 6px !important;
-                        }
-                    </style>
-                `);
+                        <style>
+                            thead th {
+                                background-color: black !important;
+                                color: white !important;
+                                text-align: center !important;
+                                -webkit-print-color-adjust: exact !important;
+                                print-color-adjust: exact !important;
+                            }
+                            table {
+                                border-collapse: collapse !important;
+                                width: 100% !important;
+                            }
+                            td, th {
+                                border: 1px solid #000 !important;
+                                padding: 6px !important;
+                            }
+                        </style>
+                    `);
 
                                 // Apply Bootstrap table classes and font size
                                 $(win.document.body).find('table')
@@ -328,16 +348,16 @@
                                 });
 
                                 var titleRow = `<row r="1">
-                    <c t="inlineStr" r="A1">
-                        <is><t>Approved Purchase Orders</t></is>
-                    </c>
-                </row>`;
+                        <c t="inlineStr" r="A1">
+                            <is><t>Approved Purchase Orders</t></is>
+                        </c>
+                    </row>`;
 
                                 var dateRow = `<row r="2">
-                    <c t="inlineStr" r="A2">
-                        <is><t>Export Date: ${dateStr}</t></is>
-                    </c>
-                </row>`;
+                        <c t="inlineStr" r="A2">
+                            <is><t>Export Date: ${dateStr}</t></is>
+                        </c>
+                    </row>`;
 
                                 sheet.childNodes[0].childNodes[1].innerHTML = titleRow + dateRow + sheet.childNodes[0].childNodes[1].innerHTML;
                             }
@@ -403,8 +423,8 @@
                         { data: 'StatusName', className: 'text-center', render: d => `<span class="badge badge-status ${d === 'Active' ? 'bg-success' : d === 'Inactive' ? 'bg-danger' : 'bg-success'}">${d || 'Unknown'}</span>` },
                         {
                             data: 'POCode', orderable: false, className: 'text-center', render: d => ` <button id="btnview" class="btn btn-sm btn-square btn-view btn-primary" data-pocode="${d}" type="button" title="View">
-                <i class="bi bi-eye-fill"></i>
-            </button>
+                    <i class="bi bi-eye-fill"></i>
+                </button>
 
 `
                         }
@@ -458,10 +478,10 @@
                             'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
                         }
                     }, function (start, end) {
-                        $('#Purchasedatepicker').val(start.format('YYYY-MM-DD') + ' - ' + end.format('YYYY-MM-DD'));
+                        $('#Purchasedatepicker').val(start.format('DD/MM/YYYY') + ' - ' + end.format('DD/MM/YYYY'));
                         $.fn.dataTable.ext.search.push(function (settings, data) {
                             if (settings.nTable.id !== 'tblApproved') return true;
-                            const addedDate = moment(data[3], 'YYYY-MM-DD');
+                            const addedDate = moment(data[3], 'DD/MM/YYYY');
                             return addedDate.isBetween(start, end, undefined, '[]');
                         });
                         if (approvedTable) approvedTable.draw();
@@ -483,7 +503,7 @@
                 }
 
                 const pendingTable = $('#tblPending').DataTable({
-                    dom: '<"d-flex justify-content-between mb-2 flex-wrap align-items-center"<"dt-buttons"B><"dt-search"f>>rt<"d-flex justify-content-between align-items-center mt-2"ip>',                    buttons: [
+                    dom: '<"d-flex justify-content-between mb-2 flex-wrap align-items-center"<"dt-buttons"B><"dt-search"f>>rt<"d-flex justify-content-between align-items-center mt-2"ip>', buttons: [
 
                         // Print
                         {
@@ -633,7 +653,10 @@
                         { data: null, orderable: false, className: 'text-center', render: (d, t, r) => `<input type="checkbox" class="row-select" value="${r.POCode}"/>` },
                         { data: null, orderable: false, className: 'text-center', render: (d, t, r, meta) => meta.row + 1 },
                         { data: 'POCode' },
-                        { data: 'PODateVK', defaultContent: '' },
+                        {
+                            data: 'PODateVK', defaultContent: '', className: 'text-center',
+                            render: d => d ? moment(d).format('DD/MM/YYYY') : ''
+                        },
                         { data: 'POCost', defaultContent: '' },
                         { data: 'CreatedBy', defaultContent: '' },
                         { data: 'StatusName', render: d => `<span class="badge badge-pending">${d || 'Pending'}</span>` },
@@ -696,7 +719,6 @@
                         }
                     });
                 });
-
                 // Pending: date filter initialization (delegated to focus event)
                 $(document).off('focus', '#PendingDatepicker').on('focus', '#PendingDatepicker', function () {
                     const $this = $(this);

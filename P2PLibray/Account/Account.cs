@@ -188,4 +188,14 @@ namespace P2PLibray.Account
         public string NotificationMessage { get; set; }
         public bool IsRead { get; set; }
     }
+    public class Email
+    {
+        public List<string> ToEmails { get; set; } = new List<string>();
+        public string Subject { get; set; }
+        public string Body { get; set; }
+        public bool IsBodyHtml { get; set; } = true;
+        public List<string> CcEmails { get; set; } = new List<string>();
+        public List<string> BccEmails { get; set; } = new List<string>();
+        public List<string> AttachmentPaths { get; set; } = new List<string>();
+    }
 }
