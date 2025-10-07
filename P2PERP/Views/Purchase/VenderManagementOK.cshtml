@@ -12,7 +12,9 @@
             font-size: 0.8rem;
             font-weight: 500;
         }
-
+        input{
+            outline:none!important;
+        }
         #exportContainer .dt-buttons {
             display: flex;
             justify-content: end; /* center align */
@@ -1074,7 +1076,7 @@
             searching: true,
             lengthChange: false,
             pageLength: 5,
-
+            ordering: false,
             select: {
                 style: 'multi',
                 selector: 'td:first-child input[type="checkbox"]'
