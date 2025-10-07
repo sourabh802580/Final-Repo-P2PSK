@@ -343,10 +343,35 @@
                             { data: null, render: (data, type, row, meta) => meta.row + 1 },
                             { data: "RFQCode" },
                             { data: "RegisterQuotationCode" },
+                            //{
+                            //    data: "AddedDate",
+                            //    render: (data) => data || ""
+                            //},
+
                             {
-                                data: "AddedDate",
-                                render: (data) => data || ""
+                                data: "AddedDate", title: "AddedDate",
+                                "render": function (data) {
+                                    if (!data) return "";
+
+                                    // .NET JSON format: /Date(1736985600000)/
+                                    var match = /Date\((\d+)\)/.exec(data);
+                                    if (match) {
+                                        var dt = new Date(parseInt(match[1], 10));
+                                        return dt.toLocaleDateString("en-GB"); // dd/mm/yyyy
+                                    }
+
+                                    // Agar normal ISO string hai to
+                                    var dt2 = new Date(data);
+                                    if (!isNaN(dt2.getTime())) {
+                                        return dt2.toLocaleDateString("en-GB");
+                                    }
+
+                                    return data; // fallback
+                                }
                             },
+
+
+
                             { data: "VenderName" },
                             {
                                 data: "TotalAmount",
