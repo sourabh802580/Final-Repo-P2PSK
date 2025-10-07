@@ -2408,7 +2408,7 @@ namespace P2PLibray.Purchase
                     { "@PRCode", prCode },
                     {"@StaffCode", model.StaffCode },
                     { "@StatusId", statusId.ToString() },
-                    { "@ApproveRejectedDate",DateTime.Now.ToString("yyyy-MM-dd")},
+                    { "@ApproveRejectedDate",DateTime.Now.ToString()},
                     { "@Description", note }
                 };
 
@@ -2437,7 +2437,7 @@ namespace P2PLibray.Purchase
                     { "@PRCode", prCode },
                     {"@StaffCode",model.StaffCode },
                     { "@StatusId", statusId.ToString() },
-                    { "@ApproveRejectedDate",DateTime.Now.ToString("yyyy-MM-dd")},
+                    { "@ApproveRejectedDate",DateTime.Now.ToString()},
                     { "@Description", note }
                 };
 
