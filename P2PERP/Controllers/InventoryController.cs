@@ -537,7 +537,7 @@ namespace P2PERP.Controllers
                             ItemName = r["ItemName"].ToString(),
                             Description = r["Description"].ToString(),
                             RequiredQuantity = r["RequiredQuantity"].ToString(),
-                            RequiredDate = Convert.ToDateTime(r["RequiredDate"]).ToString("yyyy-MM-dd"),
+                            RequiredDate = Convert.ToDateTime(r["RequiredDate"]),
                             RequestType = r["RequestType"].ToString()
                         });
                     }

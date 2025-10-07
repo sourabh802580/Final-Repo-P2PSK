@@ -2524,7 +2524,7 @@ namespace P2PLibray.Inventory
             //paramdic.Add("@RequiredDate", model.RequiredDate.HasValue
             // ? model.RequiredDate.Value.ToString("yyyy-MM-dd")
             // : DBNull.Value.ToString());
-            paramdic.Add("@RequiredDate",string.IsNullOrEmpty(model.RequiredDate) ? "" : model.RequiredDate);
+            //paramdic.Add("@RequiredDate",string.IsNullOrEmpty(model.RequiredDate) ? "" : model.RequiredDate);
             paramdic.Add("@StaffCode", model.StaffCode);
             DataSet ds = await obj.ExecuteStoredProcedureReturnDS("InventoryProcedure", paramdic);
 
@@ -2567,7 +2567,7 @@ namespace P2PLibray.Inventory
             paramdic.Add("@Quantity", model.Quantity.ToString());
             paramdic.Add("@AddedDate", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
             //  paramdic.Add("@RequiredDate", model.RequiredDate?.ToString("yyyy-MM-dd") ?? DBNull.Value.ToString());
-            paramdic.Add("@RequiredDate",string.IsNullOrEmpty(model.RequiredDate) ? "" : model.RequiredDate);
+            //paramdic.Add("@RequiredDate",string.IsNullOrEmpty(model.RequiredDate) ? "" : model.RequiredDate);
             paramdic.Add("@StaffCode", model.StaffCode);
             DataSet ds = await obj.ExecuteStoredProcedureReturnDS("InventoryProcedure", paramdic);
             // Optional: Validate result from ds
