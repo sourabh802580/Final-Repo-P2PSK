@@ -1017,34 +1017,57 @@ namespace P2PERP.Controllers
                 return View();
             }
 
-            /// <summary>
-            /// Creates a new Purchase Requisition (PR) via AJAX form submission.
-            /// </summary>
-            [HttpPost]
-            public async Task<JsonResult> CreatePR(PurchaseHeader purchase)
+        /// <summary>
+        /// Creates a new Purchase Requisition (PR) via AJAX form submission.
+        /// </summary>
+        [HttpPost]
+        public async Task<ActionResult> CreatePR(PurchaseHeader purchase)
+        {
+            var validationMessage = ValidatePurchase(purchase);
+            if (!string.IsNullOrEmpty(validationMessage))
             {
-                try
-                {
-                    purchase.AddedBy = Session["StaffCode"].ToString();
-                    await bal.CreatePR(purchase);
-                    return Json(new { success = true });
-                }
-                catch (Exception ex)
-                {
-                    return Json(new { sucess = false, message = ex.Message });
-                }
-
+                ModelState.AddModelError("", validationMessage);
+                return View(purchase); // return same view with validation messages
             }
 
-    #endregion
+            purchase.AddedBy = Session["StaffCode"].ToString();
+            await bal.CreatePR(purchase);
+            TempData["Success"] = "Purchase Requisition created successfully!";
+            return RedirectToAction("CreatePR");
+        }
+        private string ValidatePurchase(PurchaseHeader purchase)
+        {
+            if (purchase == null)
+                return "Invalid data submitted.";
 
-    #region Omkar
-    /*################################################# Vendor Management ###################################################*/
+            if (string.IsNullOrWhiteSpace(purchase.PRCode))
+                return "PR Code is required.";
 
-    /// <summary>
-    /// Displays the vendor management view page.
-    /// </summary>
-    [HttpGet]
+            if (purchase.RequiredDate == DateTime.MinValue)
+                return "Required Date is required.";
+
+            if (purchase.RequiredDate < DateTime.Today)
+                return "Required Date cannot be in the past.";
+
+            if (purchase.PriorityId <= 0)
+                return "Please select a valid Priority.";
+
+            if (string.IsNullOrWhiteSpace(purchase.Description))
+                return "Description is required.";
+
+            return string.Empty; // means validation passed
+        }
+
+
+        #endregion
+
+        #region Omkar
+        /*################################################# Vendor Management ###################################################*/
+
+        /// <summary>
+        /// Displays the vendor management view page.
+        /// </summary>
+        [HttpGet]
         public ActionResult VenderManagementOK()
         {
             return View();

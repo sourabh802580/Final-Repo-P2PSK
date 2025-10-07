@@ -647,6 +647,7 @@ namespace P2PLibray.Inventory
     #endregion
     public class Fetch
     {
+        public string SectionCode { get; set; }
         public int StatusId { get; set; }
         public string StatusName { get; set; }
 
