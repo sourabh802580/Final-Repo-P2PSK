@@ -2344,15 +2344,47 @@ namespace P2PERP.Controllers
         }
 
         // for save the new RFQ's
+        /* [HttpPost]
+         public async Task<JsonResult> SaveRFQSJ(Purchase model)
+         {
+             try
+             {
+                 if (!ModelState.IsValid)
+                     return Json(new { success = false, error = "Invalid model state" });
+
+                 // 🟢 Convert values to string before passing
+                 string staffCode = Session["StaffCode"]?.ToString() ?? "";
+                 string date = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+
+                 int result = await bal.SaveRFQSJ(model, staffCode, date);
+                 return Json(new { success = result > 0 });
+             }
+             catch (Exception ex)
+             {
+                 return Json(new { success = false, error = ex.Message });
+             }
+         }*/
+
         [HttpPost]
-        public async Task<JsonResult> SaveRFQSJ(Purchase model)
+        public async Task<JsonResult> SaveRFQSJ()
         {
             try
             {
-                if (!ModelState.IsValid)
+                Request.InputStream.Seek(0, SeekOrigin.Begin);
+                string jsonData = new StreamReader(Request.InputStream).ReadToEnd();
+
+                // Allow dd/MM/yyyy parsing
+                var settings = new JsonSerializerSettings
+                {
+                    Culture = new System.Globalization.CultureInfo("en-GB"),
+                    DateFormatHandling = DateFormatHandling.IsoDateFormat
+                };
+
+                var model = JsonConvert.DeserializeObject<Purchase>(jsonData, settings);
+
+                if (!TryValidateModel(model))
                     return Json(new { success = false, error = "Invalid model state" });
 
-                // 🟢 Convert values to string before passing
                 string staffCode = Session["StaffCode"]?.ToString() ?? "";
                 string date = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 
@@ -2364,6 +2396,7 @@ namespace P2PERP.Controllers
                 return Json(new { success = false, error = ex.Message });
             }
         }
+
 
 
 
