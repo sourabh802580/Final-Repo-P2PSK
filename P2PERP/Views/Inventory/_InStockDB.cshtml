@@ -58,7 +58,7 @@
                             <thead class="table-light text-center table-dark">
                                 <tr>
                                     <th>Sr No</th>
-                                    <th>Item ID</th>
+                                    <th>Item Code</th>
                                     <th>Item Name</th>
                                     <th>Type</th>
                                     <th>UOM</th>
@@ -121,7 +121,7 @@
 
                     <!-- Footer Buttons -->
                     <div class="d-flex justify-content-end gap-2 mt-4">
-                        <button type="button" class="btn btn-outline-danger px-4" data-bs-dismiss="modal"><i class="bi bi-x-circle me-2"></i>Close</button>
+                        <button type="button" class="btn btn-danger px-4" data-bs-dismiss="modal"><i class="bi bi-x-circle me-2"></i>Close</button>
                         <button type="button" class=" btnAssign btn btn-success px-4"><i class="bi bi-check-circle me-2 text-white"></i>Assign</button>
                     </div>
 
@@ -138,19 +138,19 @@
 
 
 
-        // Initialize DataTable for ReturnGoods
+        //  Initialize DataTable for instock
         $('.instockTable').DataTable({
-            retrieve: true,   // reuse existing instance
-            dom: '<"d-flex justify-content-end mb-2"f>rt<"d-flex justify-content-between align-items-center mt-2"ip>',
-            paging: true,
-            searching: true,
-            ordering: false,
-            info: true,
+            destroy: true,     // ensures no duplicate initialization
             responsive: true,
+            searching: false,
+            ordering: false,
+            paging: false,
+            info: false,
             columnDefs: [
                 { targets: "_all", className: "text-center align-middle" }
             ]
         });
+
 
 
         // 🔹 Directly load Areas using Model.WareHouseCode

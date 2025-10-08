@@ -4,10 +4,10 @@
 }
 
 <div class="container mt-4">
-   
+
 
     <!-- 📋 Table -->
-    <div class="table-responsive shadow-lg rounded">
+    <div class="table-responsive shadow-lg rounded container-fluid">
         <h2 class="text-center text-primary fw-bold mb-4"> ISR & JIT Stock  </h2>
         <!-- Date Range Picker -->
         <div class="mb-3">
@@ -19,7 +19,7 @@
             </div>
         </div>
 
-        <table id="inventoryTable" class="table table-hover table-striped align-middle">
+        <table id="inventoryTable" class="table table-hover table-striped align-middle  table-bordered">
             <thead class="table-dark">
                 <tr>
                     <th><input type="checkbox" id="selectAll" /></th>
@@ -43,7 +43,7 @@
 <style>
     .status-badge {
         padding: 6px 10px;
-        border-radius: 20px;
+        /*        border-radius: 20px;*/
         font-size: 0.85rem;
         font-weight: 600;
     }
@@ -61,6 +61,12 @@
     .status-approved {
         background-color: #28a745;
         color: white;
+    }
+
+    #inventoryTable td,
+    #inventoryTable th {
+        text-align: center;
+        vertical-align: middle;
     }
 </style>
 
@@ -102,7 +108,9 @@
                         <td>${item.ItemName}</td>
                         <td>${item.ItemCode}</td>
                         <td>${item.ISRQuantity}</td>
-                        <td>${item.Description}</td>
+                        <td data-bs-toggle="tooltip" title="${item.Description}">
+                ${item.Description.length > 20 ? item.Description.substring(0, 20) + "..." : item.Description}
+                 </td>
                         <td>${item.RequiredDates}</td>
                         <td>${item.UOMName}</td>
                         <td>${item.RequestType}</td>
@@ -116,80 +124,192 @@
             if ($.fn.DataTable.isDataTable('#inventoryTable')) {
                 $('#inventoryTable').DataTable().destroy();
             }
-
             $('#inventoryTable').DataTable({
                 dom: '<"d-flex justify-content-between align-items-center mb-3"<"dt-left"B><"dt-search"f>>rt<"bottom d-flex justify-content-between align-items-center"ip>',
+                ordering:false,
                 buttons: [
+                    // ✅ Print
                     {
                         extend: 'print',
                         title: 'Stock Level',
-                        text: '<i class="bi bi-printer-fill text-dark fs-5"></i>',
-                        exportOptions: exportOptionsConfig(),
-                        action: exportAction('print')
+                        text: '<i class="bi bi-printer-fill text-dark fs-5" data-bs-toggle="tooltip" title="Print Selected Rows"></i>',
+                        titleAttr: 'Print',
+                        action: function (e, dt, button, config) {
+                            if ($('.row-select:checked').length === 0) {
+                                showExportToast("Please select at least one row to Print");
+                                return;
+                            }
+                            $.fn.dataTable.ext.buttons.print.action.call(this, e, dt, button, config);
+                        },
+                        exportOptions: {
+                            columns: [1, 2, 3, 4, 5, 6, 7, 8],
+                            rows: function (idx, data, node) {
+                                return $(node).find('.row-select').prop('checked');
+                            }
+                        },
+                        customize: function (win) {
+                            $(win.document.body).prepend(
+                                `<div style="text-align:center; font-size:12px; margin-bottom:10px;">
+                        Generated on: ${new Date().toLocaleString()}
+                    </div>`
+                            );
+                            $(win.document.body).find('table')
+                                .addClass('table table-bordered table-striped')
+                                .css('font-size', '14px');
+                            $(win.document.body).find('thead')
+                                .css('background-color', '#0d6efd')
+                                .css('color', 'white');
+                            $(win.document.body).find('table tbody tr').each(function (i) {
+                                $(this).find('td:first').text(i + 1);
+                            });
+                        }
                     },
+                    // ✅ PDF
                     {
                         extend: 'pdfHtml5',
                         title: 'Stock Level',
-                        text: '<i class="bi bi-file-earmark-pdf text-danger fs-5"></i>',
-                        exportOptions: exportOptionsConfig(),
-                        action: exportAction('pdfHtml5')
+                        text: '<i class="bi bi-file-earmark-pdf text-danger fs-5" data-bs-toggle="tooltip" title="Export to PDF"></i>',
+                        titleAttr: 'Export PDF',
+                        action: function (e, dt, button, config) {
+                            if ($('.row-select:checked').length === 0) {
+                                showExportToast("Please select at least one row to export PDF");
+                                return;
+                            }
+                            $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, button, config);
+                        },
+                        exportOptions: {
+                            columns: [1, 2, 3, 4, 5, 6, 7, 8],
+                            rows: function (idx, data, node) {
+                                return $(node).find('.row-select').prop('checked');
+                            },
+                            format: {
+                                body: function (data, rowIdx, colIdx) {
+                                    if (colIdx === 1) return rowIdx + 1;
+                                    if (typeof data === 'string') return data.replace(/<\/?[^>]+(>|$)/g, "").trim();
+                                    return data;
+                                }
+                            }
+                        },
+                        customize: function (doc) {
+                            try {
+                                // Center and enlarge title
+                                doc.content[0].alignment = 'center';
+                                doc.content[0].fontSize = 14;
+
+                                // Add export date below title
+                                var exportDate = new Date().toLocaleDateString('en-GB');
+                                doc.content.splice(1, 0, {
+                                    text: 'Export Date: ' + exportDate,
+                                    alignment: 'center',
+                                    margin: [0, 0, 0, 8],
+                                    fontSize: 10
+                                });
+
+                                // Find table node
+                                var tableNode = doc.content.find(c => c.table);
+                                if (!tableNode) return;
+
+                                // Apply styling
+                                doc.styles = doc.styles || {};
+                                doc.styles.tableHeader = { alignment: 'center', fillColor: '#212529', color: '#ffffff', bold: true };
+                                doc.styles.tableBodyEven = { alignment: 'center' };
+                                doc.styles.tableBodyOdd = { alignment: 'center' };
+
+                                // Table borders + padding
+                                tableNode.layout = {
+                                    hLineWidth: () => .5, vLineWidth: () => .5,
+                                    hLineColor: () => '#dddddd', vLineColor: () => '#dddddd',
+                                    paddingLeft: () => 6, paddingRight: () => 6,
+                                    paddingTop: () => 4, paddingBottom: () => 4
+                                };
+
+                                // Re-number Sr No column
+                                tableNode.table.body.forEach((row, i) => {
+                                    if (i > 0) row[0] = { text: String(i), alignment: 'center' };
+                                });
+                            } catch (err) {
+                                console.error('PDF customize error:', err);
+                            }
+                        }
+
                     },
+                    // ✅ Excel
                     {
                         extend: 'excelHtml5',
                         title: 'Stock Level',
-                        text: '<i class="bi bi-file-earmark-excel text-success fs-5"></i>',
-                        exportOptions: exportOptionsConfig(),
-                        action: exportAction('excelHtml5')
+                        text: '<i class="bi bi-file-earmark-excel text-success fs-5" data-bs-toggle="tooltip" title="Export to Excel"></i>',
+                        titleAttr: 'Export Excel',
+                        action: function (e, dt, button, config) {
+                            if ($('.row-select:checked').length === 0) {
+                                showExportToast("Please select at least one row to export Excel");
+                                return;
+                            }
+                            window.__excelSrCounter = 0;
+                            $.fn.dataTable.ext.buttons.excelHtml5.action.call(this, e, dt, button, config);
+                        },
+                        exportOptions: {
+                            columns: [1, 2, 3, 4, 5, 6, 7, 8],
+                            rows: function (idx, data, node) {
+                                return $(node).find('.row-select').prop('checked');
+                            },
+                            format: {
+                                body: function (data, rowIdx, colIdx, node) {
+                                    if (colIdx === 1) return ++window.__excelSrCounter;
+                                    if (typeof data === 'string') return data.replace(/<\/?[^>]+(>|$)/g, "").trim();
+                                    return data;
+                                }
+                            }
+                        }
                     },
+                    // ✅ CSV
                     {
                         extend: 'csvHtml5',
-                        title: 'Stock Level',
-                        text: '<i class="bi bi-filetype-csv text-primary fs-5"></i>',
-                        exportOptions: exportOptionsConfig(),
-                        action: exportAction('csvHtml5')
+                        title: 'Stock_Level',
+                        text: '<i class="bi bi-filetype-csv text-primary fs-5" data-bs-toggle="tooltip" title="Export to CSV"></i>',
+                        titleAttr: 'Export CSV',
+                        action: function (e, dt, button, config) {
+                            if ($('.row-select:checked').length === 0) {
+                                showExportToast("Please select at least one row to export CSV");
+                                return;
+                            }
+                            $.fn.dataTable.ext.buttons.csvHtml5.action.call(this, e, dt, button, config);
+                        },
+                        exportOptions: {
+                            columns: [1, 2, 3, 4, 5, 6, 7, 8],
+                            rows: function (idx, data, node) {
+                                return $(node).find('.row-select').prop('checked');
+                            },
+                            format: {
+                                body: function (data, rowIdx, colIdx) {
+                                    if (colIdx === 1) return rowIdx + 1;
+                                    if (typeof data === 'string') return data.replace(/<\/?[^>]+(>|$)/g, "").trim();
+                                    return data;
+                                }
+                            }
+                        }
                     }
                 ],
                 columnDefs: [
-                    {
-                        targets: 1, // Sr No
-                        render: function (data, type, row, meta) {
-                            return meta.row + 1;
-                        }
-                    },
+                    { targets: 1, render: function (data, type, row, meta) { return meta.row + 1; } },
                     { orderable: false, targets: [0, 9] }
                 ],
-                order: []
-            });
-        }
+                order: [],
 
-        // Export Config Generator
-        function exportOptionsConfig() {
-            return {
-                columns: [1, 2, 3, 4, 5, 6, 7, 8],
-                rows: function (idx, data, node) {
-                    return $(node).find('.row-select').prop('checked');
+                createdRow: function (row, data, dataIndex) {
+                    // Center align all cells
+                    $('td', row).addClass('text-center');
                 },
-                format: {
-                    body: function (data, rowIdx, colIdx, node) {
-                        if (colIdx === 1) return rowIdx + 1;
-                        return $(node).text().trim();
-                    }
+                drawCallback: function () {
+                    // Re-enable tooltips after redraw
+                    $('[data-bs-toggle="tooltip"]').tooltip();
                 }
-            };
+            });
+
+
+
         }
 
-        // Export Action Wrapper
-        function exportAction(type) {
-            return function (e, dt, button, config) {
-                if ($('.row-select:checked').length === 0) {
-                    showExportToast();
-                    return;
-                }
-                $.fn.dataTable.ext.buttons[type].action.call(this, e, dt, button, config);
-            };
-        }
 
-        // Status Class Mapping
         function getStatusClass(status) {
             if (!status) return "";
             status = status.toLowerCase();
@@ -241,13 +361,13 @@
                     'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
                 }
             }, function (start, end) {
-                $('#ISRdatepicker').val(start.format('YYYY-MM-DD') + ' - ' + end.format('YYYY-MM-DD'));
+                $('#ISRdatepicker').val(start.format('DD/MM/YYYY') + ' - ' + end.format('DD/MM/YYYY'));
 
                 // ✅ DataTable filter for Required Date column (index 6)
                 $.fn.dataTable.ext.search.push(function (settings, data) {
                     if (settings.nTable.id !== 'inventoryTable') return true;
 
-                    const requiredDate = moment(data[6], 'YYYY-MM-DD');
+                    const requiredDate = moment(data[6], 'DD/MM/YYYY');
                     return requiredDate.isBetween(start, end, undefined, '[]');
                 });
 

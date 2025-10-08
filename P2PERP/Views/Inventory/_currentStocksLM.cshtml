@@ -16,7 +16,7 @@
 </style>
 
 <div class="container mt-4 card shadow-sm">
-    <h3 class="text-primary text-center fw-bolder">Current Stock</h3>
+    <h3 class="text-primary text-center fw-bolder mt-3">Current Stock</h3>
     <table id="currentStockTable" class="table table-bordered table-striped wrap">
         <thead class="table-dark text-center">
             <tr>
@@ -28,6 +28,7 @@
                 <th>Item Name</th>
                 <th>Current Qty</th>
                 <th>Reorder Qty</th>
+                <th>Bin List</th>
                 <th>Status</th>
             </tr>
         </thead>
@@ -40,7 +41,7 @@
         <div class="modal-content">
             <div class="modal-header bg-primary justify-content-center position-relative">
                 <h4 class="modal-title text-white text-center" id="viewModalLabel">View Item</h4>
-                <button type="button" class="btn-close position-absolute end-0 me-2" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close btn-close-white position-absolute end-0 me-2" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <p><strong>Item Code:</strong> <span id="modalItemCode"></span></p>
@@ -113,10 +114,11 @@ $(document).ready(function () {
                     return meta.row + 1;
                 }
             },
-            { "data": "ItemCode", "className": "text-center" },
-            { "data": "ItemName", "className": "text-center" },
-            { "data": "CurrentQty", "className": "text-center" },
-            { "data": "ReorderQuantity", "className": "text-center" },
+            { "data": "ItemCode", orderable: false, "className": "text-center" },
+            { "data": "ItemName", orderable: false, "className": "text-center" },
+            { "data": "CurrentQty", orderable: false, "className": "text-center" },
+            { "data": "ReorderQuantity", orderable: false, "className": "text-center" },
+            { "data": "BinsList", orderable: false, "className": "text-center" },
             {
                 data: null,
                 orderable: false,
@@ -198,6 +200,7 @@ $(document).ready(function () {
                     $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, button, config);
                 },
                 customize: function (doc) {
+                    // table layout styling
                     var objLayout = {};
                     objLayout['hLineWidth'] = function (i) { return 0.8; };
                     objLayout['vLineWidth'] = function (i) { return 0.8; };
@@ -207,6 +210,7 @@ $(document).ready(function () {
                     objLayout['paddingRight'] = function (i) { return 5; };
                     doc.content[1].layout = objLayout;
 
+                    // header styling
                     var headerCells = doc.content[1].table.body[0];
                     headerCells.forEach(function (cell) {
                         cell.fillColor = '#000000';
@@ -214,8 +218,27 @@ $(document).ready(function () {
                         cell.bold = true;
                         cell.alignment = 'center';
                     });
+
+                    // ✅ Center align table on PDF
+                    doc.content[1].table.widths = Array(
+                        doc.content[1].table.body[0].length
+                    ).fill('*');
+
+                    doc.content[1].alignment = 'center';
+                    doc.content[1].margin = [0, 10, 0, 0];
+
+                    // ✅ Add Generated Date under title (DATE ONLY)
+                    var generatedDate = moment().format("YYYY-MM-DD");
+                    doc.content.splice(1, 0, {
+                        text: `Generated Date: ${generatedDate}`,
+                        alignment: 'center',
+                        margin: [0, 0, 0, 10],
+                        fontSize: 10,
+                        italics: true
+                    });
                 }
             },
+
             // --- EXCEL ---
             {
                 extend: 'excelHtml5',
@@ -342,4 +365,3 @@ $(document).ready(function () {
 
 });
 </script>
-

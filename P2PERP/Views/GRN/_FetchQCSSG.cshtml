@@ -81,7 +81,8 @@
         // Destroy existing DataTable if reloaded
         if ($.fn.DataTable.isDataTable('#qcItemsTable')) {
             $('#qcItemsTable').DataTable().destroy();
-        }
+        } 
+
 
         let selectedItems = new Set();
 
@@ -89,7 +90,7 @@
         var qcTable = $('#qcItemsTable').DataTable({
             paging: true,
             searching: true,
-            ordering: true,
+            ordering: false,
             info: true,
             lengthChange: false,
             pageLength: 10,
@@ -387,17 +388,19 @@
             });
         });
 
-        function initDescriptionTooltips() {
+        // Re-initialize tooltips after DataTable draw
+        $('#qcItemsTable').on('draw.dt', function () {
             var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
             tooltipTriggerList.forEach(function (el) {
-                if (el._tooltip) el._tooltip.dispose();
+                if (el._tooltip) el._tooltip.dispose(); // destroy existing
                 el._tooltip = new bootstrap.Tooltip(el, {
                     template: '<div class="tooltip" role="tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner" style="background-color:black; color:white;"></div></div>'
                 });
             });
-        }
+        });
 
-        // Call after DataTable init
-        initDescriptionTooltips();
+        // Initial call for first page
+        $('#qcItemsTable').trigger('draw.dt');
+
     });
 </script>
