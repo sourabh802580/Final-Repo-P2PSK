@@ -75,7 +75,7 @@
                 </span>
             </td>
                     <td>${item.RequiredQuantity || '0'}</td>
-                    <td>${item.RequiredDate ? formatDisplayDate(item.RequiredDate) : 'N/A'}</td>
+                    <td>${moment(item.RequiredDate).format('DD/MM/YYYY')}</td>
                     <td>${item.RequestType || 'N/A'}</td>
                 </tr>`;
             });
@@ -88,14 +88,14 @@
             $('[data-bs-toggle="tooltip"]').tooltip();
 
             // Initialize DataTable after populating data
-            initDataTable();
+            initDataTable1();
 
         }
       
       
 
 
-        function initDataTable() {
+        function initDataTable1() {
             // Destroy existing DataTable if already initialized
             if ($.fn.DataTable.isDataTable('#reqTable1')) {
                 $('#reqTable1').DataTable().clear().destroy();
