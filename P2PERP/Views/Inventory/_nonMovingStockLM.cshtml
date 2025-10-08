@@ -38,7 +38,7 @@
 
 
 <div class="container mt-4 card shadow-sm">
-    <h3 class="text-primary text-center fw-bolder">Non Moving Stock</h3>
+    <h3 class="text-primary text-center fw-bolder mt-3">Non Moving Stock</h3>
     <table id="nonMovingStockTable" class="table table-bordered table-striped wrap">
         <thead class="table-dark text-center">
             <tr>
@@ -95,11 +95,12 @@ var nonMovingTable = $('#nonMovingStockTable').DataTable({
                 return meta.row + 1;
             }
         },
-        { data: "ItemCode", className: "text-center" },
-        { data: "ItemName", className: "text-center" },
-        { data: "CurrentQty", className: "text-center" },
+        { data: "ItemCode", orderable: false, className: "text-center" },
+        { data: "ItemName", orderable: false, className: "text-center" },
+        { data: "CurrentQty", orderable: false, className: "text-center" },
         {
             data: "AddedDate",
+            orderable: false,
             className: "text-center",
             render: function (data) {
                 if (!data) return "";
@@ -122,6 +123,7 @@ var nonMovingTable = $('#nonMovingStockTable').DataTable({
         },
         {
             data: "ExpiryDate",
+            orderable: false,
             className: "text-center",
             render: function (data) {
                 if (!data) return "";
@@ -142,6 +144,7 @@ var nonMovingTable = $('#nonMovingStockTable').DataTable({
         },
         {
             data: null,
+            orderable: false,
             className: "text-center",
             render: function (data, type, row) {
                 return `<span data-bincode="${row.BinCode}">${row.BinName}</span>`;
@@ -153,7 +156,7 @@ var nonMovingTable = $('#nonMovingStockTable').DataTable({
             className: "text-center",
             render: function (data, type, row) {
                 return `
-                <button class="btn btn-sm transfer-btn circular-glass-btn" data-id="${row.ItemCode}">
+                <button class="btn btn-sm transfer-btn circular-glass-btn bg-danger" data-id="${row.ItemCode}">
                     <i class="bi bi-box-arrow-in-right"
                        title="Transfer Dead Stock"
                        data-bs-toggle="tooltip"
@@ -237,11 +240,13 @@ var nonMovingTable = $('#nonMovingStockTable').DataTable({
                 $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, button, config);
             },
             customize: function (doc) {
+                // --- Table header style ---
                 doc.styles.tableHeader.fillColor = 'black';
                 doc.styles.tableHeader.color = 'white';
                 doc.styles.tableHeader.alignment = 'center';
                 doc.styles.tableHeader.bold = true;
 
+                // --- Table layout (borders, padding) ---
                 var objLayout = {};
                 objLayout['hLineWidth'] = function (i) { return 0.5; };
                 objLayout['vLineWidth'] = function (i) { return 0.5; };
@@ -250,6 +255,28 @@ var nonMovingTable = $('#nonMovingStockTable').DataTable({
                 objLayout['paddingLeft'] = function (i) { return 5; };
                 objLayout['paddingRight'] = function (i) { return 5; };
                 doc.content[1].layout = objLayout;
+
+                // ✅ Add "Generated Date" just below the title
+                var generatedDate = moment().format("YYYY-MM-DD");
+                doc.content.splice(1, 0, {
+                    text: `Generated Date: ${generatedDate}`,
+                    alignment: 'center',
+                    margin: [0, 0, 0, 10],
+                    fontSize: 10,
+                    italics: true
+                });
+
+                // ✅ Center align the table in PDF
+                // make all columns auto-width to help centering
+                doc.content[2].table.widths = Array(
+                    doc.content[2].table.body[0].length
+                ).fill('*');
+
+                // align table center
+                doc.content[2].alignment = 'center';
+
+                // add little margin from top
+                doc.content[2].margin = [0, 10, 0, 0];
             }
         },
 
@@ -403,22 +430,28 @@ $('#nonMovingStockTable').on('click', '.transfer-btn', function () {
         inputOptions[binCodes[i]] = binNames[i];
     }
 
-Swal.fire({
-    title: 'Select Bin',
-    input: 'select',
-    inputOptions: inputOptions,
-    showCancelButton: true
-}).then((binResult) => {
-    if (!binResult.isConfirmed) return;
-    var selectedBinCode = binResult.value;
-
     Swal.fire({
-        title: 'Transfer Quantity',
-        input: 'number',
-        inputAttributes: { min: 1 },
+        title: 'Select Bin',
+        input: 'select',
+        inputOptions: inputOptions,
         showCancelButton: true,
-        confirmButtonText: 'Transfer',
-        showLoaderOnConfirm: true,
+        confirmButtonText: 'OK',
+        cancelButtonText: 'Cancel',
+        cancelButtonColor: '#d33' // 🔴 red / danger color
+    }).then((binResult) => {
+        if (!binResult.isConfirmed) return;
+        var selectedBinCode = binResult.value;
+   
+
+        Swal.fire({
+            title: 'Transfer Dead Stock Quantity',
+            input: 'number',
+            inputAttributes: { min: 1 },
+            showCancelButton: true,
+            confirmButtonText: 'Transfer',
+            cancelButtonText: 'Cancel',
+            cancelButtonColor: '#d33', // 🔴 red / danger color
+            showLoaderOnConfirm: true,
         preConfirm: (qty) => {
             if (!qty || qty <= 0) {
                 Swal.getInput().classList.add('is-invalid');

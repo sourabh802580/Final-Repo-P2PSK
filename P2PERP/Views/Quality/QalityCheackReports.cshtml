@@ -92,6 +92,11 @@
         background-color: #fff !important;
         border-color: #adb5bd !important;
     }
+    .modal-backdrop.show {
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+        background-color: rgba(0, 0, 0, 0.4) !important;
+    }
 </style>
 
 <!-- ✅ Combined Charts Container -->
@@ -115,12 +120,12 @@
         <div class="row justify-content-center">
             <div class="col-md-8 col-lg-6">
                 <!-- Confirmed Item Modal -->
-                <div class="modal fade" id="conModal" tabindex="-1" aria-labelledby="conModalLabel" aria-hidden="true" data-bs-backdrop="false" data-bs-keyboard="false">
+                <div class="modal fade" id="conModal" tabindex="-1" aria-labelledby="conModalLabel" aria-hidden="true" data-bs-backdrop="True" data-bs-keyboard="false">
                     <div class="modal-dialog modal-lg">
                         <div class="modal-content">
                             <div class="modal-header bg-primary">
                                 <h5 class="modal-title text-white" id="conModalLabel">Confirmed Item List</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
                             <div class="modal-body">
                                 <table id="conConfirmedItemTable" class="table table-striped table-bordered" style="width:100%">
@@ -141,12 +146,12 @@
                     </div>
                 </div>
                 <!--Non Modal -->
-                <div class="modal fade" id="nonConModal" tabindex="-1" aria-labelledby="nonConModalLabel" aria-hidden="true" data-bs-backdrop="false" data-bs-keyboard="false">
+                <div class="modal fade" id="nonConModal" tabindex="-1" aria-labelledby="nonConModalLabel" aria-hidden="true" data-bs-backdrop="True" data-bs-keyboard="false">
                     <div class="modal-dialog modal-lg">
                         <div class="modal-content">
                             <div class="modal-header bg-primary text-white justify-content-center">
                                 <h5 class="modal-title text-white" id="nonConModalLabel">Non-Confirmed Item List</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
                             <div class="modal-body">
                                 <table id="nonConConfirmedItemTable" class="table table-striped justify-content-center table-bordered" style="width:100%">
@@ -241,10 +246,12 @@
                 'Last 7 Days': [moment().subtract(6, 'days'), moment()],
                 'Last 30 Days': [moment().subtract(29, 'days'), moment()],
                 'This Month': [moment().startOf('month'), moment().endOf('month')],
-                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
+                // Only this year and last year
+                'This Year': [moment().startOf('year'), moment().endOf('year')],
+                'Last Year': [moment().subtract(1, 'year').startOf('year'), moment().subtract(1, 'year').endOf('year')]
             }
         });
-
         // Apply button logic
         $('#qualityDateRange').on('apply.daterangepicker', function (ev, picker) {
             $(this).val(picker.startDate.format('YYYY-MM-DD') + ' - ' + picker.endDate.format('YYYY-MM-DD'));
@@ -600,13 +607,18 @@
                         $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, button, config);
                     },
                     customize: function (doc) {
+                        // Set page margins
                         doc.pageMargins = [40, 60, 40, 40];
+
+                        // Title styling - centered
                         doc.styles.title = {
                             fontSize: 16,
                             bold: true,
                             alignment: 'center',
                             margin: [0, 0, 0, 10]
                         };
+
+                        // Add generation date - centered
                         doc.content.splice(1, 0, {
                             text: `Generated on: ${moment().format("YYYY-MM-DD")}`,
                             alignment: 'center',
@@ -614,6 +626,8 @@
                             fontSize: 10,
                             italics: true
                         });
+
+                        // Add date range if available
                         if (startDate && endDate) {
                             doc.content.splice(2, 0, {
                                 text: `Date Range: ${startDate} to ${endDate}`,
@@ -622,6 +636,8 @@
                                 fontSize: 10
                             });
                         }
+
+                        // Find and style the table
                         const table = doc.content.find(n => n.table);
                         if (table) {
                             // Regenerate serial numbers for PDF
@@ -630,12 +646,15 @@
                                 // Update the table body with new serial numbers
                                 for (let i = 1; i < table.table.body.length; i++) {
                                     if (exportData[i - 1]) {
-                                        table.table.body[i][0] = i;
+                                        table.table.body[i][0] = i; // Update serial number
                                     }
                                 }
                             }
 
+                            // Set all columns to equal width
                             table.table.widths = Array(table.table.body[0].length).fill('*');
+
+                            // Table layout settings
                             table.layout = {
                                 hLineWidth: () => 0.5,
                                 vLineWidth: () => 0.5,
@@ -645,13 +664,34 @@
                                 paddingLeft: () => 5,
                                 paddingRight: () => 5
                             };
+
+                            // Style header row - CENTER ALIGNED
                             table.table.body[0].forEach(cell => {
                                 cell.fillColor = '#343a40';
                                 cell.color = 'white';
                                 cell.alignment = 'center';
                                 cell.fontSize = 11;
+                                cell.bold = true;
                             });
+
+                            // Style all data rows - CENTER ALIGNMENT
+                            table.table.body.forEach((row, rowIndex) => {
+                                if (rowIndex > 0) { // Skip header row
+                                    // Center align all cells in data rows
+                                    row.forEach(cell => {
+                                        cell.alignment = 'center';
+                                    });
+                                }
+                            });
+
+                            // Ensure table is centered on page
+                            table.alignment = 'center';
                         }
+
+                        // Set default styles for all text to be centered
+                        doc.defaultStyle = {
+                            alignment: 'center'
+                        };
                     }
                 },
                 {
@@ -875,4 +915,4 @@
         // Initial load without filters
         loadQualityChart(null, null);
     });
-</script>
+</script> 

@@ -42,7 +42,7 @@
     <script src="~/Scripts/jquery-3.7.1.min.js"></script>
     <script src="~/Scripts/toastr.min.js"></script>
 </head>
-<body style="background-color: #8dc3db;">
+<body style="background-color: #58a8c8;">
     <div class="container body-content">
         <!-- Authentication Wrapper -->
         <div class="authentication-wrapper authentication-cover">
@@ -90,7 +90,7 @@
                 <!-- Left Section: Illustration -->
                 <div class="d-none d-lg-flex col-lg-7 col-xl-8 align-items-center justify-content-center p-12 pb-2">
                     <div>
-                        <img src="~/Content/images/illustrations/Select The Best Erp System For You.jpg"
+                        <img src="~/Content/images/illustrations/NewBG.png"
                              class="authentication-image-model d-none d-lg-block" alt="auth-model" />
                     </div>
                 </div>
@@ -102,7 +102,7 @@
                         <!-- Heading -->
                         <h4 class="mb-8 text-primary fw-semibold">Verify your email ✉️</h4>
                         <p class="text-start mb-0 text-warning fs-5 text-capitalize">
-                            Account activation link sent to your email address: <span class="h6">hello@example.com</span>
+                            Account activation link sent to your email address: <span class="h6">@Session["ForgetPasswordEmail"]</span>
                         </p>
 
                         <!-- Verification Code Form -->
@@ -159,5 +159,6 @@
     <!-- Main JS -->
     <script src="~/Scripts/main.js"></script>
     <script src="~/Scripts/pages-auth.js"></script>
+    <script src="~/Scripts/Login.js"></script>
 </body>
 </html>

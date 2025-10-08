@@ -35,17 +35,12 @@
         </div>
         <div class="col-md-4">
             <label><span class="text-danger">*</span> INVOICE DATE:</label>
-            <input type="text"
+            <input type="date"
                    id="txtInvoiceDate"
                    class="form-control form-control-sm"
-                   value="@(ViewBag.InvoiceDate != null ? Convert.ToDateTime(ViewBag.InvoiceDate).ToString("dd/MM/yyyy") : "")"
-                   placeholder="dd/MM/yyyy">
+                   value="@(ViewBag.InvoiceDate != null ? Convert.ToDateTime(ViewBag.InvoiceDate).ToString("yyyy-MM-dd") : "")"
+                   onchange="formatDate(this)">
         </div>
-
-       
-
-
-
 
 
     </div>
@@ -165,12 +160,7 @@
 <script>
     $(document).ready(function () {
 
-            $(function () {
-                $('#txtInvoiceDate').datepicker({
-                    format: 'dd/mm/yyyy',   // Display slashes
-                    autoclose: true
-                });
-     });
+
         // Initialize Bootstrap tooltips
         function initTooltips() {
             var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
@@ -218,6 +208,7 @@
 
         // Initialize DataTable for items
         const itemTable = $('#itemTable').DataTable({
+            ordering: false,
             responsive: true,
             dom: '<"row mb-2"<"col-md-6"><"col-md-6 d-flex justify-content-end"f>>t<"row mt-2"<"col-md-6"i><"col-md-6 d-flex justify-content-end"p>>',
             columns: [
@@ -274,19 +265,20 @@
             `);
         };
 
-        //  On item selection from dropdown, populate fields
-        $('#itemDropdown').change(function(){
-            const item = POItems.find(x=>x.ItemCode==$(this).val());
-            if(!item) return;
+        $('#itemDropdown').change(function () {
+            const item = POItems.find(x => x.ItemCode == $(this).val());
+            if (!item) return;
+
             $('#txtQty').val(item.Quantity);
             $('#txtUnitRate').val(item.CostPerUnit);
             $('#txtDiscount').val(item.Discount + "%");
             $('#txtGST').val(item.GST);
-            $('#txtAmount').val((num(item.Quantity)*num(item.CostPerUnit)).toFixed(2));
+            $('#txtAmount').val(item.TotalAmount); 
             $('#txtItemDesc').val(item.Description);
             $('#txtQC').val(item.IsQuality);
             $('#txtUOM').val(item.UOMName);
         });
+
 
         //  Qty validation against PO Qty
         $('#txtQty').on('input', function(){
@@ -306,35 +298,47 @@
             }
         });
 
-        //  Add item to DataTable
-        $('#btnAddItem').click(()=>{
+        // Add item to DataTable
+        $('#btnAddItem').click(() => {
             const itemCode = $('#itemDropdown').val();
             const qty = num($('#txtQty').val());
-            const unitRate = num($('#txtUnitRate').val());
             const warehouse = $('#ddlWarehouse').val();
 
-            if(!itemCode || qty<=0 || unitRate<=0){ Swal.fire({icon:'warning', title:'Enter valid quantity', showConfirmButton:false, timer:1800}); return; }
-            if(!warehouse){ Swal.fire({icon:'warning', title:'Select warehouse', showConfirmButton:false, timer:1800}); return; }
-            if(selectedItems.has(itemCode)){ Swal.fire({icon:'warning', title:'Item already added', showConfirmButton:false, timer:1800}); return; }
+
+            if (!itemCode || qty <= 0) {
+                Swal.fire({ icon: 'warning', title: 'Enter valid quantity', showConfirmButton: false, timer: 1800 });
+                return;
+            }
+            if (!warehouse) {
+                Swal.fire({ icon: 'warning', title: 'Select warehouse', showConfirmButton: false, timer: 1800 });
+                return;
+            }
+            if (selectedItems.has(itemCode)) {
+                Swal.fire({ icon: 'warning', title: 'Item already added', showConfirmButton: false, timer: 1800 });
+                return;
+            }
+
+            const item = POItems.find(x => x.ItemCode === itemCode);
+            if (!item) return;
 
             selectedItems.add(itemCode);
-            const base = qty*unitRate;
-            const amt = base - discountAmount(base, $('#txtDiscount').val());
 
             itemTable.row.add({
-                ItemCode:itemCode,
-                ItemName:$('#itemDropdown option:selected').text(),
-                Description:$('#txtItemDesc').val(),
-                Quantity:qty,
-                UnitRate:unitRate,
-                Discount:$('#txtDiscount').val().replace('%',''),
-                GST:$('#txtGST').val(),
-                Amount:amt.toFixed(2)
+                ItemCode: itemCode,
+                ItemName: item.ItemName,
+                Description: item.Description,
+                Quantity: qty,
+                UnitRate: item.CostPerUnit,
+                Discount: item.DiscountPercent,
+                GST: item.GST,
+                Amount: item.TotalAmount 
             }).draw(false);
 
+
             updateTotal();
-            Swal.fire({ icon:'success', title:'Item added!', showConfirmButton:false, timer:1500 });
+            Swal.fire({ icon: 'success', title: 'Item added!', showConfirmButton: false, timer: 1500 });
         });
+
 
         //  Delete row from DataTable
         $('#itemTable tbody').on('click', '.deleteRow', function(){
@@ -455,6 +459,7 @@
     $('#itemTable').on('draw.dt', function () { initTooltips(); });
 
 </script>
+
 
 
 
