@@ -1837,7 +1837,7 @@ namespace P2PERP.Controllers
                     AddDataCell(table, item.Quantity.ToString(), normalFont, Element.ALIGN_CENTER);
                     AddDataCell(table, $"\u20B9{item.CostPerUnit:N2}", normalFont, Element.ALIGN_RIGHT);
                     AddDataCell(table, item.Discount, normalFont, Element.ALIGN_RIGHT);
-                    AddDataCell(table, $"\u20B9{item.GST:N2}", normalFont, Element.ALIGN_RIGHT);
+                    AddDataCell(table, item.GST, normalFont, Element.ALIGN_RIGHT);
                     AddDataCell(table, $"\u20B9{item.Amount:N2}", normalFont, Element.ALIGN_RIGHT);
                 }
 
