@@ -1752,7 +1752,6 @@ namespace P2PLibray.Purchase
         }
 
         /// <summary>
-        /// 
         /// Fetches the maximum IDs for vendor and vendor company to generate new codes.
         /// </summary>
         /// <returns>DataSet containing maximum IDs for vendor and vendor company</returns>
