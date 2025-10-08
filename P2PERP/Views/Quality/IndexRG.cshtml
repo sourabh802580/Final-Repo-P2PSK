@@ -22,7 +22,7 @@
 
             <!-- Card Header -->
             <div class="card-header text-primary text-center">
-                <h3 class="mb-0 text-primary fw-bolder">Check Quality</h3>
+                <h3 class="mb-0 text-primary fw-bolder text-white ">Check Quality</h3>
             </div>
 
             <!-- Card Body -->
@@ -110,8 +110,7 @@
     </div> <!-- End Container -->
 
 
-</body>
-</html>
+
 
 
 
@@ -200,6 +199,7 @@
             $('#grnTable').DataTable().clear().destroy(); // destroy old instance
         }
         var table = $('#grnTable').DataTable({
+            
             ajax: {
                 url: '/Quality/AllgriddataRG',
                 type: 'GET',
@@ -254,7 +254,7 @@
             responsive: true,
             paging: true,
             searching: true,
-            ordering: true
+            ordering: false
         });
 
         // Stop spinner after export

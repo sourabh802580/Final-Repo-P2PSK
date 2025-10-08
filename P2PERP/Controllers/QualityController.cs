@@ -338,7 +338,7 @@ namespace P2PERP.Controllers
 
 
         //This is PartialView for nonconfirmform
-        public async Task<ActionResult> NonconfirmRG(string GRIcode, string sqc, string Inf, string itemcode)
+        public async Task<ActionResult> NonconfirmRG(string GRIcode, string sqc, string Inf, string itemcode,string grnnumber)
         {
             if (!string.IsNullOrEmpty(itemcode))
             {
@@ -350,7 +350,7 @@ namespace P2PERP.Controllers
                     string nccode = await bal.GenerateNextNCcode();
                     string QCCode = await bal.GenerateNextQCCode();
 
-                    ViewBag.GRN = newdata.GRNCode;
+                    ViewBag.GRN = grnnumber;
                     ViewBag.InspType = newdata.InspectionType;
                     ViewBag.planname = newdata.PlanName;
                     ViewBag.itemname = newdata.ItemName;

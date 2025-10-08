@@ -63,6 +63,7 @@ $(document).ready(function () {
 
     // Initialize DataTable
     let table = $('#categoryTable').DataTable({
+        ordering: false,
         ajax: {
             url: '@Url.Action("GetAllCategoriesSSG","Inventory")',
             type: 'GET',
@@ -184,7 +185,7 @@ $(document).ready(function () {
                     doc.styles.tableHeader.alignment = 'center';
 
                     body.forEach(function (row, rowIndex) {
-                        if (rowIndex > 0) { 
+                        if (rowIndex > 0) {
                             row.forEach(function (cell) {
                                 cell.alignment = 'center';
                             });
