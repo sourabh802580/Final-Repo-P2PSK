@@ -748,6 +748,7 @@
             });
         });
 
+
         // Form validation
         const forms = document.querySelectorAll(".needs-validation");
         Array.from(forms).forEach((form) => {
@@ -1453,9 +1454,9 @@
                 text: "Do you really want to save this vendor?",
                 icon: "warning",
                 showCancelButton: true,
-                confirmButtonText: "Yes, save it!",
+                confirmButtonText: "Yes, create it!",
                 cancelButtonText: "No, cancel!",
-                reverseButtons: true
+                reverseButtons: false // Yes first, Cancel second
             }).then((result) => {
                 if (result.isConfirmed) {
                     $.ajax({
@@ -1603,9 +1604,9 @@
             text: "Do you really want to approve this vendor?",
             icon: "warning",
             showCancelButton: true,
-            confirmButtonText: "Yes, approve it!",
+            confirmButtonText: "Yes, create it!",
             cancelButtonText: "No, cancel!",
-            reverseButtons: true,
+            reverseButtons: false 
         }).then((result) => {
             if (result.isConfirmed) {
                 // Call AJAX only if user confirmed
