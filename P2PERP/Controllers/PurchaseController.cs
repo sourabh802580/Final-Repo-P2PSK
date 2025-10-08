@@ -1450,9 +1450,18 @@ namespace P2PERP.Controllers
         /// <returns>View for creating purchase order</returns>
         /// </summary>
 
-        public ActionResult CreatePOOK(string quotationID)
+
+        //string quotationID
+        public ActionResult CreatePOOK()
         {
-            Session["quotationID"] = quotationID;
+            HttpCookie cookie = Request.Cookies["SelectedQuotationID"];
+            string quotationId = null;
+
+            if (cookie != null)
+            {
+                quotationId = cookie.Value;
+            }
+            Session["quotationID"] = quotationId;
             return View();
         }
 

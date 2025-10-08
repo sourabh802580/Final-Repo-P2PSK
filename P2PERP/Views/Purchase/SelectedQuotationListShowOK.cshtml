@@ -299,7 +299,7 @@
         </div>
 
     @*modal end*@
-    <script>
+<script>
     $(document).ready(function () {
         var QuotationTable;
         let tblQuotationItems;
@@ -1000,8 +1000,17 @@
             return;
         }
 
+        // Create a date object for 30 minutes in the future
+        let expiryDate = new Date();
+        expiryDate.setTime(expiryDate.getTime() + (30 * 60 * 1000)); // 30 minutes * 60 seconds * 1000ms
+
+        console.log("cookies Data",document.cookie);
+        // Set cookie with expiry
+        document.cookie = "SelectedQuotationID=" + finalID + "; expires=" + expiryDate.toUTCString() + "; path=/;";
+
         // Redirect to controller with QuotationID
-        window.location.href = `/Purchase/CreatePOOK?quotationID=${finalID}`;
+        window.location.href = `/Purchase/CreatePOOK`;
+       // window.location.href = `/Purchase/CreatePOOK?quotationID=${finalID}`;
     }
 
     // Helper function to recalc SrNo for export across all pages
@@ -1014,6 +1023,6 @@
         let sr = checkedRows.findIndex(row => tbl.row(row).index() === rowIdx) + 1;
         return sr; // consecutive Sr.No
     }
-    </script>
+</script>
 </body>
 </html>
