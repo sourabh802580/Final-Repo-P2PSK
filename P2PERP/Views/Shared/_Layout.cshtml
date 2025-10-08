@@ -12,7 +12,7 @@
           content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
     <meta name="robots" content="noindex, nofollow" />
 
-    <title>@ViewBag.Title - P2PERP</title>
+    <title>@ViewBag.Title</title>
 
     <meta name="description" content="" />
     <!-- Favicon -->
@@ -878,7 +878,7 @@
                 <ul class="menu-inner py-2" style="overflow: auto; scrollbar-width: none;">
                     @if (role == "5") // Purchase Requisition User
                     {
-                        <li class="menu-item @(currentAction.Contains("PurchaseRequisition") ? "active open" : "")">
+                        <li class="menu-item @(currentAction.Contains("CreatePRADDItemPSM") || currentAction.Contains("AllRequisitionSP") ? "active open" : "")">
                             <a href="javascript:void(0);" class="menu-link menu-toggle d-flex align-items-center rounded-3 py-3 px-3 menu-item-hover">
                                 <i class="menu-icon tf-icons bi bi-layout-text-sidebar me-3 fs-5"></i>
                                 <div class="fw-semibold" data-i18n="Purchase Requisition">Purchase Requisition</div>
@@ -903,45 +903,27 @@
 
                     @if (role == "6") // RFQ User
                     {
-                        <li class="menu-item @(currentAction.Contains("RFQ") ? "active open" : "")">
-                            <a href="javascript:void(0);" class="menu-link menu-toggle d-flex align-items-center rounded-3 py-3 px-3 menu-item-hover">
-                                <i class="menu-icon tf-icons bi bi-file-earmark-text me-3 fs-5"></i>
-                                <div class="fw-semibold" data-i18n="Request for Quotation">Request for Quotation</div>
-                                <i class="menu-arrow bi bi-chevron-down ms-auto transition-arrow"></i>
+                        <li class="menu-item @(currentAction == "QuotationSJ" ? "active" : "")">
+                            <a href="@Url.Action("QuotationSJ", "Purchase")" class="menu-link d-flex align-items-center rounded-2 py-2 px-3 submenu-item-hover">
+                                <i class="menu-icon tf-icons bi bi-list-ul me-3"></i>
+                                <div data-i18n="All RFQ">All RFQ</div>
                             </a>
-                            <ul class="menu-sub slide-transition">
-                                <li class="menu-item @(currentAction == "QuotationSJ" ? "active" : "")">
-                                    <a href="@Url.Action("QuotationSJ", "Purchase")" class="menu-link d-flex align-items-center rounded-2 py-2 px-3 submenu-item-hover">
-                                        <i class="menu-icon tf-icons bi bi-list-ul me-3"></i>
-                                        <div data-i18n="All RFQ">All RFQ</div>
-                                    </a>
-                                </li>
-                            </ul>
                         </li>
                     }
 
                     @if (role == "7") // Supplier Quotation User
                     {
-                        <li class="menu-item @(currentAction.Contains("Supplier") ? "active open" : "")">
-                            <a href="javascript:void(0);" class="menu-link menu-toggle d-flex align-items-center rounded-3 py-3 px-3 menu-item-hover">
-                                <i class="menu-icon tf-icons bi bi-briefcase me-3 fs-5"></i>
-                                <div class="fw-semibold" data-i18n="Supplier Quotation">Supplier Quotation</div>
-                                <i class="menu-arrow bi bi-chevron-down ms-auto transition-arrow"></i>
+                        <li class="menu-item @(currentAction.Contains("ShowAllRFQsVNK") ? "active" : "")">
+                            <a href="@Url.Action("ShowAllRFQsVNK", "Purchase")" class="menu-link d-flex align-items-center rounded-2 py-2 px-3 submenu-item-hover">
+                                <i class="menu-icon tf-icons bi bi-collection me-3"></i>
+                                <div data-i18n="All RQ">All RQ</div>
                             </a>
-                            <ul class="menu-sub slide-transition">
-                                <li class="menu-item @(currentAction.Contains("AllRQ") ? "active" : "")">
-                                    <a href="@Url.Action("ShowAllRFQsVNK", "Purchase")" class="menu-link d-flex align-items-center rounded-2 py-2 px-3 submenu-item-hover">
-                                        <i class="menu-icon tf-icons bi bi-collection me-3"></i>
-                                        <div data-i18n="All RQ">All RQ</div>
-                                    </a>
-                                </li>
-                            </ul>
                         </li>
                     }
 
                     @if (role == "8") // Purchase Manager
                     {
-                        <li class="menu-item @(currentAction.Contains("PRManager") || currentAction.Contains("Purchase") ? "active open" : "")">
+                        <li class="menu-item @(currentAction.Contains("UserDashboardPRK") || currentAction.Contains("ShowPendingPRPRK") || currentAction.Contains("SupplierQuotationAMG") || currentAction.Contains("PurchaseOrdersVNK") || currentAction.Contains("VenderManagementOK")  ? "active open" : "")">
                             <a href="javascript:void(0);" class="menu-link menu-toggle d-flex align-items-center rounded-3 py-3 px-3 menu-item-hover">
                                 <i class="menu-icon tf-icons bi bi-speedometer me-3 fs-5"></i>
                                 <div class="fw-semibold" data-i18n="Manager Dashboard">Manager Dashboard</div>
@@ -980,7 +962,7 @@
                             </ul>
                         </li>
 
-                        <li class="menu-item @(currentAction.Contains("Reports") ? "active open" : "")">
+                        <li class="menu-item @(currentAction.Contains("PurchaseRequestTableAT") || currentAction.Contains("RFQReportAT") || currentAction.Contains("PurchaseOrderReportAT") ? "active open" : "")">
                             <a href="javascript:void(0);" class="menu-link menu-toggle d-flex align-items-center rounded-3 py-3 px-3 menu-item-hover">
                                 <i class="menu-icon tf-icons bi bi-bar-chart-line me-3 fs-5"></i>
                                 <div class="fw-semibold" data-i18n="Reports">Reports</div>
@@ -1011,7 +993,7 @@
 
                     @if (role == "9") // PO User
                     {
-                        <li class="menu-item @(currentAction.Contains("POUser") || currentAction.Contains("PurchaseOrder") ? "active open" : "")">
+                        <li class="menu-item @(currentAction.Contains("SelectedQuotationListShowOK") || currentAction.Contains("PurchaseOrederHistoryOK") ? "active open" : "")">
                             <a href="javascript:void(0);" class="menu-link menu-toggle d-flex align-items-center rounded-3 py-3 px-3 menu-item-hover">
                                 <i class="menu-icon tf-icons bi bi-cart4 me-3 fs-5"></i>
                                 <div class="fw-semibold" data-i18n="PO User Dashboard">PO User Dashboard</div>
@@ -1045,13 +1027,14 @@
                                 </a>
                             </li>
 
-                            <li class="menu-item @(currentAction.Contains("Item") || currentAction.Contains("AssignBin") ? "active open" : "")">
+                            <li class="menu-item @(currentAction.Contains("CategorySSG") || currentAction.Contains("WHIndex") ? "active open" : "")">
                                 <a href="javascript:void(0);" class="menu-link d-flex align-items-center rounded-2 py-2 px-3 submenu-item-hover menu-toggle">
                                     <i class="menu-icon tf-icons bi bi-gear"></i>
                                     <div data-i18n="Master Data">Master Data</div>
+                                    <i class="menu-arrow bi bi-chevron-down ms-auto transition-arrow"></i>
                                 </a>
                                 <ul class="menu-sub">
-                                    <li class="menu-item @(currentAction == "ItemMasterOJ" ? "active" : "")">
+                                    <li class="menu-item @(currentAction == "CategorySSG" ? "active" : "")">
                                         <a href="@Url.Action("CategorySSG", "Inventory")" class="menu-link d-flex align-items-center rounded-2 py-2 px-3 submenu-item-hover">
                                             <i class="menu-icon tf-icons bi bi-box-seam"></i>
                                             <div data-i18n="Item Master">Item Master</div>
@@ -1069,10 +1052,11 @@
 
                         if (role == "2" || role == "3")
                         {
-                            <li class="menu-item @(currentAction.Contains("ReceiveMaterial") || currentAction.Contains("IssueInHouse") ? "active open" : "")">
+                            <li class="menu-item @(currentAction.Contains("ReceiveMaterialDRB") || currentAction.Contains("IssueInHouseDRB") ? "active open" : "")">
                                 <a href="javascript:void(0);" class="menu-link d-flex align-items-center rounded-2 py-2 px-3 submenu-item-hover menu-toggle">
                                     <i class="menu-icon tf-icons bi bi-arrow-left-right"></i>
                                     <div data-i18n="Transaction">Transaction</div>
+                                    <i class="menu-arrow bi bi-chevron-down ms-auto transition-arrow"></i>
                                 </a>
                                 <ul class="menu-sub">
                                     <li class="menu-item @(currentAction == "ReceiveMaterialDRB" ? "active" : "")">
@@ -1100,10 +1084,11 @@
                                 </a>
                             </li>
 
-                            <li class="menu-item @(currentAction.Contains("StockPlanning") || currentAction.Contains("Analyze") || currentAction.Contains("ItemStockRefill") || currentAction.Contains("JustInTime") || currentAction.Contains("MRP") ? "active open" : "")">
+                            <li class="menu-item @(currentAction.Contains("ShowStocklevelMHB") || currentAction.Contains("JITStockMHB") || currentAction.Contains("ISRStockMHB") || currentAction.Contains("NewplanMHB") || currentAction.Contains("StockMasterRHK") || currentAction.Contains("ReqMasterRHK") || currentAction.Contains("ManagerApprovalMHB") ? "active open" : "")">
                                 <a href="javascript:void(0);" class="menu-link d-flex align-items-center rounded-2 py-2 px-3 submenu-item-hover menu-toggle">
                                     <i class="menu-icon tf-icons bi bi-bar-chart"></i>
                                     <div data-i18n="Stock Planning">Stock Planning</div>
+                                    <i class="menu-arrow bi bi-chevron-down ms-auto transition-arrow"></i>
                                 </a>
                                 <ul class="menu-sub">
                                     <li class="menu-item @(currentAction == "ShowStocklevelMHB" ? "active" : "")">
@@ -1130,26 +1115,26 @@
                                             <div data-i18n="MRP">MRP</div>
                                         </a>
                                     </li>
-                                    if (role == "2")
+                                    @if (role == "2")
                                     {
-                                    <li class="menu-item @(currentAction == "ManagerApprovalMHB" ? "active" : "")">
-                                        <a href="@Url.Action("ManagerApprovalMHB", "Inventory")" class="menu-link d-flex align-items-center rounded-2 py-2 px-3 submenu-item-hover">
-                                            <i class="menu-icon tf-icons bi bi-person-check"></i>
-                                            <div data-i18n="Manager Approval">Manager Approval</div>
-                                        </a>
-                                    </li>
-                                    <li class="menu-item @(currentAction == "ReqMasterRHK" ? "active" : "")">
-                                        <a href="@Url.Action("ReqMasterRHK", "Inventory")" class="menu-link d-flex align-items-center rounded-2 py-2 px-3 submenu-item-hover">
-                                            <i class="menu-icon tf-icons bi bi-list-check"></i>
-                                            <div data-i18n="Requirement List">Requirement List</div>
-                                        </a>
-                                    </li>
-                                    <li class="menu-item @(currentAction == "StockMasterRHK" ? "active" : "")">
-                                        <a href="@Url.Action("StockMasterRHK", "Inventory")" class="menu-link d-flex align-items-center rounded-2 py-2 px-3 submenu-item-hover">
-                                            <i class="menu-icon tf-icons bi bi-bar-chart-steps"></i>
-                                            <div data-i18n="StockPlan List">StockPlan List</div>
-                                        </a>
-                                    </li>
+                                        <li class="menu-item @(currentAction == "ManagerApprovalMHB" ? "active" : "")">
+                                            <a href="@Url.Action("ManagerApprovalMHB", "Inventory")" class="menu-link d-flex align-items-center rounded-2 py-2 px-3 submenu-item-hover">
+                                                <i class="menu-icon tf-icons bi bi-person-check"></i>
+                                                <div data-i18n="Manager Approval">Manager Approval</div>
+                                            </a>
+                                        </li>
+                                        <li class="menu-item @(currentAction == "ReqMasterRHK" ? "active" : "")">
+                                            <a href="@Url.Action("ReqMasterRHK", "Inventory")" class="menu-link d-flex align-items-center rounded-2 py-2 px-3 submenu-item-hover">
+                                                <i class="menu-icon tf-icons bi bi-list-check"></i>
+                                                <div data-i18n="Requirement List">Requirement List</div>
+                                            </a>
+                                        </li>
+                                        <li class="menu-item @(currentAction == "StockMasterRHK" ? "active" : "")">
+                                            <a href="@Url.Action("StockMasterRHK", "Inventory")" class="menu-link d-flex align-items-center rounded-2 py-2 px-3 submenu-item-hover">
+                                                <i class="menu-icon tf-icons bi bi-bar-chart-steps"></i>
+                                                <div data-i18n="StockPlan List">StockPlan List</div>
+                                            </a>
+                                        </li>
                                     }
                                 </ul>
                             </li>
@@ -1157,13 +1142,14 @@
 
                         if (role == "2")
                         {
-                            <li class="menu-item @(currentAction.Contains("Reports") ? "active open" : "")">
+                            <li class="menu-item @(currentAction.Contains("CurrentStockReportAMG") || currentAction.Contains("ReceivedMaterialReport") || currentAction.Contains("InhouseTransferReportVAMG") ? "active open" : "")">
                                 <a href="javascript:void(0);" class="menu-link d-flex align-items-center rounded-2 py-2 px-3 submenu-item-hover menu-toggle">
                                     <i class="menu-icon tf-icons bi bi-bar-chart-line"></i>
                                     <div data-i18n="Reports">Reports</div>
+                                    <i class="menu-arrow bi bi-chevron-down ms-auto transition-arrow"></i>
                                 </a>
                                 <ul class="menu-sub">
-                                    <li class="menu-item @(currentAction == "CurrentStockReportDataAMG" ? "active" : "")">
+                                    <li class="menu-item @(currentAction == "CurrentStockReportAMG" ? "active" : "")">
                                         <a href="@Url.Action("CurrentStockReportAMG", "Inventory")" class="menu-link d-flex align-items-center rounded-2 py-2 px-3 submenu-item-hover">
                                             <i class="menu-icon tf-icons bi bi-file-earmark-text"></i>
                                             <div data-i18n="Current Stock Reports">Current Stock Reports</div>
@@ -1216,10 +1202,11 @@
                                 </li>
                             </ul>
                         </li>
-                        <li class="menu-item @(currentAction.Contains("Reports") ? "active open" : "")">
+                        <li class="menu-item @(currentAction.Contains("Report") ? "active open" : "")">
                             <a href="javascript:void(0);" class="menu-link d-flex align-items-center rounded-2 py-2 px-3 submenu-item-hover menu-toggle">
                                 <i class="menu-icon tf-icons bi bi-bar-chart-line"></i>
                                 <div data-i18n="Reports">Reports</div>
+                                <i class="menu-arrow bi bi-chevron-down ms-auto transition-arrow"></i>
                             </a>
                             <ul class="menu-sub">
                                 <li class="menu-item @(currentAction == "ApprovedPOReportPSM" ? "active" : "")">
@@ -1267,14 +1254,6 @@
                             </a>
                         </li>
                     }
-
-                    <!-- Calendar Menu Item -->
-                    <li class="menu-item @(ViewContext.RouteData.Values["action"].ToString() == "Calender" ? "active" : "")">
-                        <a href="@Url.Action("Calender", currentController)" class="menu-link d-flex align-items-center rounded-3 py-3 px-3 menu-item-hover">
-                            <i class="menu-icon tf-icons bi bi-calendar-event me-3 fs-5"></i>
-                            <div class="fw-semibold" data-i18n="Calendar">Calendar</div>
-                        </a>
-                    </li>
                 </ul>
             </aside>
             <!-- / Enhanced Animated Menu -->
@@ -1308,8 +1287,13 @@
 
 
                         <ul class="navbar-nav flex-row align-items-center ms-md-auto">
-
-
+                            <!-- Calendar -->
+                            <li class="nav-item me-3 me-xl-2">
+                                <a class="text-black btn btn-icon btn-light rounded-pill waves-effect position-relative calendar-icon" href="@Url.Action("Calender", currentController)">
+                                    <i class="bi bi-calendar-event"></i>
+                                </a>
+                            </li>
+                            <!--/ Calendar -->
                             <!-- Notification -->
                             <li class="nav-item dropdown-notifications navbar-dropdown dropdown me-3 me-xl-2">
                                 <a class="nav-link dropdown-toggle hide-arrow btn btn-icon btn-light rounded-pill waves-effect position-relative notification-btn"
@@ -1330,7 +1314,7 @@
                                         <span class="fw-semibold">Notifications</span>
                                         <span class="badge bg-primary rounded-pill" id="notificationCount">0</span>
                                     </li>
-                                    <li class="dropdown-notifications-list scrollable-container">
+                                    <li class="dropdown-notifications-list scrollable-container" style="overflow:auto; scrollbar-width:none;">
                                         <ul id="notificationItems" class="list-group list-group-flush">
                                             <li class="list-group-item text-center py-4">
                                                 <div class="text-muted">
@@ -1360,7 +1344,6 @@
                                    data-bs-toggle="dropdown">
                                     <div class="avatar avatar-online position-relative">
                                         <img src="~/Content/images/avatars/1.png" alt="" id="layout-profile-photo" class="rounded-circle border border-3 border-white shadow-sm" />
-                                        <span class="avatar-status bg-success"></span>
                                     </div>
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end p-3 user-dropdown">
@@ -1437,10 +1420,10 @@
     <!-- / Layout wrapper -->
     <!-- Global Loader -->
     <div id="globalLoader" class="global-loader" style="display: none;">
-        <div class="loader-container text-xl-center d-flex justify-content-center">
+      
             <div class="loader"></div>
 
-        </div>
+       
     </div>
 
     <script>

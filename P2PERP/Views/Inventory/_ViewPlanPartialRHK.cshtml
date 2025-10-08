@@ -85,10 +85,9 @@ $(document).ready(function () {
    
     loadPlanDetails();
 
-    $('#selectAll').on('change', function () {
-        $('#reqTable1 tbody input.row-select').prop('checked', this.checked);
-    });
+  
 });
+   
 
 function loadPlanDetails() {
     var code = '@Model';
@@ -138,7 +137,7 @@ function loadPlanDetails() {
             $('#reqTable1').DataTable().clear().destroy();
         }
 
-        dataTable = $('#reqTable1').DataTable({
+         $('#reqTable1').DataTable({
             pageLength: 10,
             paging: true,
             ordering: false,

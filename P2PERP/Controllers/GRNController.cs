@@ -646,6 +646,22 @@ namespace P2PERP.Controllers
                 return Json(new { count = 0 }, JsonRequestBehavior.AllowGet);
             }
         }
+        /// <summary>
+        /// Returns count of QC pending items between startDate and endDate.
+        /// </summary>
+        public async Task<JsonResult> GetPendingCountRHK(DateTime? startDate, DateTime? endDate)
+        {
+            try
+            {
+                DataTable dt = await bal.PendingCountRHK(startDate, endDate);
+                int count = (dt.Rows.Count > 0) ? Convert.ToInt32(dt.Rows[0]["PendingCount"]) : 0;
+                return Json(new { count = count }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception)
+            {
+                return Json(new { count = 0 }, JsonRequestBehavior.AllowGet);
+            }
+        }
 
         /// <summary>
         /// Returns count of upcoming items (in open POs not yet GRN’d).

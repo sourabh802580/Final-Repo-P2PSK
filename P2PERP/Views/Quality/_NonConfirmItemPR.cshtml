@@ -38,7 +38,7 @@
 </div>
 
 <!-- Bootstrap Modal for Viewing Details -->
-<div class="modal fade" id="viewDetailsModal" tabindex="-1" aria-labelledby="viewDetailsModalLabel" aria-hidden="true" data-bs-backdrop="false">
+<div class="modal fade" id="viewDetailsModal" tabindex="-1" aria-labelledby="viewDetailsModalLabel" aria-hidden="true" data-bs-backdrop="True">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
 
@@ -196,15 +196,17 @@
                 },
                 {
                     data: null,
+                    title: 'Sr No',
+                    orderable: false ,
                     className: 'dt-center',
                     render: function (data, type, row, meta) {
                         return meta.row + 1;
                     }
                 },
-                { data: "GRNCode" },
-                { data: "VenderName" },
-                { data: "AddDate" },
-                { data: "QualityCheckDate" },
+                { data: "GRNCode", orderable: false },
+                { data: "VenderName", orderable: false },
+                { data: "AddDate", orderable: false },
+                { data: "QualityCheckDate", orderable: false },
                 {
                     data: null,
                     className: "dt-center",
@@ -313,7 +315,7 @@
                     }
                 },
 
-                // PDF
+                // PDF - Main Table (Updated with Center Alignment)
                 {
                     extend: 'pdfHtml5',
                     text: '<i class="bi bi-file-earmark-pdf text-danger fs-5"></i>',
@@ -347,13 +349,18 @@
                         $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, button, config);
                     },
                     customize: function (doc) {
+                        // Set page margins
                         doc.pageMargins = [40, 60, 40, 40];
+
+                        // Title styling - centered
                         doc.styles.title = {
                             fontSize: 16,
                             bold: true,
                             alignment: 'center',
                             margin: [0, 0, 0, 10]
                         };
+
+                        // Add generation date - centered
                         doc.content.splice(1, 0, {
                             text: `Generated on: ${moment().format("YYYY-MM-DD")}`,
                             alignment: 'center',
@@ -361,9 +368,14 @@
                             fontSize: 10,
                             italics: true
                         });
+
+                        // Find and style the table
                         const table = doc.content.find(n => n.table);
                         if (table) {
+                            // Set all columns to equal width
                             table.table.widths = Array(table.table.body[0].length).fill('*');
+
+                            // Table layout settings
                             table.layout = {
                                 hLineWidth: () => 0.5,
                                 vLineWidth: () => 0.5,
@@ -373,20 +385,37 @@
                                 paddingLeft: () => 5,
                                 paddingRight: () => 5
                             };
+
+                            // Style header row
                             table.table.body[0].forEach(cell => {
                                 cell.fillColor = '#343a40';
                                 cell.color = 'white';
                                 cell.alignment = 'center';
                                 cell.fontSize = 11;
+                                cell.bold = true;
                             });
 
-                            // Fix serial numbers in PDF
+                            // Style all data rows - CENTER ALIGNMENT
                             table.table.body.forEach((row, rowIndex) => {
                                 if (rowIndex > 0) { // Skip header row
-                                    row[0].text = rowIndex; // Sequential serial numbers
+                                    // Fix serial numbers in PDF
+                                    row[0].text = rowIndex;
+
+                                    // Center align all cells in data rows
+                                    row.forEach(cell => {
+                                        cell.alignment = 'center';
+                                    });
                                 }
                             });
+
+                            // Ensure table is centered on page
+                            table.alignment = 'center';
                         }
+
+                        // Set default styles for all text to be centered
+                        doc.defaultStyle = {
+                            alignment: 'center'
+                        };
                     }
                 },
 
@@ -619,7 +648,7 @@
                                         });
                                     }
                                 },
-                                // PDF
+                                // PDF - Modal Table (Updated with Center Alignment)
                                 {
                                     extend: 'pdfHtml5',
                                     text: '<i class="bi bi-file-earmark-pdf text-danger fs-5"></i>',
@@ -652,20 +681,34 @@
                                         $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, button, config);
                                     },
                                     customize: function (doc) {
-                                        doc.pageMargins = [40, 60, 40, 40];
+                                        doc.pageMargins = [40, 80, 40, 40];
+
+                                        // Title styling - centered
                                         doc.styles.title = {
                                             fontSize: 16,
                                             bold: true,
                                             alignment: 'center',
                                             margin: [0, 0, 0, 10]
                                         };
-                                        doc.content.splice(1, 0, {
-                                            text: `Generated on: ${moment().format("YYYY-MM-DD")}`,
-                                            alignment: 'center',
-                                            margin: [0, 0, 0, 10],
-                                            fontSize: 10,
-                                            italics: true
-                                        });
+
+                                        // Add GRN Code and generation date - centered
+                                        doc.content.splice(1, 0,
+                                            {
+                                                text: `GRN Code: ${$('#modalGRNCodeNonConfirm').text()}`,
+                                                alignment: 'center',
+                                                margin: [0, 0, 0, 5],
+                                                fontSize: 12,
+                                                bold: true
+                                            },
+                                            {
+                                                text: `Generated on: ${moment().format("YYYY-MM-DD")}`,
+                                                alignment: 'center',
+                                                margin: [0, 0, 0, 10],
+                                                fontSize: 10,
+                                                italics: true
+                                            }
+                                        );
+
                                         const table = doc.content.find(n => n.table);
                                         if (table) {
                                             table.table.widths = Array(table.table.body[0].length).fill('*');
@@ -678,20 +721,37 @@
                                                 paddingLeft: () => 5,
                                                 paddingRight: () => 5
                                             };
+
+                                            // Style header row
                                             table.table.body[0].forEach(cell => {
                                                 cell.fillColor = '#343a40';
                                                 cell.color = 'white';
                                                 cell.alignment = 'center';
                                                 cell.fontSize = 11;
+                                                cell.bold = true;
                                             });
 
-                                            // Fix serial numbers in modal PDF
+                                            // Style all data rows - CENTER ALIGNMENT
                                             table.table.body.forEach((row, rowIndex) => {
                                                 if (rowIndex > 0) {
+                                                    // Fix serial numbers
                                                     row[0].text = rowIndex;
+
+                                                    // Center align all cells in data rows
+                                                    row.forEach(cell => {
+                                                        cell.alignment = 'center';
+                                                    });
                                                 }
                                             });
+
+                                            // Ensure table is centered on page
+                                            table.alignment = 'center';
                                         }
+
+                                        // Set default styles for all text to be centered
+                                        doc.defaultStyle = {
+                                            alignment: 'center'
+                                        };
                                     }
                                 },
 

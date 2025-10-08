@@ -2,6 +2,7 @@
 using P2PLibray.Account;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Drawing;
 using System.Linq;
 using System.Net;
@@ -11,6 +12,7 @@ using System.Security.Principal;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Configuration;
+using System.Web.Helpers;
 using System.Web.Mvc;
 using System.Web.Security;
 
@@ -103,9 +105,27 @@ namespace P2PERP.Controllers
             }
 
             Session["StaffCodeForForgotPassword"] = str;
+            Session["ForgetPasswordEmail"] = acc.EmailAddress;
 
-            int send = sendForgotPasswordCode(acc.EmailAddress);
-            return Json(new { success = true });
+            string code = CreateCode();
+
+            var email = new Email
+            {
+                ToEmails = new List<string> { acc.EmailAddress },
+                Subject = "Forgot Password Verification Code",
+                Body = $"The Code For Your <b> {acc.EmailAddress} </b> is <p style='text-align: center;font-size: xx-large;'><b> {code} </b></p>",
+                IsBodyHtml = true
+            };
+
+            int send = SendEmail(email);
+            if (send == 1)
+            {
+                return Json(new { success = true });
+            }
+            else
+            {
+                return Json(new { success = false });
+            }
         }
 
         /// <summary>
@@ -221,41 +241,52 @@ namespace P2PERP.Controllers
         /// </summary>
         /// <param name="mail">The recipient email address.</param>
         /// <returns>1 if the email was sent successfully; otherwise 0.</returns>
-        public int sendForgotPasswordCode(string mail)
+        public int SendEmail(Email email)
         {
             int sent = 0;
-            string Email = WebConfigurationManager.AppSettings["MainEmail"];
-            string AppPassword = WebConfigurationManager.AppSettings["AppPassword"];
-            string Body = "The Code For Your <b>" + mail + "</b> is <p style='text-align: center;font-size: xx-large;'><b>" + CreateCode() + "</b></p>";
             try
             {
-                // Set up the SMTP client
-                SmtpClient smtpClient = new SmtpClient("smtp.gmail.com")
+                string senderEmail = WebConfigurationManager.AppSettings["MainEmail"];
+                string appPassword = WebConfigurationManager.AppSettings["AppPassword"];
+
+                using (SmtpClient smtpClient = new SmtpClient("smtp.gmail.com", 587))
                 {
-                    Port = 587,
-                    Credentials = new NetworkCredential(Email, AppPassword),
-                    EnableSsl = true,
-                };
+                    smtpClient.Credentials = new NetworkCredential(senderEmail, appPassword);
+                    smtpClient.EnableSsl = true;
 
-                // Create the email message
-                MailMessage mailMessage = new MailMessage
-                {
-                    From = new MailAddress(Email),
-                    Subject = "Reset Password Code",
-                    IsBodyHtml = true,
-                    Body = Body
-                };
+                    using (MailMessage mailMessage = new MailMessage())
+                    {
+                        mailMessage.From = new MailAddress(senderEmail);
+                        mailMessage.Subject = email.Subject;
+                        mailMessage.Body = email.Body;
+                        mailMessage.IsBodyHtml = email.IsBodyHtml;
 
-                mailMessage.To.Clear();
-                mailMessage.To.Add(mail);
+                        // Add To
+                        if (email.ToEmails != null)
+                            email.ToEmails.ForEach(e => mailMessage.To.Add(e));
 
-                smtpClient.Send(mailMessage);
-                sent = 1;
+                        // Add CC
+                        if (email.CcEmails != null)
+                            email.CcEmails.ForEach(e => mailMessage.CC.Add(e));
+
+                        // Add BCC
+                        if (email.BccEmails != null)
+                            email.BccEmails.ForEach(e => mailMessage.Bcc.Add(e));
+
+                        // Add Attachments
+                        if (email.AttachmentPaths != null)
+                            email.AttachmentPaths.ForEach(path => mailMessage.Attachments.Add(new Attachment(path)));
+
+                        smtpClient.Send(mailMessage);
+                        sent = 1;
+                    }
+                }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to send email: {ex.Message}");
+                Console.WriteLine($"Email send failed: {ex.Message}");
             }
+
             return sent;
         }
 
@@ -490,7 +521,7 @@ namespace P2PERP.Controllers
                             {
                                 id = pr.IdCode,
                                 title = $"Purchase Requisition Is Added By {pr.AddedBy}",
-                                start = pr.AddedDate.ToString("yyyy/MM/ddThh:MM:ss"),
+                                start = pr.AddedDate.ToString("yyyy/MM/ddTHH:mm:ss"),
                                 //className = pr.Status == "Approved" ? "bg-success" : (pr.Status == "Pending" ? "bg-warning" : "bg-danger"),
                                 color = "#007bff",
 
@@ -569,7 +600,7 @@ namespace P2PERP.Controllers
                             {
                                 id = $"RQ-{pr.AddedDate:yyyyMMdd}",
                                 title = $"{pr.Count} Quotations are Registerd By {pr.AddedBy}",
-                                start = pr.AddedDate.ToString("yyyy-MM-ddThh:MM:ss"),
+                                start = pr.AddedDate.ToString("yyyy-MM-ddTHH:mm:ss"),
                                 //color = "#f8f9fa",
                                 //textColor = "#212529",
                                 //borderColor = "#212529",
@@ -595,7 +626,7 @@ namespace P2PERP.Controllers
                             {
                                 id = po.IdCode,
                                 title = $"Purchase Order Is Added By {po.AddedBy}",
-                                start = po.AddedDate.ToString("yyyy-MM-ddThh:MM:ss"),
+                                start = po.AddedDate.ToString("yyyy-MM-ddTHH:mm:ss"),
                                 //className = po.Status == "Approved" ? "bg-success" :
                                 //            (po.Status == "Pending" ? "bg-warning" : "bg-danger"),
                                 color = "#fd7e14",
@@ -647,7 +678,7 @@ namespace P2PERP.Controllers
                             {
                                 id = grn.IdCode,
                                 title = $"GRN Is Added By {grn.AddedBy}",
-                                start = grn.AddedDate.ToString("yyyy-MM-ddThh:MM:ss"),
+                                start = grn.AddedDate.ToString("yyyy-MM-ddTHH:mm:ss"),
                                 //className = grn.Status == "Completed" ? "bg-success" : "bg-warning",
                                 color = "#28a745",
 
@@ -683,7 +714,7 @@ namespace P2PERP.Controllers
                             {
                                 id = gr.IdCode,
                                 title = $"Goods Return Entry Is Added By {gr.AddedBy}",
-                                start = gr.AddedDate.ToString("yyyy-MM-ddThh:MM:ss"),
+                                start = gr.AddedDate.ToString("yyyy-MM-ddTHH:mm:ss"),
                                 //className = gr.Status == "Assign" ? "bg-warning" : "bg-success",
                                 color = "ffc107",
 
@@ -735,7 +766,7 @@ namespace P2PERP.Controllers
                             {
                                 id = $"QC-{qc.AddedDate:yyyyMMdd}",
                                 title = $"{qc.Count} Items Has {(qc.Status == "Confirmed" ? "Passed" : "Failed")} Quality Check",
-                                start = qc.AddedDate.ToString("yyyy-MM-ddThh:mm:ss"),
+                                start = qc.AddedDate.ToString("yyyy-MM-ddTHH:mm:ss"),
                                 //className = qc.Status == "Non-Confirmed" ? "bg-danger" : "bg-success",
                                 color = "#dc3545",
 
