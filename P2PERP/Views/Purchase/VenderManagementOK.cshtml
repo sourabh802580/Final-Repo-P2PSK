@@ -12,7 +12,9 @@
             font-size: 0.8rem;
             font-weight: 500;
         }
-
+        input{
+            outline:none!important;
+        }
         #exportContainer .dt-buttons {
             display: flex;
             justify-content: end; /* center align */
@@ -761,7 +763,7 @@
 
     // jQuery document ready function
     $(document).ready(function () {
-        // Clear processing state for all DataTable buttons
+        // Clear processing state for all DataTable button
         window.__dt_clearAllProcessing = function () {
             try {
                 // Try to clear via DataTables API
@@ -1074,7 +1076,7 @@
             searching: true,
             lengthChange: false,
             pageLength: 5,
-
+            ordering: false,
             select: {
                 style: 'multi',
                 selector: 'td:first-child input[type="checkbox"]'
