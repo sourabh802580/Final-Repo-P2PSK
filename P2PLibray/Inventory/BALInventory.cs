@@ -982,6 +982,7 @@ namespace P2PLibray.Inventory
                         ItemName = dr["ItemName"].ToString(),
                         CurrentQty = Convert.ToInt32(dr["ItemsCounts"]),
                         ReorderQuantity = Convert.ToInt32(dr["ReorderQuantity"]),
+                        BinsList = dr["Bins"].ToString(),
                         BinName = dr["BinList"].ToString()
                     });
                 }
@@ -2453,32 +2454,33 @@ namespace P2PLibray.Inventory
         #endregion
 
         #region Mayur
-        public async Task<List<Inventory>> StockplanningMHB()
+        /// <summary>
+        /// Retrieves stock planning data for MHB by executing the 'StockAnalysisMHB' flag.
+        /// </summary>
+        /// <returns>List of inventory items with stock status.</returns>
+        public async Task<List<InventoryMHB>> StockplanningMHB()
         {
-            List<Inventory> lst = new List<Inventory>();
+            List<InventoryMHB> lst = new List<InventoryMHB>();
             Dictionary<string, string> paradic = new Dictionary<string, string>();
 
             paradic.Add("@flag", "StockAnalysisMHB");
 
-            // Execute SP and get dataset
             DataSet ds = await obj.ExecuteStoredProcedureReturnDS("InventoryProcedure", paradic);
 
-            // Check if dataset has at least one table and rows
             if (ds != null && ds.Tables.Count > 0 && ds.Tables[0].Rows.Count > 0)
             {
                 foreach (DataRow row in ds.Tables[0].Rows)
                 {
-                    Inventory SHR = new Inventory();
-
-                    SHR.ItemName = row["ItemName"].ToString();
-                    SHR.ItemCode = row["ItemCode"].ToString();
-                    SHR.ReorderQuantity = row["ReorderQuantity"].ToString();
-                    SHR.minQuantity = row["minQuantity"].ToString();
-                   // SHR.MaxQuantity = row["MaxQuantity"].ToString();
-                    SHR.MaxQuantity =Convert.ToInt32(row["MaxQuantity"].ToString());
-                    SHR.CurrentItems =Convert.ToInt32(row["CurrentItems"].ToString());
-                   // SHR.CurrentItems = row["CurrentItems"].ToString();
-                    SHR.StockStatus = row["StockStatus"].ToString();
+                    InventoryMHB SHR = new InventoryMHB
+                    {
+                        ItemName = row["ItemName"].ToString(),
+                        ItemCode = row["ItemCode"].ToString(),
+                        ReorderQuantity = row["ReorderQuantity"].ToString(),
+                        minQuantity = row["minQuantity"].ToString(),
+                        MaxQuantity = Convert.ToInt32(row["MaxQuantity"]),
+                        CurrentItems = Convert.ToInt32(row["CurrentItems"]),
+                        StockStatus = row["StockStatus"].ToString()
+                    };
                     lst.Add(SHR);
                 }
             }
@@ -2486,126 +2488,133 @@ namespace P2PLibray.Inventory
             return lst;
         }
 
-        public async Task<Inventory> GetItemByIdMHB(string itemId)
+        /// <summary>
+        /// Retrieves an inventory item by its ItemCode for MHB.
+        /// </summary>
+        /// <param name="itemId">The ItemCode to look up.</param>
+        /// <returns>The inventory item with all related information.</returns>
+        public async Task<InventoryMHB> GetItemByIdMHB(string itemId)
         {
             Dictionary<string, string> paradic = new Dictionary<string, string>();
             paradic.Add("@flag", "GetItemByIdProcMHB");
             paradic.Add("@ItemCode", itemId);
 
             DataSet ds = await obj.ExecuteStoredProcedureReturnDS("InventoryProcedure", paradic);
-            Inventory itm = new Inventory();
+            InventoryMHB itm = new InventoryMHB();
+
             for (int i = 0; i < ds.Tables[0].Rows.Count; i++)
             {
                 itm.ItemId = ds.Tables[0].Rows[i]["ItemId"].ToString();
                 itm.ItemName = ds.Tables[0].Rows[i]["ItemName"].ToString();
                 itm.ItemCode = ds.Tables[0].Rows[i]["ItemCode"].ToString();
                 itm.Description = ds.Tables[0].Rows[i]["Description"].ToString();
-
-
-
             }
+
             for (int i = 0; i < ds.Tables[1].Rows.Count; i++)
             {
-
                 itm.UOMName = ds.Tables[1].Rows[i]["UOMName"].ToString();
-
             }
 
             return itm;
         }
 
-        public async Task<bool> SavePRRequestMHB(Inventory model)
+        /// <summary>
+        /// Saves a Purchase Requisition (PR) request for MHB.
+        /// </summary>
+        /// <param name="model">Inventory model containing PR details.</param>
+        /// <returns>True if the PR is saved successfully.</returns>
+        public async Task<bool> SavePRRequestMHB(InventoryMHB model)
         {
             Dictionary<string, string> paramdic = new Dictionary<string, string>();
             paramdic.Add("@flag", "saveprrequestMHB");
             paramdic.Add("@ItemCode", model.ItemCode);
             paramdic.Add("@Quantity", model.Quantity.ToString());
             paramdic.Add("@AddedDate", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
-            //paramdic.Add("@RequiredDate", model.RequiredDate.HasValue
-            // ? model.RequiredDate.Value.ToString("yyyy-MM-dd")
-            // : DBNull.Value.ToString());
-            paramdic.Add("@RequiredDate",string.IsNullOrEmpty(model.RequiredDate) ? "" : model.RequiredDate);
+            paramdic.Add("@RequiredDate", model.RequiredDate.HasValue ? model.RequiredDate.Value.ToString("yyyy-MM-dd") : DBNull.Value.ToString());
             paramdic.Add("@StaffCode", model.StaffCode);
-            DataSet ds = await obj.ExecuteStoredProcedureReturnDS("InventoryProcedure", paramdic);
 
-            // You can add logic here to check success from the returned dataset
+            DataSet ds = await obj.ExecuteStoredProcedureReturnDS("InventoryProcedure", paramdic);
             return true;
         }
 
+        /// <summary>
+        /// Retrieves dataset of items that require stock refill for MHB.
+        /// </summary>
+        /// <returns>Dataset containing stock refill data.</returns>
         public async Task<DataSet> ItemStockRefillMHB()
         {
-            List<Inventory> lst = new List<Inventory>();
             Dictionary<string, string> paradic = new Dictionary<string, string>();
-
             paradic.Add("@flag", "ISRstockMHB");
 
-            // Execute SP and get dataset
             DataSet ds = await obj.ExecuteStoredProcedureReturnDS("InventoryProcedure", paradic);
             return ds;
         }
 
+        /// <summary>
+        /// Retrieves list of all inventory items for MHB.
+        /// </summary>
+        /// <returns>Dataset of item list.</returns>
         public async Task<DataSet> ItemlistMHB()
         {
-            List<Inventory> lst = new List<Inventory>();
             Dictionary<string, string> paradic = new Dictionary<string, string>();
-
             paradic.Add("@flag", "ItemlistjitMHB");
 
-            // Execute SP and get dataset
             DataSet ds = await obj.ExecuteStoredProcedureReturnDS("InventoryProcedure", paradic);
             return ds;
         }
 
-
-
-
-        public async Task<bool> SaveJITMHB(Inventory model)
+        /// <summary>
+        /// Saves a Just-In-Time (JIT) inventory request in MHB.
+        /// </summary>
+        /// <param name="model">Inventory model with JIT details.</param>
+        /// <returns>True if saved successfully.</returns>
+        public async Task<bool> SaveJITMHB(InventoryMHB model)
         {
             Dictionary<string, string> paramdic = new Dictionary<string, string>();
             paramdic.Add("@flag", "saveJustInTimeMHB");
             paramdic.Add("@ItemCode", model.ItemCode);
             paramdic.Add("@Quantity", model.Quantity.ToString());
             paramdic.Add("@AddedDate", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
-            //  paramdic.Add("@RequiredDate", model.RequiredDate?.ToString("yyyy-MM-dd") ?? DBNull.Value.ToString());
-            paramdic.Add("@RequiredDate",string.IsNullOrEmpty(model.RequiredDate) ? "" : model.RequiredDate);
+            paramdic.Add("@RequiredDate", model.RequiredDate?.ToString("yyyy-MM-dd HH:mm:ss"));
+
             paramdic.Add("@StaffCode", model.StaffCode);
+
             DataSet ds = await obj.ExecuteStoredProcedureReturnDS("InventoryProcedure", paramdic);
-            // Optional: Validate result from ds
             return true;
         }
 
-
-
-        public async Task<bool> SaveMRPMHB(Inventory model)
+        /// <summary>
+        /// Saves a Material Requirements Planning (MRP) plan including header and item list.
+        /// </summary>
+        /// <param name="model">Inventory model containing plan and items.</param>
+        /// <returns>True if saved successfully.</returns>
+        public async Task<bool> SaveMRPMHB(InventoryMHB model)
         {
-            string mrpCode = await GenerateNextMRPCodeMHB();  // Generate MRP Code
+            string mrpCode = await GenerateNextMRPCodeMHB();
 
-            // First: Save MRP Header
             Dictionary<string, string> paramHeader = new Dictionary<string, string>
-    {
-        { "flag", "SaveMRPHeaderMHB" },
-        { "PlanName", model.PlanName },
-        { "Year", model.Year },
-        { "FromDate", model.FromDate },
-        { "ToDate", model.ToDate },
-        { "MRPCode", mrpCode },
-        { "StaffCode", model.StaffCode },
-        { "@AddedDate", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") }
-
-    };
+            {
+                { "flag", "SaveMRPHeaderMHB" },
+                { "PlanName", model.PlanName },
+                { "Year", model.Year },
+                { "FromDate", model.FromDate },
+                { "ToDate", model.ToDate },
+                { "MRPCode", mrpCode },
+                { "StaffCode", model.StaffCode },
+                { "@AddedDate", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") }
+            };
 
             DataSet dsHeader = await obj.ExecuteStoredProcedureReturnDS("InventoryProcedure", paramHeader);
 
-            // Now: Save all items
             foreach (var item in model.Items)
             {
                 Dictionary<string, string> paramItem = new Dictionary<string, string>
-        {
-            { "flag", "SaveMRPItemMHB" },
-            { "MRPCode", mrpCode },
-            { "ItemCode", item.ItemCode },
-            { "Quantity", item.QuantityMRP }
-        };
+                {
+                    { "flag", "SaveMRPItemMHB" },
+                    { "MRPCode", mrpCode },
+                    { "ItemCode", item.ItemCode },
+                    { "Quantity", item.QuantityMRP }
+                };
 
                 await obj.ExecuteStoredProcedureReturnDS("InventoryProcedure", paramItem);
             }
@@ -2613,13 +2622,16 @@ namespace P2PLibray.Inventory
             return true;
         }
 
-
+        /// <summary>
+        /// Generates the next available MRP code by incrementing the last used code.
+        /// </summary>
+        /// <returns>New MRP code string in format "MRP###".</returns>
         public async Task<string> GenerateNextMRPCodeMHB()
         {
             Dictionary<string, string> param = new Dictionary<string, string>
-             {
-        { "flag", "GetMaxMRPCodeMHB" }
-             };
+            {
+                { "flag", "GetMaxMRPCodeMHB" }
+            };
 
             DataSet ds = await obj.ExecuteStoredProcedureReturnDS("InventoryProcedure", param);
 
@@ -2633,56 +2645,51 @@ namespace P2PLibray.Inventory
             return "MRP001";
         }
 
-
-
-        public async Task<DataSet> fetcobjlandetailsMHB()
-        {
-            List<Inventory> lst = new List<Inventory>();
-            Dictionary<string, string> paradic = new Dictionary<string, string>();
-
-            paradic.Add("@flag", "fetchPlanDetailsMHB");
-
-            // Execute SP and get dataset
-            DataSet ds = await obj.ExecuteStoredProcedureReturnDS("InventoryProcedure", paradic);
-            return ds;
-        }
-
+        /// <summary>
+        /// Fetches all saved MRP plan headers for MHB.
+        /// </summary>
+        /// <returns>Dataset containing MRP plan list.</returns>
         public async Task<DataSet> fetchplandetailsMHB()
         {
-            List<Inventory> lst = new List<Inventory>();
             Dictionary<string, string> paradic = new Dictionary<string, string>();
-
             paradic.Add("@flag", "fetchPlanDetailsMHB");
 
-            // Execute SP and get dataset
             DataSet ds = await obj.ExecuteStoredProcedureReturnDS("InventoryProcedure", paradic);
             return ds;
         }
 
-
-
-
+        /// <summary>
+        /// Retrieves the details of a specific MRP plan based on MRP code.
+        /// </summary>
+        /// <param name="MRPCode">The MRP code to search.</param>
+        /// <returns>Dataset with plan details.</returns>
         public async Task<DataSet> showplanMHB(string MRPCode)
         {
-            List<Inventory> lst = new List<Inventory>();
             Dictionary<string, string> paradic = new Dictionary<string, string>();
-
             paradic.Add("@flag", "showplandetailsMHB");
             paradic.Add("@MRPCode", MRPCode);
 
-            // Execute SP and get dataset
             DataSet ds = await obj.ExecuteStoredProcedureReturnDS("InventoryProcedure", paradic);
             return ds;
         }
 
-        public async Task<bool> UpdateMRPPlanStatusMHB(string MRPCode, bool isApproved, string reason, Inventory model)
+        /// <summary>
+        /// Approves or rejects an MRP plan based on the status flag.
+        /// </summary>
+        /// <param name="MRPCode">MRP plan code.</param>
+        /// <param name="isApproved">True for approval, false for rejection.</param>
+        /// <param name="reason">Reason for rejection (if applicable).</param>
+        /// <param name="model">Inventory model with staff info.</param>
+        /// <returns>True if status was updated successfully.</returns>
+        public async Task<bool> UpdateMRPPlanStatusMHB(string MRPCode, bool isApproved, string reason, InventoryMHB model)
         {
             Dictionary<string, string> para = new Dictionary<string, string>();
             para.Add("@flag", "aprv-rjct-planMHB");
             para.Add("@MRPCode", MRPCode);
-            para.Add("@statusid", isApproved ? "1" : "2"); // 1 = Approved, 2 = Rejected
+            para.Add("@statusid", isApproved ? "1" : "2");
             para.Add("@AddedDate", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
             para.Add("@StaffCode", model.StaffCode);
+
             if (!isApproved && !string.IsNullOrEmpty(reason))
                 para.Add("@reason", reason);
 
@@ -2692,29 +2699,32 @@ namespace P2PLibray.Inventory
             return result > 0;
         }
 
-        public async Task<bool> saveEditedPlanMHB(Inventory model)
+        /// <summary>
+        /// Deletes existing MRP items and saves updated list for an MRP plan.
+        /// </summary>
+        /// <param name="model">Inventory model with new item list and MRP code.</param>
+        /// <returns>True if successfully saved.</returns>
+        public async Task<bool> saveEditedPlanMHB(InventoryMHB model)
         {
             try
             {
-                // Step 1: Delete all existing items ONCE
                 var deleteParams = new Dictionary<string, string>
-        {
-            { "@flag", "deleteMRPItemsMHB" },
-            { "@MRPCode", model.MRPCode }
-        };
+                {
+                    { "@flag", "deleteMRPItemsMHB" },
+                    { "@MRPCode", model.MRPCode }
+                };
 
                 await obj.ExecuteStoredProcedureReturnDS("InventoryProcedure", deleteParams);
 
-                // Step 2: Insert all items one by one
                 foreach (var item in model.ItemList)
                 {
                     var insertParams = new Dictionary<string, string>
-            {
-                { "@flag", "insertMRPItemMHB" },
-                { "@MRPCode", model.MRPCode },
-                { "@ItemCode", item.ItemCode },
-                { "@Quantity", item.QuantityMRP }
-            };
+                    {
+                        { "@flag", "insertMRPItemMHB" },
+                        { "@MRPCode", model.MRPCode },
+                        { "@ItemCode", item.ItemCode },
+                        { "@Quantity", item.QuantityMRP }
+                    };
 
                     await obj.ExecuteStoredProcedureReturnDS("InventoryProcedure", insertParams);
                 }

@@ -1045,16 +1045,23 @@
                                 </a>
                             </li>
 
-                            <li class="menu-item @(currentAction.Contains("Item") || currentAction.Contains("AssignBin") ? "active open" : "")">
+                            <li class="menu-item @(currentAction.Contains("ItemMasterOJ") || currentAction.Contains("CategorySSG") || currentAction.Contains("WHIndex") ? "active open" : "")">
                                 <a href="javascript:void(0);" class="menu-link d-flex align-items-center rounded-2 py-2 px-3 submenu-item-hover menu-toggle">
                                     <i class="menu-icon tf-icons bi bi-gear"></i>
                                     <div data-i18n="Master Data">Master Data</div>
+                                    <i class="menu-arrow bi bi-chevron-down ms-auto transition-arrow"></i>
                                 </a>
                                 <ul class="menu-sub">
                                     <li class="menu-item @(currentAction == "ItemMasterOJ" ? "active" : "")">
-                                        <a href="@Url.Action("CategorySSG", "Inventory")" class="menu-link d-flex align-items-center rounded-2 py-2 px-3 submenu-item-hover">
+                                        <a href="@Url.Action("ItemMasterOJ", "Inventory")" class="menu-link d-flex align-items-center rounded-2 py-2 px-3 submenu-item-hover">
                                             <i class="menu-icon tf-icons bi bi-box-seam"></i>
                                             <div data-i18n="Item Master">Item Master</div>
+                                        </a>
+                                    </li>
+                                    <li class="menu-item @(currentAction == "CategorySSG" ? "active" : "")">
+                                        <a href="@Url.Action("CategorySSG", "Inventory")" class="menu-link d-flex align-items-center rounded-2 py-2 px-3 submenu-item-hover">
+                                            <i class="menu-icon tf-icons bi bi-box-seam"></i>
+                                            <div data-i18n="Item Master">Item Category</div>
                                         </a>
                                     </li>
                                     <li class="menu-item @(currentAction == "WHIndex" ? "active" : "")">
@@ -1069,10 +1076,11 @@
 
                         if (role == "2" || role == "3")
                         {
-                            <li class="menu-item @(currentAction.Contains("ReceiveMaterial") || currentAction.Contains("IssueInHouse") ? "active open" : "")">
+                            <li class="menu-item @(currentAction.Contains("ReceiveMaterialDRB") || currentAction.Contains("IssueInHouseDRB") ? "active open" : "")">
                                 <a href="javascript:void(0);" class="menu-link d-flex align-items-center rounded-2 py-2 px-3 submenu-item-hover menu-toggle">
                                     <i class="menu-icon tf-icons bi bi-arrow-left-right"></i>
                                     <div data-i18n="Transaction">Transaction</div>
+                                    <i class="menu-arrow bi bi-chevron-down ms-auto transition-arrow"></i>
                                 </a>
                                 <ul class="menu-sub">
                                     <li class="menu-item @(currentAction == "ReceiveMaterialDRB" ? "active" : "")">
@@ -1100,10 +1108,11 @@
                                 </a>
                             </li>
 
-                            <li class="menu-item @(currentAction.Contains("StockPlanning") || currentAction.Contains("Analyze") || currentAction.Contains("ItemStockRefill") || currentAction.Contains("JustInTime") || currentAction.Contains("MRP") ? "active open" : "")">
+                            <li class="menu-item @(currentAction.Contains("ShowStocklevelMHB") || currentAction.Contains("JITStockMHB") || currentAction.Contains("ISRStockMHB") || currentAction.Contains("NewplanMHB") || currentAction.Contains("StockMasterRHK") || currentAction.Contains("ReqMasterRHK") || currentAction.Contains("ManagerApprovalMHB") ? "active open" : "")">
                                 <a href="javascript:void(0);" class="menu-link d-flex align-items-center rounded-2 py-2 px-3 submenu-item-hover menu-toggle">
                                     <i class="menu-icon tf-icons bi bi-bar-chart"></i>
                                     <div data-i18n="Stock Planning">Stock Planning</div>
+                                    <i class="menu-arrow bi bi-chevron-down ms-auto transition-arrow"></i>
                                 </a>
                                 <ul class="menu-sub">
                                     <li class="menu-item @(currentAction == "ShowStocklevelMHB" ? "active" : "")">
@@ -1130,7 +1139,7 @@
                                             <div data-i18n="MRP">MRP</div>
                                         </a>
                                     </li>
-                                    if (role == "2")
+                                    @if (role == "2")
                                     {
                                     <li class="menu-item @(currentAction == "ManagerApprovalMHB" ? "active" : "")">
                                         <a href="@Url.Action("ManagerApprovalMHB", "Inventory")" class="menu-link d-flex align-items-center rounded-2 py-2 px-3 submenu-item-hover">
@@ -1157,13 +1166,14 @@
 
                         if (role == "2")
                         {
-                            <li class="menu-item @(currentAction.Contains("Reports") ? "active open" : "")">
+                            <li class="menu-item @(currentAction.Contains("CurrentStockReportAMG") || currentAction.Contains("ReceivedMaterialReport") || currentAction.Contains("InhouseTransferReportVAMG") ? "active open" : "")">
                                 <a href="javascript:void(0);" class="menu-link d-flex align-items-center rounded-2 py-2 px-3 submenu-item-hover menu-toggle">
                                     <i class="menu-icon tf-icons bi bi-bar-chart-line"></i>
                                     <div data-i18n="Reports">Reports</div>
+                                    <i class="menu-arrow bi bi-chevron-down ms-auto transition-arrow"></i>
                                 </a>
                                 <ul class="menu-sub">
-                                    <li class="menu-item @(currentAction == "CurrentStockReportDataAMG" ? "active" : "")">
+                                    <li class="menu-item @(currentAction == "CurrentStockReportAMG" ? "active" : "")">
                                         <a href="@Url.Action("CurrentStockReportAMG", "Inventory")" class="menu-link d-flex align-items-center rounded-2 py-2 px-3 submenu-item-hover">
                                             <i class="menu-icon tf-icons bi bi-file-earmark-text"></i>
                                             <div data-i18n="Current Stock Reports">Current Stock Reports</div>
@@ -1220,6 +1230,7 @@
                             <a href="javascript:void(0);" class="menu-link d-flex align-items-center rounded-2 py-2 px-3 submenu-item-hover menu-toggle">
                                 <i class="menu-icon tf-icons bi bi-bar-chart-line"></i>
                                 <div data-i18n="Reports">Reports</div>
+                                <i class="menu-arrow bi bi-chevron-down ms-auto transition-arrow"></i>
                             </a>
                             <ul class="menu-sub">
                                 <li class="menu-item @(currentAction == "ApprovedPOReportPSM" ? "active" : "")">
@@ -1267,14 +1278,6 @@
                             </a>
                         </li>
                     }
-
-                    <!-- Calendar Menu Item -->
-                    <li class="menu-item @(ViewContext.RouteData.Values["action"].ToString() == "Calender" ? "active" : "")">
-                        <a href="@Url.Action("Calender", currentController)" class="menu-link d-flex align-items-center rounded-3 py-3 px-3 menu-item-hover">
-                            <i class="menu-icon tf-icons bi bi-calendar-event me-3 fs-5"></i>
-                            <div class="fw-semibold" data-i18n="Calendar">Calendar</div>
-                        </a>
-                    </li>
                 </ul>
             </aside>
             <!-- / Enhanced Animated Menu -->
@@ -1308,8 +1311,13 @@
 
 
                         <ul class="navbar-nav flex-row align-items-center ms-md-auto">
-
-
+                            <!-- Calendar -->
+                            <li class="nav-item me-3 me-xl-2">
+                                <a class="text-black btn btn-icon btn-light rounded-pill waves-effect position-relative calendar-icon" href="@Url.Action("Calender", currentController)">
+                                    <i class="bi bi-calendar-event"></i>
+                                </a>
+                            </li>
+                            <!--/ Calendar -->
                             <!-- Notification -->
                             <li class="nav-item dropdown-notifications navbar-dropdown dropdown me-3 me-xl-2">
                                 <a class="nav-link dropdown-toggle hide-arrow btn btn-icon btn-light rounded-pill waves-effect position-relative notification-btn"
@@ -1360,7 +1368,6 @@
                                    data-bs-toggle="dropdown">
                                     <div class="avatar avatar-online position-relative">
                                         <img src="~/Content/images/avatars/1.png" alt="" id="layout-profile-photo" class="rounded-circle border border-3 border-white shadow-sm" />
-                                        <span class="avatar-status bg-success"></span>
                                     </div>
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end p-3 user-dropdown">
@@ -1437,10 +1444,10 @@
     <!-- / Layout wrapper -->
     <!-- Global Loader -->
     <div id="globalLoader" class="global-loader" style="display: none;">
-        <div class="loader-container text-xl-center d-flex justify-content-center">
+      
             <div class="loader"></div>
 
-        </div>
+       
     </div>
 
     <script>
@@ -1664,7 +1671,7 @@
             });
 
             fetchNotifications();
-            setInterval(fetchNotifications, 5000);
+            //setInterval(fetchNotifications, 5000);
 
             async function fetchNotifications() {
                 try {

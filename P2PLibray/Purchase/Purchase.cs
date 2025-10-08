@@ -69,7 +69,14 @@ namespace P2PLibray.Purchase
         public string VenderName { get; set; }
         public string CompanyName { get; set; }
         public string TotalAmount { get; set; }
+
+        public string ExpectedDate { get; set; }
+        public string VendorDeliveryDate { get; set; }
+        public string DeliverySpeed { get; set; }
+        public string AffordableRank { get; set; }
+        public string RecommendedQuotation { get; set; }
     }
+
 
     //Properties for Quotation Header Details
     public class PendingQuotViewHeader
