@@ -6,8 +6,8 @@
 }
 
 
-<div class="container mt-4">
-    <h2 class="text-center text-primary mb-4 fw-bold"> Just In Time - Stock Request</h2>
+<div class="container mt-4  container-fluid ">
+
 
     <!-- ✅ Alert Messages -->
     <div id="alertSuccess" class="alert alert-success d-none" role="alert">
@@ -18,7 +18,8 @@
     </div>
 
     <!-- 📋 Form -->
-    <form id="stockForm" class="bg-light p-4 rounded shadow-sm">
+    <form id="stockForm" class="bg-white p-4 rounded shadow-sm">
+        <h2 class="text-center text-primary mb-4 fw-bold"> Just In Time - Stock Request</h2>
         <div class="row g-3">
 
             <!-- 🔽 Item Name Dropdown -->
@@ -80,10 +81,10 @@
         background-color: #f9f9f9;
     }
 
-    #stockForm {
+    /*    #stockForm {
         max-width: 1200px;
         margin: 0 auto;
-    }
+    }*/
 </style>
 
 
@@ -138,7 +139,7 @@
                     const formData = {
                         ItemCode: $('#itemCode').val(),
                         Quantity: $('#quantity').val(),
-                        RequiredDate: $('#requiredDate').val()
+                        RequiredDate: $('#RequiredDate').val()
                     };
 
                     $.ajax({
@@ -176,7 +177,7 @@
                 }
             });
         });
-    
+
     });
 </script>
 

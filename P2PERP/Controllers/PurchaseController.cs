@@ -407,7 +407,8 @@ namespace P2PERP.Controllers
                 ItemCode = x.ItemCode,
                 ItemName = x.ItemName,
                 UOMName = x.UOMName,
-                Description = x.Description
+                Description = x.Description,
+                quantity = x.Quantity
             });
 
             return Json(result, JsonRequestBehavior.AllowGet);
@@ -1016,34 +1017,69 @@ namespace P2PERP.Controllers
                 return View();
             }
 
-            /// <summary>
-            /// Creates a new Purchase Requisition (PR) via AJAX form submission.
-            /// </summary>
-            [HttpPost]
-            public async Task<JsonResult> CreatePR(PurchaseHeader purchase)
-            {
-                try
-                {
-                    purchase.AddedBy = Session["StaffCode"].ToString();
-                    await bal.CreatePR(purchase);
-                    return Json(new { success = true });
-                }
-                catch (Exception ex)
-                {
-                    return Json(new { sucess = false, message = ex.Message });
-                }
+        /// <summary>
+        /// Creates a new Purchase Requisition (PR) via AJAX form submission.
+        /// </summary>
+        [HttpPost]
+        public async Task<ActionResult> CreatePR(PurchaseHeader purchase)
+        {
 
+            var validationMessage = ValidatePurchase(purchase);
+
+            if (!string.IsNullOrEmpty(validationMessage))
+            {
+                // Determine which field caused the error
+                string fieldName = "";
+                if (string.IsNullOrWhiteSpace(purchase.PRCode))
+                    fieldName = "PRCode";
+                else if (purchase.RequiredDate == DateTime.MinValue || purchase.RequiredDate < DateTime.Today)
+                    fieldName = "ToDate";
+                else if (purchase.PriorityId <= 0)
+                    fieldName = "PriorityId";
+                else if (string.IsNullOrWhiteSpace(purchase.Description))
+                    fieldName = "Description";
+
+                return Json(new { success = false, message = validationMessage, field = fieldName });
             }
 
-    #endregion
+            purchase.AddedBy = Session["StaffCode"].ToString();
+            await bal.CreatePR(purchase);
 
-    #region Omkar
-    /*################################################# Vendor Management ###################################################*/
+            return Json(new { success = true });
+        }
+        private string ValidatePurchase(PurchaseHeader purchase)
+        {
+            if (purchase == null)
+                return "Invalid data submitted.";
 
-    /// <summary>
-    /// Displays the vendor management view page.
-    /// </summary>
-    [HttpGet]
+            if (string.IsNullOrWhiteSpace(purchase.PRCode))
+                return "PR Code is required.";
+
+            if (purchase.RequiredDate == DateTime.MinValue)
+                return "Required Date is required.";
+
+            if (purchase.RequiredDate < DateTime.Today)
+                return "Required Date cannot be in the past.";
+
+            if (purchase.PriorityId <= 0)
+                return "Please select a valid Priority.";
+
+            if (string.IsNullOrWhiteSpace(purchase.Description))
+                return "Description is required.";
+
+            return string.Empty; // means validation passed
+        }
+
+
+        #endregion
+
+        #region Omkar
+        /*################################################# Vendor Management ###################################################*/
+
+        /// <summary>
+        /// Displays the vendor management view page.
+        /// </summary>
+        [HttpGet]
         public ActionResult VenderManagementOK()
         {
             return View();
@@ -2316,7 +2352,11 @@ namespace P2PERP.Controllers
                 if (!ModelState.IsValid)
                     return Json(new { success = false, error = "Invalid model state" });
 
-                int result = await bal.SaveRFQSJ(model);
+                // 🟢 Convert values to string before passing
+                string staffCode = Session["StaffCode"]?.ToString() ?? "";
+                string date = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+
+                int result = await bal.SaveRFQSJ(model, staffCode, date);
                 return Json(new { success = result > 0 });
             }
             catch (Exception ex)
@@ -2324,6 +2364,8 @@ namespace P2PERP.Controllers
                 return Json(new { success = false, error = ex.Message });
             }
         }
+
+
 
 
         // For all RFQ's
@@ -2487,28 +2529,28 @@ namespace P2PERP.Controllers
                     MobileNo = Convert.ToInt64(firstRow["ContactNo"]?.ToString()),
                     RequiredDate = Convert.ToDateTime(firstRow["RequiredDate"]?.ToString()),
                     Address = firstRow["Address"]?.ToString(),
-                    Description = firstRow["Description1"]?.ToString()
+                    Description = firstRow["Description1"]?.ToString(),
+                    Vendors = request.Vendors
                 };
 
-                var items = new List<Purchase>();
-                foreach (DataRow dr in ds.Tables[0].Rows)
+                string pdfPath = GenerateRFQPdfSJ(header, ds.Tables[0].AsEnumerable().Select(dr => new Purchase
                 {
-                    items.Add(new Purchase
-                    {
-                        ItemName = dr["ItemName"]?.ToString(),
-                        Description = dr["Description"]?.ToString(),
-                        RequiredQuantity =Convert.ToDecimal(dr["RequiredQuantity"]),
-                        UOMNamee = dr["UOMName"]?.ToString()
-                    });
-                }
+                    ItemName = dr["ItemName"]?.ToString(),
+                    Description = dr["Description"]?.ToString(),
+                    RequiredQuantity = Convert.ToDecimal(dr["RequiredQuantity"]),
+                    UOMNamee = dr["UOMName"]?.ToString()
+                }).ToList());
 
-                string pdfPath = GenerateRFQPdfSJ(header, items);
+                string staffCode = Session["StaffCode"]?.ToString() ?? "";
+                string addedDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 
-                header.Vendors = request.Vendors;
-                int savedCount = await bal.SaveRFQVendorsSJ(header);
+                // ✅ Pass staffCode & date to BAL
+                int savedCount = await bal.SaveRFQVendorsSJ(header, staffCode, addedDate);
+
                 if (savedCount == 0)
                     return Json(new { success = false, message = "Failed to save RFQ-Vendor mapping." });
 
+                // (The rest of your email-sending code stays the same...)
                 string vendorIdsCsv = string.Join(",", request.Vendors);
                 DataSet vendorDs = await bal.GetVendorsByIdsSJ(vendorIdsCsv);
 
@@ -2550,6 +2592,7 @@ namespace P2PERP.Controllers
                 return Json(new { success = false, message = "Error: " + ex.Message });
             }
         }
+
 
         // For Get perticular vendor select
         private Purchase GetVendorByIdSJ(string vendorId)
@@ -2805,6 +2848,9 @@ namespace P2PERP.Controllers
             {
                 int VendorMaxId = 0;
                 int VendorcompanyMaxId = 0;
+                string staffCode = Session["StaffCode"]?.ToString();
+                string date = DateTime.Now.ToString();
+
                 DataSet ds = await bal.FetchVendorandVendorCompantMaxIdSJ();
                 for (int i = 0; i < ds.Tables[0].Rows.Count; i++)
                 {
@@ -2814,28 +2860,31 @@ namespace P2PERP.Controllers
                 {
                     VendorcompanyMaxId = Convert.ToInt32(ds.Tables[1].Rows[i]["VendorCompanyMaxId"].ToString());
                 }
+
                 string VendorCode = "VEN" + (VendorMaxId + 1).ToString("D3");
                 string VendorCompanyCode = "VCC" + (VendorcompanyMaxId + 1).ToString("D3");
+
                 p.VendorCode = VendorCode;
                 p.VendorCompanyCode = VendorCompanyCode;
+                p.StaffCode = staffCode;   // ✅ assign here
+
                 bool issaved = await bal.SaveVendorSJ(p);
+
                 if (issaved)
                 {
-                    var message = "Vendor saved successfully!";
-                    return Json(new { success = true, message });
+                    return Json(new { success = true, message = "Vendor saved successfully!" });
                 }
                 else
                 {
-                    var message = "Vendor not saved, please try again!";
-                    return Json(new { success = false, message });
+                    return Json(new { success = false, message = "Vendor not saved, please try again!" });
                 }
             }
             catch (Exception ex)
             {
-
                 return Json(new { success = false, message = ex.Message });
             }
         }
+
         #endregion
     }
 }

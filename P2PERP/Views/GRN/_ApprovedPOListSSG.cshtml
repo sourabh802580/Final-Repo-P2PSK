@@ -31,7 +31,7 @@
                 <th>Vendor</th>
                 <th>Total Amount</th>
                 <th>PO Date</th>
-                <th>Status</th>
+                <th>PO Status</th>
                 <th>Action</th>
             </tr>
         </thead>
@@ -75,6 +75,7 @@ $(document).ready(function () {
 
     // Initialize DataTable
     let table = $('#approvedPoTable').DataTable({
+        ordering: false,
         ajax: {
             url: '@Url.Action("ApprovedpoListSSG","GRN")',
             type: 'GET',
@@ -120,16 +121,24 @@ $(document).ready(function () {
                         return `<span class="fw-bold text-white bg-success px-2 py-1 rounded">${data}</span>`;
                     }
                     else if (status === 'open') {
-                        return `<span class="fw-bold text-white bg-warning px-2 py-1 rounded">${data}</span>`;
+                        return `<span class="fw-bold text-white bg-primary px-2 py-1 rounded">${data}</span>`;
                     }
                     return data;
                 }
             },
 
             {
-                data: 'POCode', className: 'text-center',
-                render: data => `<button class="btn btn-success btn-sm createGRNBtn" data-bs-toggle="tooltip" title=Create GRN For:"${data}"><i class="bi bi-file-earmark-plus-fill fs-5"></i></button>`
+                data: 'POCode',
+                className: 'text-center',
+                render: data => `
+        <button class="btn btn-success btn-sm createGRNBtn"
+                data-bs-toggle="tooltip"
+                data-bs-placement="top"
+                title="Create GRN for: ${data}">
+            <i class="bi bi-file-earmark-plus-fill fs-5"></i>
+        </button>`
             }
+
         ],
 
         dom:'<"row mb-3"<"col-md-6 d-flex gap-2 align-items-center"B><"col-md-6 d-flex justify-content-end"f>>t<"row mt-3"<"col-md-6"i><"col-md-6 d-flex justify-content-end"p>>',
