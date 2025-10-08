@@ -93,15 +93,11 @@
                         </button>
                     </div>
                 </div>
-               
+
             </form>
         </div>
 
-        <div class="container d-flex justify-content-end">
-            <button type="button" id="btnSubmitIssuedItems" class="btn btn-warning btn-sm square-pill">
-                <i class="bi bi-check2-circle me-2"></i> Issue
-            </button>
-        </div>
+
 
         <div class="container table-responsive mt-10">
             <table id="issuedItemsTable" class="table table-hover align-middle">
@@ -126,6 +122,12 @@
         <div class="container d-flex justify-content-end mt-3 align-items-center">
             <label class="fw-bold me-2 mb-0">Total Amount:</label>
             <input type="text" id="TotalAmount" class="form-control w-20 text-center fw-bold bg-success text-white" value="0.00" readonly />
+        </div>
+
+        <div class="container d-flex justify-content-center mb-10 mt-10">
+            <button type="button" id="btnSubmitIssuedItems" class="btn btn-warning btn-large square-pill">
+                <i class="bi bi-check2-circle me-4"></i> Issue
+            </button>
         </div>
 
     </div>
@@ -352,11 +354,14 @@
         function updateTotal() {
             let total = 0;
             $("#issuedItemsTable tbody tr").each(function () {
-                let amt = parseFloat($(this).find("td:eq(6)").text()) || 0;
+                let amountText = $(this).find("td:eq(6)").text(); // Correct index
+                amountText = amountText.replace(/[^\d.-]/g, ""); // Remove ₹ or commas
+                let amt = parseFloat(amountText) || 0;
                 total += amt;
             });
             $("#TotalAmount").val("₹ " + total.toFixed(2));
         }
+
 
         
 
