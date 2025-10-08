@@ -2308,28 +2308,6 @@ namespace P2PERP.Controllers
             return Json(new { data = list }, JsonRequestBehavior.AllowGet);
         }
 
-        // for save the new RFQ's
-        /* [HttpPost]
-         public async Task<JsonResult> SaveRFQSJ(Purchase model)
-         {
-             try
-             {
-                 if (!ModelState.IsValid)
-                     return Json(new { success = false, error = "Invalid model state" });
-
-                 // 🟢 Convert values to string before passing
-                 string staffCode = Session["StaffCode"]?.ToString() ?? "";
-                 string date = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-
-                 int result = await bal.SaveRFQSJ(model, staffCode, date);
-                 return Json(new { success = result > 0 });
-             }
-             catch (Exception ex)
-             {
-                 return Json(new { success = false, error = ex.Message });
-             }
-         }*/
-
         [HttpPost]
         public async Task<JsonResult> SaveRFQSJ()
         {
@@ -2498,6 +2476,7 @@ namespace P2PERP.Controllers
         {
             try
             {
+                // 🔹 Step 1: Read JSON body
                 string json;
                 using (var reader = new StreamReader(Request.InputStream))
                 {
@@ -2513,9 +2492,10 @@ namespace P2PERP.Controllers
                 if (request.Vendors == null || request.Vendors.Count == 0)
                     return Json(new { success = false, message = "No vendors selected." });
 
+                // 🔹 Step 2: Get RFQ details
                 DataSet ds = await bal.GetRFQDetailsSJ(request.RFQCode);
                 if (ds == null || ds.Tables.Count == 0 || ds.Tables[0].Rows.Count == 0)
-                    return Json(new { success = false, message = "RFQ not found" });
+                    return Json(new { success = false, message = "RFQ not found." });
 
                 DataRow firstRow = ds.Tables[0].Rows[0];
                 var header = new Purchase
@@ -2531,6 +2511,7 @@ namespace P2PERP.Controllers
                     Vendors = request.Vendors
                 };
 
+                // 🔹 Step 3: Generate RFQ PDF once
                 string pdfPath = GenerateRFQPdfSJ(header, ds.Tables[0].AsEnumerable().Select(dr => new Purchase
                 {
                     ItemName = dr["ItemName"]?.ToString(),
@@ -2539,22 +2520,25 @@ namespace P2PERP.Controllers
                     UOMNamee = dr["UOMName"]?.ToString()
                 }).ToList());
 
+                if (string.IsNullOrEmpty(pdfPath) || !System.IO.File.Exists(pdfPath))
+                    return Json(new { success = false, message = "Failed to generate RFQ PDF." });
+
+                // 🔹 Step 4: Save RFQ-vendor mapping
                 string staffCode = Session["StaffCode"]?.ToString() ?? "";
                 string addedDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 
-                // ✅ Pass staffCode & date to BAL
                 int savedCount = await bal.SaveRFQVendorsSJ(header, staffCode, addedDate);
-
                 if (savedCount == 0)
                     return Json(new { success = false, message = "Failed to save RFQ-Vendor mapping." });
 
-                // (The rest of your email-sending code stays the same...)
+                // 🔹 Step 5: Fetch vendor details
                 string vendorIdsCsv = string.Join(",", request.Vendors);
                 DataSet vendorDs = await bal.GetVendorsByIdsSJ(vendorIdsCsv);
 
                 if (vendorDs == null || vendorDs.Tables.Count == 0 || vendorDs.Tables[0].Rows.Count == 0)
                     return Json(new { success = false, message = "No vendor details found." });
 
+                // 🔹 Step 6: Send email with attachment to each vendor
                 foreach (DataRow dr in vendorDs.Tables[0].Rows)
                 {
                     var vendor = new Purchase
@@ -2573,24 +2557,49 @@ namespace P2PERP.Controllers
                     try
                     {
                         string subject = $"RFQ {request.RFQCode} from {request.PRCode}";
-                        string body = $"Dear {vendor.VendorName},\n\nPlease find attached the RFQ document.\n\nRegards,\nProcurement Team";
+                        string body = $@"Dear {vendor.VendorName},
 
-                        SendEmailWithAttachmentSJ(vendor.Email, subject, body, pdfPath);
+We are pleased to invite you to submit a quotation for the attached Request for Quotation (RFQ) document, under reference number {request.RFQCode}, pertaining to Purchase Requisition {request.PRCode}.
+
+The RFQ includes detailed item descriptions, quantities, and terms. Kindly review the document carefully and provide your best quotation by the stated due date.
+
+Your timely response will be highly appreciated.
+
+Should you require any additional information or clarification, please do not hesitate to contact our procurement team.
+
+Sincerely,
+Procurement Team
+[Gayasoft Technology]";
+
+
+                        // 🔹 Make a temp copy for each vendor (avoids file lock issues)
+                        string tempFile = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}.pdf");
+                        System.IO.File.Copy(pdfPath, tempFile, true);
+
+                        // Send mail
+                        SendEmailWithAttachmentSJ(vendor.Email, subject, body, tempFile);
+
+                        // Clean up temp copy
+                        System.IO.File.Delete(tempFile);
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"Failed to send email to {vendor.Email}: {ex.Message}");
+                        Console.WriteLine($"❌ Failed to send email to {vendor.Email}: {ex.Message}");
                     }
                 }
+
+                // 🔹 Step 7: Delete original PDF after all emails sent
+                if (System.IO.File.Exists(pdfPath))
+                    System.IO.File.Delete(pdfPath);
 
                 return Json(new { success = true, message = "RFQ sent successfully to selected vendors!" });
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"❌ SendRFQToVendorsSJ() Error: {ex.Message}");
                 return Json(new { success = false, message = "Error: " + ex.Message });
             }
         }
-
 
         // For Get perticular vendor select
         private Purchase GetVendorByIdSJ(string vendorId)
@@ -2701,11 +2710,11 @@ namespace P2PERP.Controllers
             return filePath;
         }
 
-        //Send Email with vendors
+
         private void SendEmailWithAttachmentSJ(string toEmail, string subject, string body, string attachmentPath)
         {
             var fromAddress = new MailAddress("sandeshjatti5329@gmail.com", "Procurement System");
-            string fromPassword = "pbji sngj tkgz ylow";
+            string fromPassword = "pbji sngj tkgz ylow"; // ⚠️ Move this to config or environment variable
 
             using (var smtp = new SmtpClient("smtp.gmail.com", 587)
             {
@@ -2726,9 +2735,6 @@ namespace P2PERP.Controllers
 
                 smtp.Send(message);
             }
-
-            if (!string.IsNullOrEmpty(attachmentPath) && System.IO.File.Exists(attachmentPath))
-                System.IO.File.Delete(attachmentPath);
         }
 
 
