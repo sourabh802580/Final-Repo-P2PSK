@@ -1035,9 +1035,7 @@ namespace P2PERP.Controllers
                 else if (purchase.RequiredDate == DateTime.MinValue || purchase.RequiredDate < DateTime.Today)
                     fieldName = "ToDate";
                 else if (purchase.PriorityId <= 0)
-                    fieldName = "PriorityId";
-                else if (string.IsNullOrWhiteSpace(purchase.Description))
-                    fieldName = "Description";
+                    fieldName = "priority";
 
                 return Json(new { success = false, message = validationMessage, field = fieldName });
             }
@@ -1064,8 +1062,6 @@ namespace P2PERP.Controllers
             if (purchase.PriorityId <= 0)
                 return "Please select a valid Priority.";
 
-            if (string.IsNullOrWhiteSpace(purchase.Description))
-                return "Description is required.";
 
             return string.Empty; // means validation passed
         }
