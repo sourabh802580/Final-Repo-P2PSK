@@ -11,14 +11,14 @@
     <title>@ViewBag.Title</title>
 
     <style>
-        #ncModal::before {
+/*        #ncModal::before {
             content: '';
             position: fixed;
             inset: 0;
             background: rgba(0, 0, 0, 0.6);
             z-index: 1045;
             display: none;
-        }
+        }*/
 
         #ncModal.show::before {
             display: block;
@@ -55,17 +55,17 @@
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">Plan Name</label>
-                        <input type="text" class="form-control" value="@ViewBag.PlanName">
+                        <input type="text" class="form-control" value="@ViewBag.PlanName"readonly>
                     </div>
 
                     <!-- Parameters & Inspection -->
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">Parameters</label>
-                        <input type="text" class="form-control" id="parameter" value="@ViewBag.Parameters">
+                        <input type="text" class="form-control" id="parameter" value="@ViewBag.Parameters"readonly>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">Inspection Type</label>
-                        <input type="text" class="form-control" value="@ViewBag.InspectionType">
+                        <input type="text" class="form-control" value="@ViewBag.InspectionType"readonly>
                     </div>
 
                     <!-- Assigned Date -->
@@ -125,7 +125,13 @@
                         <h4 class="modal-title w-100 text-center text-white" id="ncModalLabel">
                             Non Confirmation Form
                         </h4>
-                        <button type="button" class="btn-close btn-close-white position-absolute end-0 me-3" data-bs-dismiss="modal" aria-label="Close"></button>
+                        <button type="button"
+                                class="btn  position-absolute top-50 end-0 translate-middle-y btn-lg fw-bold text-white"
+                                style="width:40px; height:40px; font-size:24px; line-height:1;"
+                                data-bs-dismiss="modal"
+                                aria-label="Close">
+                            &times;
+                        </button>
                     </div>
                     <div class="modal-body" id="ncModalBody">
                         <div class="text-center text-muted">Loading...</div>
@@ -223,43 +229,94 @@
         }
 
         // Initiate NC
-        function InitiateNc() {
-            var GRIcode = $('#GRNItemCode').val();
-            var sqc = $('#txtSamplequalitycheck').val();
-            var Inf = $('#txtinspfreq').val();
-            var itemcode = $('#itemcode').val();
+        //function InitiateNc() {
+        //    console.log("Btn Active");
+        //    debugger
+        //    var GRIcode = $('#GRNItemCode').val();
+        //    var sqc = $('#txtSamplequalitycheck').val();
+        //    var Inf = $('#txtinspfreq').val();
+        //    var itemcode = $('#itemcode').val();
 
+        //    if (!sqc || !Inf) {
+        //        Swal.fire("⚠️ Missing Data", "Please enter Inspection Frequency and Sample Quality Checked before initiating NC.", "warning");
+        //        return;
+        //    }
+
+        //    $.ajax({
+        //        url: '/Quality/NonconfirmRG',
+        //        type: 'GET',
+        //        dataType: 'html',
+        //        data: { GRIcode: GRIcode, sqc: sqc, Inf: Inf, itemcode: itemcode },
+        //        success: function (resp) {
+        //            $('#ncModalBody').html(resp);
+
+        //            var ncModalEl = $('#ncModal');
+        //            var ncModal = new bootstrap.Modal(ncModalEl);
+        //            ncModal.show();
+
+        //            // ✅ Show custom backdrop automatically
+        //            $(ncModalEl).addClass("show");
+
+        //            $('#ncModal').on('hidden.bs.modal', function () {
+        //                $(this).removeClass("show");
+        //            });
+
+        //            initGrnTable();
+        //        },
+        //        error: function () {
+        //            Swal.fire("❌ Error", "Failed to load Non-confirmation form.", "error");
+        //        }
+        //    });
+        //}
+        function InitiateNc() {
+            const GRIcode = $('#GRNItemCode').val();
+            const sqc = $('#txtSamplequalitycheck').val();
+            const Inf = $('#txtinspfreq').val();
+            const itemcode = $('#itemcode').val();
+            const grnnumber = $('#GRN').val();
             if (!sqc || !Inf) {
                 Swal.fire("⚠️ Missing Data", "Please enter Inspection Frequency and Sample Quality Checked before initiating NC.", "warning");
                 return;
             }
 
-            $.ajax({
-                url: '/Quality/NonconfirmRG',
-                type: 'GET',
-                dataType: 'html',
-                data: { GRIcode: GRIcode, sqc: sqc, Inf: Inf, itemcode: itemcode },
-                success: function (resp) {
-                    $('#ncModalBody').html(resp);
+            // Step 1: Close current Inspection Form modal
+            const parentModalEl = window.parent.document.getElementById('inspecModal');
+            const parentModal = parentModalEl ? bootstrap.Modal.getInstance(parentModalEl) : null;
 
-                    var ncModalEl = document.getElementById('ncModal');
-                    var ncModal = new bootstrap.Modal(ncModalEl);
-                    ncModal.show();
+            if (parentModal) {
+                parentModal.hide();
+            }
 
-                    // ✅ Show custom backdrop automatically
-                    $(ncModalEl).addClass("show");
+            // Step 2: Small delay to let hide animation complete
+            setTimeout(() => {
+                $.ajax({
+                    url: '/Quality/NonconfirmRG',
+                    type: 'GET',
+                    dataType: 'html',
+                    data: { GRIcode, sqc, Inf, itemcode, grnnumber },
+                    success: function (resp) {
+                        $('#ncModalBody').html(resp);
 
-                    $('#ncModal').on('hidden.bs.modal', function () {
-                        $(this).removeClass("show");
-                    });
+                        // Destroy any previous instance (clean up)
+                        const old = bootstrap.Modal.getInstance(document.getElementById('ncModal'));
+                        if (old) old.dispose();
 
-                    initGrnTable();
-                },
-                error: function () {
-                    Swal.fire("❌ Error", "Failed to load Non-confirmation form.", "error");
-                }
-            });
+                        // Create and show NC modal
+                        const ncModal = new bootstrap.Modal(document.getElementById('ncModal'), {
+                            backdrop: 'static',
+                            keyboard: false
+                        });
+                        ncModal.show();
+                    },
+                    error: function () {
+                        Swal.fire("❌ Error", "Failed to load Non-confirmation form.", "error");
+                    }
+                });
+            }, 400); // slight delay = enough for parent modal to fully close
         }
+
+
+
 
 
         // Close both modals if open

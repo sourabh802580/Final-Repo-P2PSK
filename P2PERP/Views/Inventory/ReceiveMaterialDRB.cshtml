@@ -92,17 +92,21 @@
         $.fn.dataTable.ext.search.push(function (settings, data) {
             if (settings.nTable.id !== 'ReturnGoods') return true;
 
-            const dateStr = data[3];
-            const addedDate = moment(dateStr, ["YYYY-MM-DD", "YYYY-MM-DD HH:mm:ss", moment.ISO_8601], true);
+            // 3rd column = GRNDate
+            const dateStr = data[3]?.trim();
 
-            // If date is invalid or no filter selected -> show
+            // Parse the date string
+            const addedDate = moment(dateStr, ["YYYY-MM-DD", "DD/MM/YYYY", "YYYY-MM-DD HH:mm:ss", moment.ISO_8601], true);
+
+            // If date invalid or no range selected, show row
             if (!addedDate.isValid() || !startDate || !endDate) {
                 return true;
             }
 
-            return addedDate.isSameOrAfter(startDate, 'day') &&
-                addedDate.isSameOrBefore(endDate, 'day');
+            // Compare day-level dates
+            return addedDate.isSameOrAfter(startDate, 'day') && addedDate.isSameOrBefore(endDate, 'day');
         });
+
 
         // ================= DataTable =================
         var table = $('#ReturnGoods').DataTable({
@@ -119,7 +123,7 @@
                         rows: function (idx, data, node) {
                             return $(node).find('input.rowCheckbox').prop('checked');
                         },
-                        columns: [2, 3, 4],
+                        columns: [2, 3],
                         modifier: { search: 'applied', order: 'applied' }
                     },
                     action: function (e, dt, button, config) {
@@ -177,7 +181,7 @@
                         rows: function (idx, data, node) {
                             return $(node).find('input.rowCheckbox').prop('checked');
                         },
-                        columns: [2, 3, 4],
+                        columns: [2, 3],
                         modifier: { search: 'applied', order: 'applied' }
                     },
                     action: function (e, dt, button, config) {
@@ -277,7 +281,7 @@
                         rows: function (idx, data, node) {
                             return $(node).find('input.rowCheckbox').prop('checked');
                         },
-                        columns: [2, 3, 4],
+                        columns: [2, 3,],
                         modifier: { search: 'applied', order: 'applied' }
                     },
                     action: function (e, dt, button, config) {
@@ -305,7 +309,7 @@
                         rows: function (idx, data, node) {
                             return $(node).find('input.rowCheckbox').prop('checked');
                         },
-                        columns: [2, 3, 4],
+                        columns: [2, 3,``],
                         modifier: { search: 'applied', order: 'applied' }
                     },
                     action: function (e, dt, button, config) {
@@ -349,10 +353,10 @@
                     render: function (data, type, row, meta) {
                         return meta.row + 1;
                     },
-                    orderable: false
+                    orderable: false,
                 },
-                { data: "GRNCode", title: "GRNNO" },
-                { data: "AddedDate", title: "GRNDate" },
+                { data: "GRNCode", title: "GRN Code" },
+                { data: "AddedDate", title: "GRN Date" },
                 //{ data: "StatusName", title: "GRNstatus" },
                 {
                     data: "StatusName",
@@ -367,6 +371,7 @@
                     }
                 }
             ],
+            ordering: false,
             language: { emptyTable: "No approved POs available" },
 
             //  Only center table headers + body cells

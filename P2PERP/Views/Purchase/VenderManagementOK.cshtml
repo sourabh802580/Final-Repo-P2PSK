@@ -12,7 +12,9 @@
             font-size: 0.8rem;
             font-weight: 500;
         }
-
+        input{
+            outline:none!important;
+        }
         #exportContainer .dt-buttons {
             display: flex;
             justify-content: end; /* center align */
@@ -746,6 +748,7 @@
             });
         });
 
+
         // Form validation
         const forms = document.querySelectorAll(".needs-validation");
         Array.from(forms).forEach((form) => {
@@ -761,7 +764,7 @@
 
     // jQuery document ready function
     $(document).ready(function () {
-        // Clear processing state for all DataTable buttons
+        // Clear processing state for all DataTable button
         window.__dt_clearAllProcessing = function () {
             try {
                 // Try to clear via DataTables API
@@ -1074,7 +1077,7 @@
             searching: true,
             lengthChange: false,
             pageLength: 5,
-
+            ordering: false,
             select: {
                 style: 'multi',
                 selector: 'td:first-child input[type="checkbox"]'
@@ -1451,9 +1454,9 @@
                 text: "Do you really want to save this vendor?",
                 icon: "warning",
                 showCancelButton: true,
-                confirmButtonText: "Yes, save it!",
+                confirmButtonText: "Yes, create it!",
                 cancelButtonText: "No, cancel!",
-                reverseButtons: true
+                reverseButtons: false // Yes first, Cancel second
             }).then((result) => {
                 if (result.isConfirmed) {
                     $.ajax({
@@ -1601,9 +1604,9 @@
             text: "Do you really want to approve this vendor?",
             icon: "warning",
             showCancelButton: true,
-            confirmButtonText: "Yes, approve it!",
+            confirmButtonText: "Yes, create it!",
             cancelButtonText: "No, cancel!",
-            reverseButtons: true,
+            reverseButtons: false 
         }).then((result) => {
             if (result.isConfirmed) {
                 // Call AJAX only if user confirmed

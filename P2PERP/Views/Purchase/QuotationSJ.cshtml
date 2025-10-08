@@ -11,10 +11,13 @@
 
 <div id="pageContent" class="main-content">
     <div class="container mt-5">
-        <div class="text-start mb-3">
-            <button id="btnAllPR" class="btn btn-primary active">All Approved PR</button>
-            <button id="btnAllRFQ" class="btn btn-light">All RFQ</button>
+        <div class="row mb-2">
+            <div class="col-6 d-flex gap-2">
+                <button id="btnAllPR" class="btn btn-primary w-100 active text-nowrap">All Approved PR</button>
+                <button id="btnAllRFQ" class="btn btn-light w-100 text-nowrap">All RFQ</button>
+            </div>
         </div>
+
 
 
         <!-- PR List -->
@@ -33,7 +36,7 @@
                 </div>
 
                 <div class="table-responsive">
-                    <table id="tblRecent" class="table table-striped">
+                    <table id="tblRecent" class="table table-striped table-bordered">
                         <thead class="table-dark">
                             <tr>
                                 <th><input type="checkbox" id="selectAllPR"></th>
@@ -149,27 +152,27 @@
         <div class="modal-content">
 
             <!-- Modal Header -->
-            <div class="modal-header bg-primary text-white d-flex justify-content-center">
-                <h5 class="modal-title mb-0 text-white" id="rfqModalLabel">Purchase Requisition</h5>
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title mb-0 text-white text-center flex-grow-1" id="rfqDetailsTitle">Purchase Requisition</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
 
             <div class="modal-body">
                 <form id="rfqForm" method="post" action="/RFQ/CreateRFQ">
 
-                    <!-- RFQ Information Card -->
-                    <div class="card shadow-sm mb-4">
-                        <div class="card-header bg-light fw-bold">Requisition Information</div>
+                    <!-- Combined Card -->
+                    <div class="card shadow-sm">
                         <div class="card-body">
 
-                            <!-- Hidden section (Step 2 fields) -->
-                            <div id="rfqExtraFields" class="d-none">
+                            <!-- Hidden Extra Fields -->
+                            <div id="rfqExtraFields" class="d-none mb-4">
                                 <div class="row mb-3">
                                     <div class="col-md-3">
                                         <label class="form-label fw-bold">RFQ NO</label>
                                         <input type="text" id="RfqCodeInput" class="form-control" name="RFQCode" readonly />
                                     </div>
                                     <div class="col-md-3">
-                                        <label class="form-label fw-bold text-danger">Contact Person</label>
+                                        <label class="form-label fw-bold">Contact Person</label>
                                         <select class="form-select" id="ContactPerson" name="ContactPerson" required></select>
                                     </div>
                                     <div class="col-md-3">
@@ -201,7 +204,7 @@
                                 </div>
                             </div>
 
-                            <!-- Always visible section -->
+                            <!-- Always Visible Section -->
                             <div class="row mb-3">
                                 <div class="col-md-3">
                                     <label class="form-label fw-bold">Purchase Requisition No.</label>
@@ -209,28 +212,26 @@
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label fw-bold">Expected Date</label>
-                                    <input type="date" id="ExpectedDate" name="ExpectedDate" class="form-control" readonly />
+                                    <input type="text" id="ExpectedDate" class="form-control" readonly placeholder="DD/MM/YYYY" />
                                 </div>
                             </div>
-                        </div>
-                    </div>
 
-                    <!-- PR Items Card -->
-                    <div class="card shadow-sm">
-                        <div class="card-header bg-light fw-bold">PR Items</div>
-                        <div class="card-body table-responsive">
-                            <table class="table table-striped table-bordered">
-                                <thead class="table-dark">
-                                    <tr>
-                                        <th class="text-center">Sr.No.</th>
-                                        <th class="text-center">Item Name</th>
-                                        <th class="text-center">Description</th>
-                                        <th class="text-center">Required Quantity</th>
-                                        <th class="text-center">UOM</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tblPRItems"></tbody>
-                            </table>
+                            <!-- PR Items Table -->
+                            <div class="table-responsive mt-3">
+                                <table class="table table-striped table-bordered">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th class="text-center">Sr.No.</th>
+                                            <th class="text-center">Item Name</th>
+                                            <th class="text-center">Description</th>
+                                            <th class="text-center">Required Quantity</th>
+                                            <th class="text-center">UOM</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tblPRItems"></tbody>
+                                </table>
+                            </div>
+
                         </div>
                     </div>
                 </form>
@@ -250,22 +251,25 @@
 
 
 
+
 <!-- RFQ Details Modal -->
 <div class="modal fade" data-bs-backdrop="true" id="rfqDetailsModal" tabindex="-1" aria-labelledby="rfqDetailsModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
 
             <!-- Modal Header -->
-            <div class="modal-header bg-primary text-white d-flex justify-content-center">
-                <h5 class="modal-title mb-0 text-white text-center" id="rfqDetailsTitle">RFQ Details</h5>
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title mb-0 text-white text-center flex-grow-1" id="rfqDetailsTitle">RFQ Details</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
 
             <div class="modal-body">
 
-                <!-- RFQ Information Card -->
-                <div class="card mb-4 shadow-sm">
-                    <div class="card-header bg-light fw-bold">RFQ Information</div>
+                <!-- Combined Card -->
+                <div class="card shadow-sm">
                     <div class="card-body">
+
+                        <!-- RFQ Information Section -->
                         <div class="row mb-3">
                             <div class="col-md-4">
                                 <label class="form-label fw-bold">PR Code:</label>
@@ -307,34 +311,31 @@
                             </div>
                         </div>
 
-                        <div class="row mb-3">
+                        <div class="row mb-4">
                             <div class="col-12">
                                 <label class="form-label fw-bold">Note:</label>
                                 <textarea class="form-control" id="rfqNote" rows="2" readonly></textarea>
                             </div>
                         </div>
+
+                        <!-- RFQ Items Table -->
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-striped" id="RFQitems">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th class="text-center">Sr.No.</th>
+                                        <th class="text-center">Item Name</th>
+                                        <th class="text-center">Description</th>
+                                        <th class="text-center">Quantity</th>
+                                        <th class="text-center">UOM</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tblRFQDetails"></tbody>
+                            </table>
+                        </div>
+
                     </div>
                 </div>
-
-                <!-- RFQ Items Card -->
-                <div class="card shadow-sm">
-                    <div class="card-header bg-light fw-bold">RFQ Items</div>
-                    <div class="card-body table-responsive">
-                        <table class="table table-bordered table-striped" id="RFQitems">
-                            <thead class="table-dark">
-                                <tr>
-                                    <th class="text-center">Sr.No.</th>
-                                    <th class="text-center">Item Name</th>
-                                    <th class="text-center">Description</th>
-                                    <th class="text-center">Quantity</th>
-                                    <th class="text-center">UOM</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tblRFQDetails"></tbody>
-                        </table>
-                    </div>
-                </div>
-
             </div>
 
             <!-- Modal Footer -->
@@ -355,8 +356,9 @@
         <div class="modal-content">
 
             <!-- Modal Header -->
-            <div class="modal-header bg-primary text-white d-flex justify-content-center align-items-center">
-                <h5 class="modal-title mb-0 text-white text-center">Vendor Registration</h5>
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title mb-0 text-white text-center flex-grow-1" id="rfqDetailsTitle">Vendor Registration</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
 
 
@@ -790,8 +792,8 @@
                                     <td><input type="checkbox" class="row-select" value="${item.PRCode}"></td>
                                     <td></td>
                                     <td>${item.PRCode ?? ""}</td>
-                                    <td>${moment(item.RequiredDate).format('D/M/YYYY')}</td>
-                                    <td>${moment(item.AddedDate).format('D/M/YYYY')}</td>
+                                    <td>${moment(item.RequiredDate).format('DD/MM/YYYY')}</td>
+                                    <td>${moment(item.AddedDate).format('DD/MM/YYYY')}</td>
                                     <td>${item.AddedBy ?? ""}</td>
                                     <td><span class="${statusClass}">${status}</span></td>
                                     <td>
@@ -826,6 +828,7 @@
                                 }
                             }
                         ],
+                        ordering: false,
 
                         dom: '<"row mb-3"<"col-md-6"B l><"col-md-6 text-end"f>>' +
                             'rt' +
@@ -1146,7 +1149,7 @@
                     $("#tblPRItems").closest('table').DataTable({
                         paging: true,
                         searching: true,
-                        ordering: true,
+                        ordering: false,
                         info: true,
                         lengthChange: false,
                         pageLength: 5,
@@ -1155,17 +1158,24 @@
                         ]
                     });
 
-                    if (items.length > 0 && items[0].RequiredDate) {
-                        let rawDate = items[0].RequiredDate;
 
-                        let timestamp = rawDate.includes("/Date")
-                            ? parseInt(rawDate.replace(/[^0-9]/g, ''))
-                            : Date.parse(rawDate);
+                    let rawDate = items[0].RequiredDate;
+                    let jsDate;
 
-                        if (!isNaN(timestamp)) {
-                            let formatted = moment(timestamp).format('YYYY-DD-MM');
-                            $('#ExpectedDate').val(formatted);
-                        }
+                    if (typeof rawDate === "string" && rawDate.includes("/Date")) {
+                        let timestamp = parseInt(rawDate.match(/\d+/)[0], 10);
+                        jsDate = new Date(timestamp);
+                    } else {
+                        jsDate = new Date(rawDate);
+                    }
+
+                    if (!isNaN(jsDate)) {
+                        let dd = String(jsDate.getDate()).padStart(2, "0");
+                        let mm = String(jsDate.getMonth() + 1).padStart(2, "0");
+                        let yyyy = jsDate.getFullYear();
+
+                        // Set value in DD/MM/YYYY format
+                        $("#ExpectedDate").val(`${dd}/${mm}/${yyyy}`);
                     }
 
                     $("#rfqModal").modal("show");
@@ -1232,7 +1242,6 @@
             console.log("Active Submit Form Function");
             e.preventDefault();
 
-
             var formData = {
                 RFQCode: $("#RfqCodeInput").val(),
                 ContactPerson: $("#ContactPerson").val(),
@@ -1249,16 +1258,18 @@
                     text: 'Please fill all required fields.'
                 });
                 return;
-
             }
-            console.log("Formdata", formData);
+
+            console.log("Form Data:", formData);
+
             $.ajax({
                 url: '/Purchase/SaveRFQSJ',
                 type: 'POST',
-                data: formData,
+                data: JSON.stringify(formData),   // ✅ send JSON
+                contentType: 'application/json',  // ✅ tell server it’s JSON
                 success: function (response) {
                     if (response.success) {
-                        console.log("Save RQ", response);
+                        console.log("Save RFQ", response);
                         rfqModal.hide();
                         loadPRList();
 
@@ -1271,11 +1282,12 @@
                             icon: 'success',
                             title: 'Success!',
                             text: 'RFQ saved successfully!',
-                            confirmButtonText: 'OK'
+                            showConfirmButton: false,
+                            timer: 1000,
+                            timerProgressBar: true
                         });
 
                         toastr.success("RFQ saved successfully!");
-
                     } else {
                         Swal.fire({
                             icon: 'error',
@@ -1465,6 +1477,7 @@
                                 }
                             }
                         ],
+                        ordering: false,
                         dom:
                             '<"row mb-3"<"col-md-6"B><"col-md-6 text-end"f>>' +
                             "rt" +
@@ -1807,7 +1820,7 @@
                     $("#RFQitems").DataTable({
                         paging: true,
                         searching: true,
-                        ordering: true,
+                        ordering: false,
                         info: true,
                         lengthChange: false,
                         pageLength: 5,
@@ -1997,8 +2010,8 @@
                    Tablevendor = $("#vendorsTable").DataTable({
                         autoWidth: false,
                         paging: true,
-                        searching: true,
-                        ordering: true,
+                       searching: true,
+                       ordering: false,
                         pageLength: 5,
                         lengthMenu: [5, 10, 25, 50],
                         order: [],
@@ -2233,66 +2246,70 @@
 
 
         // Handle Send button
-            $(document).on("click", "#btnSendToSelected", function () {
-                var selectedVendors = [];
-                $(".row-select:checked").each(function () {
-                    selectedVendors.push($(this).val());
-                });
-
-                if (selectedVendors.length === 0) {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'No Vendors Selected',
-                        text: 'Please select at least one vendor.',
-                        confirmButtonText: 'OK'
-                    });
-                    return;
-                }
-
-                console.log("Selected Vendors:", selectedVendors);
-
-                Swal.fire({
-                    title: 'Sending RFQ...',
-                    text: 'Please wait while emails are being sent to selected vendors.',
-                    allowOutsideClick: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    }
-                });
-
-                $.ajax({
-                    url: "/Purchase/SendRFQToVendorsSJ",
-                    type: "POST",
-                    data: JSON.stringify({
-                        rfqCode: $("#vendorRFQCode").val(),
-                        PRCode: $("#vendorPRCode").val(),
-                        vendors: selectedVendors
-                    }),
-                    contentType: "application/json",
-                    success: function (res) {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Success!',
-                            text: 'RFQ sent successfully to selected vendors!',
-                            confirmButtonText: 'OK'
-                        }).then(() => {
-                            $("#vendorContainer").hide();
-                            $("#rfqList").show();
-                        });
-                    },
-                    error: function (xhr) {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error!',
-                            text: 'Something went wrong while sending RFQ. Please try again.',
-                            confirmButtonText: 'OK'
-                        });
-                        console.error(xhr.responseText);
-                    }
-                });
+        $(document).on("click", "#btnSendToSelected", function () {
+            var selectedVendors = [];
+            $(".row-select:checked").each(function () {
+                selectedVendors.push($(this).val());
             });
 
+            if (selectedVendors.length === 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'No Vendors Selected',
+                    text: 'Please select at least one vendor.',
+                    confirmButtonText: 'OK'
+                });
+                return; // stop execution if no vendors selected
+            }
 
+            console.log("Selected Vendors:", selectedVendors);
+
+            // Only show loading alert if at least one vendor is selected
+            Swal.fire({
+                title: 'Sending RFQ...',
+                text: 'Please wait while emails are being sent to selected vendors.',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            $.ajax({
+                url: "/Purchase/SendRFQToVendorsSJ",
+                type: "POST",
+                data: JSON.stringify({
+                    rfqCode: $("#vendorRFQCode").val(),
+                    PRCode: $("#vendorPRCode").val(),
+                    vendors: selectedVendors
+                }),
+                contentType: "application/json",
+                success: function (res) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success!',
+                        text: 'RFQ sent successfully to selected vendors!',
+                        showConfirmButton: false,
+                        timer: 1000,
+                        timerProgressBar: true,
+                        didClose: () => {
+                            $("#vendorContainer").hide();
+                            $("#rfqList").show();
+                            loadAllRFQ();  // reload the data
+                        }
+                    });
+                },
+                error: function (xhr) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: 'Something went wrong while sending RFQ. Please try again.',
+                        confirmButtonText: 'OK'
+                    });
+                    console.error(xhr.responseText);
+                }
+            });
+
+        });
 
             // Load Country
          $.getJSON('@Url.Action("GetCountriesSJ", "Purchase")', function (countrieslst) {
@@ -2427,7 +2444,9 @@
                             title: 'Success',
                             text: res.message || "Vendor saved successfully!",
                             confirmButtonColor: '#3085d6',
-                            confirmButtonText: 'OK'
+                            showConfirmButton: false,
+                            timer: 1000,
+                            timerProgressBar: true
                         }).then(() => {
                             $('#Vendorform')[0].reset();
                             $('#Vendorform').removeClass("was-validated");

@@ -1,36 +1,37 @@
-﻿<div class="container mt-4">
-    <!-- Title Section -->
-    <h3 class="fw-bold text-dark text-center">
-        <span class="text-warning">Purchase Requisition</span>
-    </h3>
+﻿@{ 
+    ViewBag.Title = "Purchase Requisition";
+}
+
+<div class="container mt-4">
+
 
     <!-- Navigation Tabs -->
     <ul class="nav nav-pills nav-justified" id="stockTabs" role="tablist">
         <!-- Tab: All PR -->
         <li class="nav-item" role="presentation">
             <button class="nav-link active" id="current-tab" data-bs-toggle="tab" data-bs-target="#current" type="button" role="tab">
-                All PR
+                <i class="bi bi-list-ul me-1"></i> All PR
             </button>
         </li>
 
         <!-- Tab: Create New PR -->
         <li class="nav-item" role="presentation">
             <button class="nav-link" id="nonmoving-tab" data-bs-toggle="tab" data-bs-target="#createpr" type="button" role="tab">
-                Create New PR
+                <i class="bi bi-plus-circle me-1"></i> Create New PR
             </button>
         </li>
 
         <!-- Tab: Pending PR -->
         <li class="nav-item" role="presentation">
             <button class="nav-link" id="nonmoving-tab" data-bs-toggle="tab" data-bs-target="#pendingpr" type="button" role="tab">
-                Pending PR
+                <i class="bi bi-hourglass-split me-1"></i>  Pending PR
             </button>
         </li>
 
         <!-- Tab: Approved PR -->
         <li class="nav-item" role="presentation">
             <button class="nav-link" id="nonmoving-tab" data-bs-toggle="tab" data-bs-target="#approvedpr" type="button" role="tab">
-                Approved PR
+                <i class="bi bi-check-circle me-1"></i>   Approved PR
             </button>
         </li>
     </ul>
