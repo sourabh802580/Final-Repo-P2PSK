@@ -75,7 +75,7 @@
                 </span>
             </td>
                     <td>${item.RequiredQuantity || '0'}</td>
-                    <td>${item.RequiredDate ? formatDisplayDate(item.RequiredDate) : 'N/A'}</td>
+                    <td>${moment(item.RequiredDate).format('DD/MM/YYYY')}</td>
                     <td>${item.RequestType || 'N/A'}</td>
                 </tr>`;
             });
