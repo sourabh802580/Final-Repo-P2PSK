@@ -9,6 +9,7 @@
 
     <div class="card-header bg-primary text-white d-flex justify-content-center align-items-center rounded-top p-2">
         <h5 class="modal-title fw-bold text-white">Transfer In-House</h5>
+
     </div>
 
     <!-- Header Form -->
@@ -57,7 +58,6 @@
                     <div class="col-md-6">
                         <label class="form-label fw-bold">Bin Name</label>
                         <select class="form-select item-bin" id="BinName">
-                            
                         </select>
                     </div>
 
@@ -73,64 +73,64 @@
 
                     <div class="col-md-6">
                         <label class="form-label fw-bold">UOM</label>
-                        <input type="text" id="UOM" class="form-control bg-secondary-subtle" readonly /> 
+                        <input type="text" id="UOM" class="form-control bg-secondary-subtle" readonly />
                     </div>
 
                     <div class="col-md-6">
                         <label class="form-label fw-bold">Quantity</label>
-                        <input type="text" id="Quantity" class="form-control bg-secondary-subtle"/>
+                        <input type="text" id="Quantity" class="form-control bg-secondary-subtle" />
                     </div>
+                </div>
 
+                <div class="row g-3">
                     <div class="col-md-6">
                         <label class="form-label fw-bold">Unit Price</label>
                         <input type="number" id="PricePerUnit" class="form-control bg-secondary-subtle" readonly />
                     </div>
+                    <div class="col-md-6 pt-10">
+                        <button type="button" id="btnAddItem" class="btn btn-success px-4 square-pill">
+                            <i class="bi bi-plus-circle me-2"></i> Add Item
+                        </button>
+                    </div>
                 </div>
-
-                <div class="d-flex justify-content-end mt-4">
-                    <button type="button" id="btnAddItem" class="btn btn-success px-4 square-pill">
-                        <i class="bi bi-plus-circle me-2"></i> Add Item
-                    </button>
-                </div>
+               
             </form>
         </div>
-    </div>
 
-    <!-- Issued Items Table -->
-    <div class="card shadow-lg border-0 rounded-4 mt-5 mb-4">
-        <div class="card-header bg-dark text-white rounded-top-4 d-flex justify-content-between align-items-center">
-            <h5 class="mb-0 text-white"><i class="bi bi-list-check text-white me-2"></i> Issued Items</h5>
+        <div class="container d-flex justify-content-end">
             <button type="button" id="btnSubmitIssuedItems" class="btn btn-warning btn-sm square-pill">
                 <i class="bi bi-check2-circle me-2"></i> Issue
             </button>
         </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table id="issuedItemsTable" class="table table-hover align-middle">
-                    <thead class="table-primary text-dark">
-                        <tr>
-                            <th>Item Code</th>
-                            <th>Item Name</th>
-                            <th>Category</th>
-                            <th>UOM</th>
-                            <th>Qty</th>
-                            <th>Unit Price</th>
-                            <th>Amount</th>
-                            <th>BinName</th>
-                            <th class="text-center">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
 
-            <!-- Total Amount Display -->
-            <div class="d-flex justify-content-end mt-3 align-items-center">
-                <label class="fw-bold me-2 mb-0">Total Amount:</label>
-                <input type="text" id="TotalAmount" class="form-control w-20 text-center fw-bold bg-success text-white" value="0.00" readonly />
-            </div>
+        <div class="container table-responsive mt-10">
+            <table id="issuedItemsTable" class="table table-hover align-middle">
+                <thead class="table-primary text-dark">
+                    <tr>
+                        <th>Item Code</th>
+                        <th>Item Name</th>
+                        <th>Category</th>
+                        <th>UOM</th>
+                        <th>Qty</th>
+                        <th>Unit Price</th>
+                        <th>Amount</th>
+                        <th>BinName</th>
+                        <th class="text-center">Action</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
         </div>
+
+        <!-- Total Amount Display -->
+        <div class="container d-flex justify-content-end mt-3 align-items-center">
+            <label class="fw-bold me-2 mb-0">Total Amount:</label>
+            <input type="text" id="TotalAmount" class="form-control w-20 text-center fw-bold bg-success text-white" value="0.00" readonly />
+        </div>
+
     </div>
+
+ 
 
 </div>
 
@@ -303,7 +303,7 @@
             <td>${uom}</td>
             <td>${qty}</td>
             <td>${price}</td>
-            <td>${amount}</td>
+            <td>₹${amount}</td>
             <td>${binName}</td>   <!-- show Bin column -->
             <td class="text-center">
                 <button type="button" class="btn btn-sm btn-danger btn-delete">Delete</button>

@@ -145,6 +145,7 @@ document.addEventListener('DOMContentLoaded', function () {
             new DataTable('#prItemsTable', {
                 data: props.Items,
                 destroy: true,
+                ordering: false,
                 columns: [
                     {
                         data: null,
@@ -233,6 +234,7 @@ document.addEventListener('DOMContentLoaded', function () {
             new DataTable('#rfqItemsTable', {
                 data: props.Items,
                 destroy: true,
+                ordering: false,
                 columns: [
                     {
                         data: null,
@@ -290,6 +292,7 @@ document.addEventListener('DOMContentLoaded', function () {
         new DataTable('#rqTable', {
             data: props.Items,
             destroy: true,
+            ordering: false,
             columns: [
                 {
                     data: null,
@@ -401,6 +404,7 @@ document.addEventListener('DOMContentLoaded', function () {
             new DataTable('#poItemsTable', {
                 data: props.Items,
                 destroy: true,
+                ordering: false,
                 columns: [
                     {
                         data: null,
@@ -513,6 +517,7 @@ document.addEventListener('DOMContentLoaded', function () {
             new DataTable('#grnItemsTable', {
                 data: props.Items,
                 destroy: true,
+                ordering: false,
                 columns: [
                     {
                         data: null,
@@ -619,6 +624,7 @@ document.addEventListener('DOMContentLoaded', function () {
             new DataTable('#grItemsTable', {
                 data: props.Items,
                 destroy: true,
+                ordering: false,
                 columns: [
                     {
                         data: null,
@@ -679,6 +685,7 @@ document.addEventListener('DOMContentLoaded', function () {
             let table = new DataTable('#qcItemsTable', {
                 data: props.Items,
                 destroy: true,
+                ordering: false,
                 columns: [
                     {
                         data: null,

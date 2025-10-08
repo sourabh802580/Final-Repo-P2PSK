@@ -169,8 +169,8 @@
 
             <!-- Footer -->
             <div class="modal-footer">
-                <button type="button" class="btn btn-outline-danger px-4" data-bs-dismiss="modal">
-                    <i class="bi bi-x-circle me-2"></i>Close
+                <button type="button" class="btn btn-outline-danger bg-danger text-white px-4" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle  me-2"></i>Close
                 </button>
                 <button type="submit" form="addWarehouseForm" class="btn btn-success px-4" id="warehouseModalSubmitBtn">
                     <i class="bi bi-check-circle me-2 text-white"></i>Save
@@ -310,11 +310,11 @@
 
 <script>
     $(document).ready(function () {
-       
+
 
         // Initialize variables
         let selectedWarehouseIds = new Set();
-        let cityMap = new Map(); 
+        let cityMap = new Map();
 
         // Initialize tooltips
         function initTooltips() {
@@ -325,6 +325,7 @@
                 });
             });
         }
+
 
         $("#CountryId").on("change", function () {
             var countryId = $(this).val();
@@ -338,11 +339,11 @@
         $('#CountryId').change(function () {
             var countrycode = $(this).val();
 
-            $.getJSON('@Url.Action("GetState","Account")', { countrycode: countrycode }, function (lststate) {
+            $.getJSON('@Url.Action("GetStates","Account")', { CountryCode: countrycode }, function (lststate) {
                 console.log("State Data", lststate);
                 $('#StateId').empty().append(`<option value="">Select State</option>`);
                 $.each(lststate, function (i, state) {
-                    $('#StateId').append(`<option value=${state.iso2}>${state.name}</option>`);
+                    $('#StateId').append(`<option value=${state.Iso2}>${state.Name}</option>`);
                 });
             });
         });
@@ -357,7 +358,7 @@
                 console.log("City Data", data);
                 $('#CityId').empty().append('<option>Select City</option>');
                 $.each(data, function (i, city) {
-                    $('#CityId').append('<option value="' + city.id + '">' + city.name + '</option>');
+                    $('#CityId').append('<option value="' + city.Id + '">' + city.Name + '</option>');
                 });
             });
         });
@@ -383,11 +384,11 @@
                 {
                     data: null,
                     render: function (data, type, row, meta) {
-                       
+
                         if (type === 'display') {
                             return meta.row + 1;
                         }
-                        
+
                         return '';
                     }
                 },
@@ -401,11 +402,11 @@
                         const cityKey = `${row.CountryCode}_${row.StateCode}_${row.CityId}`;
 
                         if (type === 'export') {
-                           
+
                             return cityMap.get(cityKey) || "N/A";
                         }
 
-                        
+
                         return `<span class="city-name" data-country="${row.CountryCode}" data-state="${row.StateCode}" data-cityid="${row.CityId}" data-warehouse="${row.WareHouseId}">Loading...</span>`;
                     }
                 },
@@ -414,20 +415,20 @@
                     "render": function (data, type, row) {
                         if (!data) return "";
 
-                       
+
                         var match = /Date\((\d+)\)/.exec(data);
                         if (match) {
                             var dt = new Date(parseInt(match[1], 10));
-                            return dt.toLocaleDateString("en-GB"); 
+                            return dt.toLocaleDateString("en-GB");
                         }
 
-                       
+
                         var dt2 = new Date(data);
                         if (!isNaN(dt2.getTime())) {
                             return dt2.toLocaleDateString("en-GB");
                         }
 
-                        return data; 
+                        return data;
                     }
                 },
                 { data: "AddedBy" },
@@ -456,7 +457,7 @@
                         if (type === 'display') {
                             return `
                                 <div class="d-flex justify-content-center gap-1">
-                                    <button class="btn btn-sm btn-info btn-view" data-id="${data}" data-bs-toggle="tooltip" title="View Warehouse">
+                                    <button class="btn btn-sm btn-primary btn-view" data-id="${data}" data-bs-toggle="tooltip" title="View Warehouse">
                                         <i class="bi bi-eye"></i>
                                     </button>
                                     <button class="btn btn-sm btn-warning btn-edit" data-id="${data}" data-bs-toggle="tooltip" title="Edit Warehouse">
@@ -473,7 +474,7 @@
                 }
             ],
             columnDefs: [
-                { orderable: false, targets: "_all" } 
+                { orderable: false, targets: "_all" }
             ],
             buttons: [
                 // --- Print ---
@@ -482,15 +483,15 @@
                     text: '<i class="bi bi-printer-fill text-dark fs-5" data-bs-toggle="tooltip" title="Print"></i>',
                     title: '',
                     exportOptions: {
-                        columns: ':visible:not(:first-child):not(:last-child)',
+                        columns: ':visible:not(:first-child):not(:last-child):not(:nth-child(5))',
                         rows: function (idx, data, node) {
                             return selectedWarehouseIds.has(data.WareHouseId);
                         },
                         format: {
                             body: function (data, row, column, node) {
-                                
+
                                 if (column === 1) {
-                                    
+
                                     if (!this.serialCounter) {
                                         this.serialCounter = 1;
                                     }
@@ -499,12 +500,7 @@
                                     return serial.toString();
                                 }
 
-                                
-                                if (column === 6) {
-                                    const cityKey = `${row.CountryCode}_${row.StateCode}_${row.CityId}`;
-                                    return cityMap.get(cityKey) || "N/A";
-                                }
-
+                                // City column is now excluded, so no need for special handling
                                 return data;
                             }
                         }
@@ -517,7 +513,7 @@
                         $.fn.dataTable.ext.buttons.print.action.call(this, e, dt, button, config);
                     },
                     customize: function (win) {
-                       
+
                         $(win.document.body).prepend(
                             '<h2 style="text-align: center; margin-bottom: 10px;">Warehouse List</h2>' +
                             '<p style="text-align: center; margin-bottom: 20px; color: #666;">Generated on: ' + new Date().toLocaleDateString("en-GB") + '</p>' +
@@ -547,15 +543,15 @@
                     text: '<i class="bi bi-file-earmark-pdf text-danger fs-5" data-bs-toggle="tooltip" title="Export PDF"></i>',
                     title: '',
                     exportOptions: {
-                        columns: ':visible:not(:first-child):not(:last-child)',
+                        columns: ':visible:not(:first-child):not(:last-child):not(:nth-child(5))',
                         rows: function (idx, data, node) {
                             return selectedWarehouseIds.has(data.WareHouseId);
                         },
                         format: {
                             body: function (data, row, column, node) {
-                               
+
                                 if (column === 1) {
-                                    
+
                                     if (!this.serialCounter) {
                                         this.serialCounter = 1;
                                     }
@@ -564,12 +560,7 @@
                                     return serial.toString();
                                 }
 
-                                
-                                if (column === 6) {
-                                    const cityKey = `${row.CountryCode}_${row.StateCode}_${row.CityId}`;
-                                    return cityMap.get(cityKey) || "N/A";
-                                }
-
+                                // City column is now excluded, so no need for special handling
                                 return data;
                             }
                         }
@@ -582,7 +573,7 @@
                         $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, button, config);
                     },
                     customize: function (doc) {
-                        
+
                         doc.content.splice(0, 0, {
                             text: 'Warehouse List',
                             alignment: 'center',
@@ -619,15 +610,15 @@
                     title: 'Warehouse List',
                     message: 'Generated on: ' + new Date().toLocaleDateString("en-GB"),
                     exportOptions: {
-                        columns: ':visible:not(:first-child):not(:last-child)',
+                        columns: ':visible:not(:first-child):not(:last-child):not(:nth-child(5))',
                         rows: function (idx, data, node) {
                             return selectedWarehouseIds.has(data.WareHouseId);
                         },
                         format: {
                             body: function (data, row, column, node) {
-                               
+
                                 if (column === 1) {
-                                   
+
                                     if (!this.serialCounter) {
                                         this.serialCounter = 1;
                                     }
@@ -636,12 +627,7 @@
                                     return serial.toString();
                                 }
 
-                               
-                                if (column === 6) {
-                                    const cityKey = `${row.CountryCode}_${row.StateCode}_${row.CityId}`;
-                                    return cityMap.get(cityKey) || "N/A";
-                                }
-
+                                // City column is now excluded, so no need for special handling
                                 return data;
                             }
                         }
@@ -661,15 +647,15 @@
                     title: 'Warehouse List',
                     message: 'Generated on: ' + new Date().toLocaleDateString("en-GB"),
                     exportOptions: {
-                        columns: ':visible:not(:first-child):not(:last-child)',
+                        columns: ':visible:not(:first-child):not(:last-child):not(:nth-child(5))',
                         rows: function (idx, data, node) {
                             return selectedWarehouseIds.has(data.WareHouseId);
                         },
                         format: {
                             body: function (data, row, column, node) {
-                               
+
                                 if (column === 1) {
-                                    
+
                                     if (!this.serialCounter) {
                                         this.serialCounter = 1;
                                     }
@@ -678,11 +664,6 @@
                                     return serial.toString();
                                 }
 
-                               
-                                if (column === 6) {
-                                    const cityKey = `${row.CountryCode}_${row.StateCode}_${row.CityId}`;
-                                    return cityMap.get(cityKey) || "N/A";
-                                }
 
                                 return data;
                             }
@@ -725,17 +706,17 @@
 
                 const cityKey = `${country}_${state}_${cityId}`;
 
-              
+
                 if (cityMap.has(cityKey)) {
                     span.text(cityMap.get(cityKey));
                     return;
                 }
 
-               
+
                 $.get("/Account/GetCities", { countryCode: country, stateCode: state, CityId: cityId }, function (city) {
                     if (city && city.Name) {
                         span.text(city.Name);
-                       
+
                         cityMap.set(cityKey, city.Name);
                     } else {
                         span.text("Unknown");
@@ -750,7 +731,7 @@
             initTooltips();
         });
 
-       
+
         loadAllCityData();
 
         //================= Checkbox Selection =================
@@ -802,8 +783,8 @@
             var min = moment(minMax[0], 'YYYY-MM-DD');
             var max = moment(minMax[1], 'YYYY-MM-DD');
 
-           
-            var dateParts = data[7].split('/'); 
+
+            var dateParts = data[7].split('/');
             var date = moment(`${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`, 'YYYY-MM-DD');
 
             return date.isBetween(min, max, 'day', '[]');
@@ -825,10 +806,10 @@
         $("#btnAddWarehouse").on("click", function () {
             $("#addWarehouseForm")[0].reset();
 
-            
+
             $("#WareHouseId").remove();
 
-           
+
             $("#warehouseModalTitle").text("Add Warehouse");
             $("#warehouseModalSubmitBtn").html('<i class="bi bi-check-circle me-2 text-white"></i>Save');
 
@@ -841,16 +822,14 @@
                 }
             });
 
-           // Load Country data
-            $.getJSON('@Url.Action("GetCountries", "Account")', function (countrieslst) {
-                console.log("Country Data", countrieslst);
-                $('#CountryId').empty().append('<option value="">Select Country</option>');
-                $.each(countrieslst, function (i, country) {
-                    $('#CountryId').append(`<option value="${country.iso2}">${country.name}</option>`);
-                });
-                $("#StateId").empty().append('<option value="">-- Select State --</option>');
-                $("#CityId").empty().append('<option value="">-- Select City --</option>');
-            });
+                  // Load Country data
+$.getJSON('@Url.Action("GetCountries", "Purchase")', function (countrieslst) {
+    console.log("Country Data", countrieslst);
+    $('#CountryId').empty().append('<option value="">Select Country</option>');
+    $.each(countrieslst, function (i, country) {
+        $('#CountryId').append(`<option value="${country.iso2}">${country.name}</option>`);
+    });
+});
 
             $("#addWarehouseModal").modal("show");
         });
@@ -865,7 +844,7 @@
                 return;
             }
             $.get("/Account/GetCities", { CountryCode: countryId, stateCode: stateId }, function (data) {
-               
+
                 if (typeof data === "string") {
                     data = JSON.parse(data);
                 }
@@ -940,7 +919,7 @@
                 confirmButtonText: "Yes, delete it!",
                 cancelButtonText: "No, cancel!",
                 reverseButtons: true,
-                timer: 10000, 
+                timer: 10000,
                 showCloseButton: true
             }).then((result) => {
                 if (result.isConfirmed) {
@@ -955,7 +934,7 @@
                                     text: res.message,
                                     icon: "success",
                                     showConfirmButton: false,
-                                    timer: 3000 
+                                    timer: 3000
                                 });
                                 table.ajax.reload(null, false);
                             } else {
@@ -963,7 +942,7 @@
                                     title: "Error!",
                                     text: res.message,
                                     icon: "error",
-                                    timer: 4000 
+                                    timer: 4000
                                 });
                             }
                         },
@@ -972,7 +951,7 @@
                                 title: "Error!",
                                 text: "Something went wrong while deleting.",
                                 icon: "error",
-                                timer: 4000 
+                                timer: 4000
                             });
                         }
                     });
@@ -981,14 +960,14 @@
                         title: "Cancelled",
                         text: "Your warehouse record is safe",
                         icon: "error",
-                        timer: 3000 
+                        timer: 3000
                     });
                 } else if (result.dismiss === Swal.DismissReason.timer) {
                     swalWithBootstrapButtons.fire({
                         title: "Timeout",
                         text: "Delete action was not confirmed in time",
                         icon: "info",
-                        timer: 3000 
+                        timer: 3000
                     });
                 }
             });
@@ -1029,10 +1008,10 @@
                     $("#vwCapacity").val(data.Capacity);
                     $("#vwDesc").val(data.Description);
 
-                   
+
                     let formattedDate = "";
                     if (data.AddedDate) {
-                       
+
                         var match = /\/Date\((\d+)\)\//.exec(data.AddedDate);
                         if (match) {
                             var d = new Date(parseInt(match[1]));
@@ -1042,7 +1021,7 @@
                                 year: "numeric"
                             });
                         } else {
-                           
+
                             var d2 = new Date(data.AddedDate);
                             if (!isNaN(d2.getTime())) {
                                 formattedDate = d2.toLocaleDateString("en-GB", {
@@ -1071,7 +1050,7 @@
                 if (res.success) {
                     var d = res.data;
 
-                   
+
                     $("#WarehouseCode").val(d.WarehouseCode);
                     $("input[name='WarehouseName']").val(d.WarehouseName);
                     $("input[name='Address']").val(d.Address);
@@ -1080,7 +1059,7 @@
                     $("textarea[name='Description']").val(d.Description);
                     $("input[name='Capacity']").val(d.Capacity);
 
-                   
+
                     if ($("#WareHouseId").length === 0) {
                         $("<input>").attr({
                             type: "hidden",
@@ -1092,38 +1071,38 @@
                         $("#WareHouseId").val(d.WareHouseId);
                     }
 
-                   
+
                     $("#warehouseModalTitle").text("Update Warehouse");
                     $("#warehouseModalSubmitBtn").html('<i class="bi bi-check-circle me-2 text-white"></i>Update');
 
-                   
+
                     $.get("/Account/GetCountries", function (countries) {
                         $("#CountryId").empty().append('<option value="">-- Select Country --</option>');
                         $.each(countries, function (i, c) {
                             $("#CountryId").append('<option value="' + c.Iso2 + '">' + c.Name + '</option>');
                         });
 
-                       
+
                         $("#CountryId").val(d.CountryCode);
 
-                       
+
                         $.get("/Account/GetStates", { CountryCode: d.CountryCode }, function (states) {
                             $("#StateId").empty().append('<option value="">-- Select State --</option>');
                             $.each(states, function (i, s) {
                                 $("#StateId").append('<option value="' + s.Iso2 + '">' + s.Name + '</option>');
                             });
 
-                           
+
                             $("#StateId").val(d.StateCode);
 
-                           
-                            $.get("/Account/GetCities", { countryCode: d.CountryCode, stateCode: d.StateCode }, function (cities) {
+
+                            $.get("/Account/GetCities", { CountryCode: d.CountryCode, stateCode: d.StateCode }, function (cities) {
                                 $("#CityId").empty().append('<option value="">-- Select City --</option>');
                                 $.each(cities, function (i, city) {
                                     $("#CityId").append('<option value="' + city.Id + '">' + city.Name + '</option>');
                                 });
 
-                              
+
                                 $("#CityId").val(d.CityId);
                             });
                         });
