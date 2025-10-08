@@ -567,12 +567,6 @@
 
 
 
-
-
-
-
-
-
         // View Modal Button
         $('#poTable').on('click', '.view-items', function () {
             var poCode = $(this).data('pocode');
@@ -625,21 +619,6 @@
                             columnDefs: [
                                 { className: 'text-center', targets: '_all' }
                             ],
-                            //footerCallback: function (row, data, start, end, display) {
-                            //    let api = this.api();
-
-                            //    // Sum final amount column (last column index = 5)
-                            //    let total = api
-                            //        .column(5, { page: 'current' })
-                            //        .data()
-                            //        .reduce((a, b) => {
-                            //            let val = parseFloat(String(b).replace(/[^\d.-]/g, '')) || 0;
-                            //            return a + val;
-                            //        }, 0);
-
-                            //    // Update footer cell
-                            //    $(api.column(5).footer()).html('₹' + total.toFixed(2));
-                            //}
                             footerCallback: function (row, data, start, end, display) {
                                 let api = this.api();
 

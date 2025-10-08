@@ -403,15 +403,7 @@
 
 
         // ✅ Date filter
-        //$.fn.dataTable.ext.search.push(function (settings, data) {
-        //    var dateStr = data[5];
-        //    if (!dateStr || dateStr === "-") return true;
-        //    var parts = dateStr.split("-");
-        //    var d = new Date(parts[2], parts[1] - 1, parts[0]);
-        //    if (startDate && d < startDate) return false;
-        //    if (endDate && d > endDate) return false;
-        //    return true;
-        //});
+        
         $.fn.dataTable.ext.search.push(function (settings, data) {
             var dateStr = data[5]; // Added Date column
             if (!dateStr) return true;

@@ -876,6 +876,8 @@
 
                 <!-- Menu Items -->
                 <ul class="menu-inner py-2" style="overflow: auto; scrollbar-width: none;">
+
+
                     @if (role == "5") // Purchase Requisition User
                     {
                         <li class="menu-item @(currentAction.Contains("PurchaseRequisition") ? "active open" : "")">
@@ -903,7 +905,7 @@
 
                     @if (role == "6") // RFQ User
                     {
-                        <li class="menu-item @(currentAction.Contains("RFQ") ? "active open" : "")">
+                        <li class="menu-item @(currentAction.Contains("QuotationSJ") ? "active open" : "")">
                             <a href="javascript:void(0);" class="menu-link menu-toggle d-flex align-items-center rounded-3 py-3 px-3 menu-item-hover">
                                 <i class="menu-icon tf-icons bi bi-file-earmark-text me-3 fs-5"></i>
                                 <div class="fw-semibold" data-i18n="Request for Quotation">Request for Quotation</div>
@@ -922,7 +924,7 @@
 
                     @if (role == "7") // Supplier Quotation User
                     {
-                        <li class="menu-item @(currentAction.Contains("Supplier") ? "active open" : "")">
+                        <li class="menu-item @(currentAction.Contains("ShowAllRFQsVNK") ? "active open" : "")">
                             <a href="javascript:void(0);" class="menu-link menu-toggle d-flex align-items-center rounded-3 py-3 px-3 menu-item-hover">
                                 <i class="menu-icon tf-icons bi bi-briefcase me-3 fs-5"></i>
                                 <div class="fw-semibold" data-i18n="Supplier Quotation">Supplier Quotation</div>
@@ -941,7 +943,8 @@
 
                     @if (role == "8") // Purchase Manager
                     {
-                        <li class="menu-item @(currentAction.Contains("PRManager") || currentAction.Contains("Purchase") ? "active open" : "")">
+                        <li class="menu-item @(currentAction.Contains("PRManager") || currentAction.Contains("UserDashboardPRK")|| currentAction.Contains("ShowPendingPRPRK")
+                            || currentAction.Contains("SupplierQuotationAMG") || currentAction.Contains("PurchaseOrdersVNK") || currentAction.Contains("VenderManagementOK") ? "active open" : "")">
                             <a href="javascript:void(0);" class="menu-link menu-toggle d-flex align-items-center rounded-3 py-3 px-3 menu-item-hover">
                                 <i class="menu-icon tf-icons bi bi-speedometer me-3 fs-5"></i>
                                 <div class="fw-semibold" data-i18n="Manager Dashboard">Manager Dashboard</div>
