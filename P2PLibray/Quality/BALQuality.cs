@@ -66,8 +66,8 @@ namespace P2PLibray.Quality
                     {
                         GRNCode = dr["GRNCode"].ToString(),
                         VenderName = dr["VenderName"].ToString(),
-                        AddDate = dr["AddDate"] == DBNull.Value ? "" : Convert.ToDateTime(dr["AddDate"]).ToString("dd-MM-yyyy"),
-                        QualityCheckDate = dr["QualityCheckDate"] == DBNull.Value ? "" : Convert.ToDateTime(dr["QualityCheckDate"]).ToString("dd-MM-yyyy")
+                        AddDate = dr["AddDate"] == DBNull.Value ? "" : Convert.ToDateTime(dr["AddDate"]).ToString("dd/MM/yyyy"),
+                        QualityCheckDate = dr["QualityCheckDate"] == DBNull.Value ? "" : Convert.ToDateTime(dr["QualityCheckDate"]).ToString("dd/MM/yyyy")
                     });
                 }
             }
@@ -101,10 +101,10 @@ namespace P2PLibray.Quality
                         ItemName = dr["ItemName"].ToString(),
                         ItemAddedDate = dr["ItemAddedDate"] == DBNull.Value
                ? ""
-               : Convert.ToDateTime(dr["ItemAddedDate"]).ToString("dd-MM-yyyy"),
+               : Convert.ToDateTime(dr["ItemAddedDate"]).ToString("dd/MM/yyyy"),
                         QualityCheckDate = dr["QualityCheckDate"] == DBNull.Value
                ? ""
-               : Convert.ToDateTime(dr["QualityCheckDate"]).ToString("dd-MM-yyyy"),
+               : Convert.ToDateTime(dr["QualityCheckDate"]).ToString("dd/MM/yyyy"),
                         GRNCode = dr["GRNCode"].ToString() // if you want to pass it
 
                     });
@@ -142,10 +142,10 @@ namespace P2PLibray.Quality
                             VenderName = dr["VenderName"].ToString(),
                             AddDate = dr["Add Date"] == DBNull.Value
                                 ? ""
-                                : Convert.ToDateTime(dr["Add Date"]).ToString("dd-MM-yyyy"),
+                                : Convert.ToDateTime(dr["Add Date"]).ToString("dd/MM/yyyy"),
                             QualityCheckDate = dr["Quality Check Date"] == DBNull.Value
                                 ? ""
-                                : Convert.ToDateTime(dr["Quality Check Date"]).ToString("dd-MM-yyyy")
+                                : Convert.ToDateTime(dr["Quality Check Date"]).ToString("dd/MM/yyyy")
                         });
                     }
                 }
@@ -225,7 +225,7 @@ namespace P2PLibray.Quality
                         StatusName = dr["StatusName"].ToString(),
                         AddedDate = dr["AddedDate"] == DBNull.Value
                                     ? ""
-                                    : Convert.ToDateTime(dr["AddedDate"]).ToString("dd-MM-yyyy")
+                                    : Convert.ToDateTime(dr["AddedDate"]).ToString("dd/MM/yyyy")
                     });
                 }
             }
@@ -242,8 +242,8 @@ namespace P2PLibray.Quality
 			Dictionary<string, string> param = new Dictionary<string, string>
 	{
 		{ "@Flag", "ConfirmItemDtailsPSR" },
-		{ "@StartDate", startDate?.ToString("yyyy-MM-dd") },
-		{ "@EndDate", endDate?.ToString("yyyy-MM-dd") }
+		{ "@StartDate", startDate?.ToString("yyyy/MM/dd") },
+		{ "@EndDate", endDate?.ToString("yyyy/MM/dd") }
 	};
 
 			SqlDataReader dr = await obj.ExecuteStoredProcedureReturnDataReader("QualityCheckProcedure", param);
@@ -282,8 +282,8 @@ namespace P2PLibray.Quality
 			Dictionary<string, string> param = new Dictionary<string, string>()
 	{
 		{ "@Flag", "GraphFaildItemPR" },
-		{ "@StartDate", startDate?.ToString("yyyy-MM-dd") },
-		{ "@EndDate", endDate?.ToString("yyyy-MM-dd") }
+		{ "@StartDate", startDate?.ToString("yyyy/MM/dd") },
+		{ "@EndDate", endDate?.ToString("yyyy/MM/dd") }
 	};
 
 			SqlDataReader dr = await obj.ExecuteStoredProcedureReturnDataReader("QualityCheckProcedure", param);

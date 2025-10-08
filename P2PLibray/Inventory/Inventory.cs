@@ -240,6 +240,7 @@ namespace P2PLibray.Inventory
         public string Status { get; set; }
         public string ExpiryDate { get; set; }
         public string BinName { get; set; }
+        public string BinsList { get; set; }
         public string RowName { get; set; }
         public string RackName { get; set; }
         public int TransferQty { get; set; }
@@ -319,6 +320,51 @@ namespace P2PLibray.Inventory
     }
 
     #endregion
+
+    #region Mayur
+    public class InventoryMHB
+    {
+        public string ItemName { get; set; }
+        public string ItemCode { get; set; }
+        public string ReorderQuantity { get; set; }
+        public string minQuantity { get; set; }
+        public int MaxQuantity { get; set; }
+        public int CurrentItems { get; set; }
+        public string StockStatus { get; set; }
+
+
+        public string ItemId { get; set; }
+        public int Quantity { get; set; }
+        public string UOMName { get; set; }
+        //public string UOMNameMB { get; set; }
+        public string Description { get; set; }
+        public DateTime? RequiredDate { get; set; }
+
+
+        public string ISRQuantity { get; set; }
+        public string RequestType { get; set; }
+        public string StatusName { get; set; }
+
+
+        public string PlanName { get; set; }
+        public string Year { get; set; }
+        public string FromDate { get; set; }
+        public string ToDate { get; set; }
+        public List<InventoryMHB> Items { get; set; }
+
+        public string QuantityMRP { get; set; }
+
+        public string MRPCode { get; set; }
+
+        public List<InventoryMHB> ItemList { get; set; } = new List<InventoryMHB>();
+
+
+        public string RequiredDates { get; set; }
+
+        public string StaffCode { get; set; }
+
+    }
+    #endregion Mayur
     public class Inventory
     {
 
@@ -331,7 +377,7 @@ namespace P2PLibray.Inventory
         public string ItemName { get; set; }
         public string Description { get; set; }
         public string RequiredQuantity { get; set; }
-        public string RequiredDate { get; set; }
+        public DateTime RequiredDate { get; set; }
         public string RequestType { get; set; }
 
         public string PlanName { get; set; }
@@ -398,46 +444,46 @@ namespace P2PLibray.Inventory
 
         #endregion
 
-        #region Mayur
-     //   public string ItemName { get; set; }
-     //   public string ItemCode { get; set; }
-        public string ReorderQuantity { get; set; }
-        public string minQuantity { get; set; }
-       // public string MaxQuantity { get; set; }
-      //  public string CurrentItems { get; set; }
-        public string StockStatus { get; set; }
+     //   #region Mayur
+     ////   public string ItemName { get; set; }
+     ////   public string ItemCode { get; set; }
+     //   public string ReorderQuantity { get; set; }
+     //   public string minQuantity { get; set; }
+     //  // public string MaxQuantity { get; set; }
+     // //  public string CurrentItems { get; set; }
+     //   public string StockStatus { get; set; }
 
 
-        public string ItemId { get; set; }
-        public int Quantity { get; set; }
-        public string UOMName { get; set; }
-      //  public string Description { get; set; }
-       // public DateTime? RequiredDate { get; set; }
+     //   public string ItemId { get; set; }
+     //   public int Quantity { get; set; }
+     //   public string UOMName { get; set; }
+     // //  public string Description { get; set; }
+     //  // public DateTime? RequiredDate { get; set; }
 
 
-        public string ISRQuantity { get; set; }
-       // public string RequestType { get; set; }
-        public string StatusName { get; set; }
+     //   public string ISRQuantity { get; set; }
+     //  // public string RequestType { get; set; }
+     //   public string StatusName { get; set; }
 
 
-        //public string PlanName { get; set; }
-        public string Year { get; set; }
-      //  public string FromDate { get; set; }
-          //public string ToDate { get; set; }
-        public List<Inventory> Items { get; set; }
+     //   //public string PlanName { get; set; }
+     //   public string Year { get; set; }
+     // //  public string FromDate { get; set; }
+     //     //public string ToDate { get; set; }
+     //   public List<Inventory> Items { get; set; }
 
-        public string QuantityMRP { get; set; }
+     //   public string QuantityMRP { get; set; }
 
-     //   public string MRPCode { get; set; }
+     ////   public string MRPCode { get; set; }
 
-        public List<Inventory> ItemList { get; set; } = new List<Inventory>();
+     //   public List<Inventory> ItemList { get; set; } = new List<Inventory>();
 
 
-        public string RequiredDates { get; set; }
+     //   public string RequiredDates { get; set; }
 
-        public string StaffCode { get; set; }
+     //   public string StaffCode { get; set; }
 
-        #endregion
+        //#endregion
 
         #region Sayali and Om
         public class InventoryOJ
@@ -601,6 +647,7 @@ namespace P2PLibray.Inventory
     #endregion
     public class Fetch
     {
+        public string SectionCode { get; set; }
         public int StatusId { get; set; }
         public string StatusName { get; set; }
 

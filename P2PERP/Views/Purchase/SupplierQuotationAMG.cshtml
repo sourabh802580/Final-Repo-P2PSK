@@ -191,10 +191,33 @@
                 //$("#qDelDate").text(hdr[0].VendorDeliveryDate ? new Date(hdr[0].VendorDeliveryDate).toLocaleDateString() : "N/A");
                 function formatDate(dateStr) {
                     if (!dateStr) return "N/A";
-                    const d = new Date(dateStr);
-                    if (isNaN(d)) return "N/A";
-                    return d.toLocaleDateString("en-GB"); // gives dd/mm/yyyy
+
+                    // Normalize all separators
+                    let clean = dateStr.trim().replace('T', ' ').replace(/\./g, '-').replace(/\//g, '-');
+
+                    // Case 1: ISO or SQL format like 2025-10-06 00:00:00 or 2025-10-06T00:00:00
+                    let isoMatch = clean.match(/^(\d{4})-(\d{2})-(\d{2})/);
+                    if (isoMatch) {
+                        const [_, y, m, d] = isoMatch;
+                        return `${d}/${m}/${y}`; // ✅ dd/MM/yyyy
+                    }
+
+                    // Case 2: dd-MM-yyyy or dd/MM/yyyy
+                    let dmyMatch = clean.match(/^(\d{2})-(\d{2})-(\d{4})/);
+                    if (dmyMatch) {
+                        const [_, d, m, y] = dmyMatch;
+                        return `${d}/${m}/${y}`;
+                    }
+
+                    // Case 3: last resort — use Date() safely
+                    const d = new Date(clean);
+                    if (!isNaN(d.getTime())) {
+                        return d.toLocaleDateString("en-GB"); // dd/MM/yyyy
+                    }
+
+                    return "N/A";
                 }
+
 
                 $("#qDate").text(formatDate(hdr[0].VQDate));
                 $("#qDelDate").text(formatDate(hdr[0].VendorDeliveryDate));

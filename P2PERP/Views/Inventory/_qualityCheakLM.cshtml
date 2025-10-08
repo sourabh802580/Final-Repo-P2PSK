@@ -16,7 +16,7 @@
 </style>
 
 <div class="container mt-4 card shadow-sm">
-    <h3 class="text-primary text-center fw-bolder">Quality Cheak Stock</h3>
+    <h3 class="text-primary text-center fw-bolder mt-3">Quality Cheak Stock</h3>
     <table id="qualityCheackStockTable" class="table table-bordered table-striped wrap">
         <thead class="table-dark text-center">
             <tr>
@@ -73,22 +73,26 @@ var qualityCheackTable = $('#qualityCheackStockTable').DataTable({
                 return meta.row + 1;
             }
         },
-        { "data": "QualityCheackCode", "className": "text-center" },
-        { "data": "ItemName", "className": "text-center" },
-        { "data": "ItemCount", "className": "text-center" },
-        { "data": "Date", "className": "text-center" },
+        { "data": "QualityCheackCode", orderable: false, "className": "text-center" },
+        { "data": "ItemName", orderable: false, "className": "text-center" },
+        { "data": "ItemCount", orderable: false, "className": "text-center" },
+        { "data": "Date", orderable: false, "className": "text-center" },
         {
             "data": "Status",
+            orderable: false,
             "className": "text-center",
             "render": function (data, type, row) {
-                let bgColor = data.toLowerCase() === "confirmed" ? "green" : "red";
-                return `<span style="
-    background-color:${bgColor};
-    color:white;
-    padding:3px 8px;
-    border-radius:5px;
-    display:inline-block;
-">${data}</span>`;
+                // null/undefined handle + lowercase + trim + remove spaces + remove hyphen
+                let status = (data || "").toLowerCase().trim().replace(/\s+/g, "").replace(/-/g, "");
+
+                // badge class logic
+                let badgeClass = "";
+                if (status === "pending") badgeClass = "bg-warning text-dark";   // warm yellow + black text
+                else if (status === "nonconfirmed") badgeClass = "bg-danger text-white"; // red + white text
+                else if (status === "confirmed") badgeClass = "bg-success text-white";   // green + white text
+
+                // render with Bootstrap badge class
+                return `<span class="badge ${badgeClass}" style="padding:5px 10px; font-size:0.9em;">${data}</span>`;
             }
         }
     ],
@@ -144,7 +148,7 @@ var qualityCheackTable = $('#qualityCheackStockTable').DataTable({
         {
             extend: 'pdfHtml5',
             text: '<i class="bi bi-file-earmark-pdf text-danger fs-5"></i>',
-            title: `Quality Cheak Stock - ${moment().format("YYYY-MM-DD")}`,
+            title: `Quality Check Stock - ${moment().format("YYYY-MM-DD")}`,
             exportOptions: {
                 columns: ':visible:not(:first-child)', // last column included
                 rows: function (idx, data, node) {
@@ -173,11 +177,13 @@ var qualityCheackTable = $('#qualityCheackStockTable').DataTable({
                 $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, button, config);
             },
             customize: function (doc) {
+                // --- Table header style ---
                 doc.styles.tableHeader.fillColor = 'black';
                 doc.styles.tableHeader.color = 'white';
                 doc.styles.tableHeader.alignment = 'center';
                 doc.styles.tableHeader.bold = true;
 
+                // --- Table layout ---
                 var objLayout = {};
                 objLayout['hLineWidth'] = function (i) { return 0.5; };
                 objLayout['vLineWidth'] = function (i) { return 0.5; };
@@ -186,6 +192,16 @@ var qualityCheackTable = $('#qualityCheackStockTable').DataTable({
                 objLayout['paddingLeft'] = function (i) { return 5; };
                 objLayout['paddingRight'] = function (i) { return 5; };
                 doc.content[1].layout = objLayout;
+
+                // ✅ Add "Generated Date" just below the heading
+                var generatedDate = moment().format("YYYY-MM-DD");
+                doc.content.splice(1, 0, {
+                    text: `Generated Date: ${generatedDate}`,
+                    alignment: 'center',
+                    margin: [0, 0, 0, 10],
+                    fontSize: 10,
+                    italics: true
+                });
             }
         },
 
