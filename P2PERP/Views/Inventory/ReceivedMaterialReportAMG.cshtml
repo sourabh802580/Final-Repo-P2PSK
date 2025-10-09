@@ -104,10 +104,10 @@
                     <th>Item Code</th>
                     <th>Item Name</th>
                     <th>Item Category</th>
-                    <th>Ordered Qty</th>
+                    
                     <th>Received Qty</th>
                     <th>Warehouse</th>
-                    <th>Bin Code</th>
+                    <th>Bin Assigned</th>
                     <th>Received Date</th>
 
                 </tr>
@@ -449,7 +449,7 @@
                 { data: 'ItemCode' },
                 { data: 'ItemName' },
                 { data: 'ItemCategory' },
-                { data: 'GRNQuantity' },
+                
                 { data: 'ReceivedQuantity' },
                 { data: 'WarehouseName' },
                 { data: 'BinCode' },
@@ -504,7 +504,7 @@
         const binFilter = function (settings, data/*row array*/, dataIndex) {
             if (settings.nTable.id !== 'receivedTable') return true; // other tables unaffected
             // BinCode column index is 11 (0-based array of displayed columns)
-            const bin = (data[10] || "").toString().trim().toLowerCase();
+            const bin = (data[9] || "").toString().trim().toLowerCase();
             return showAssigned
                 ? (bin !== "" && bin !== "bin not assigned yet")
                 : (bin === "" || bin === "bin not assigned yet");
@@ -642,11 +642,10 @@
             drops: "down",
             ranges: {
                 'Today': [moment(), moment()],
-                'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
                 'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-                'This Month': [moment().startOf('month'), moment().endOf('month')],
-                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                'Last 1 Month': [moment().subtract(1, 'months').startOf('day'), moment()],
+                'Last 3 Months': [moment().subtract(3, 'months').startOf('day'), moment()],
+                'Last 1 Year': [moment().subtract(12, 'months').startOf('day'), moment()]
             },
             locale: { cancelLabel: 'Clear' }
         }, function (start, end) {
@@ -658,7 +657,7 @@
             // Apply date filter for table display (this filter only active for immediate draw)
             $.fn.dataTable.ext.search.push(function (settings, data) {
                 if (settings.nTable.id !== 'receivedTable') return true;
-                const receivedDate = moment(data[11], 'DD-MM-YYYY');
+                const receivedDate = moment(data[10], 'DD-MM-YYYY');
                 return receivedDate.isBetween(start, end, undefined, '[]');
             });
             receivedTable.draw();
