@@ -87,12 +87,15 @@ namespace P2PERP.Controllers
         }
 
         /// <summary>
-        /// Verifies whether the provided email exists and sends a reset code.
+        /// Handles a user's request to reset their password.
+        /// Verifies if the provided email exists in the system, 
+        /// and if valid, stores relevant session information for the password reset process.
         /// </summary>
-        /// <param name="acc">The account object containing the email address.</param>
+        /// <param name="acc">An <see cref="Account"/> object containing the user's email address.</param>
         /// <returns>
-        /// A JSON result indicating success or failure. 
-        /// On success, a verification code is sent to the user’s email.
+        /// Returns a JSON result:
+        /// - If the email is valid: { success = true } and stores the staff code and email in session for further steps.
+        /// - If the email is invalid: { success = false, message = "Invalid Email" }.
         /// </returns>
         [HttpPost]
         public async Task<ActionResult> ForgotPassword(Account acc)
@@ -110,6 +113,14 @@ namespace P2PERP.Controllers
             return Json(new { success = true });
         }
 
+        /// <summary>
+        /// Checks whether the current user session contains a valid StaffCode.
+        /// </summary>
+        /// <returns>
+        /// Returns a JSON object with:
+        /// - success = true, if Session["StaffCode"] exists.
+        /// - success = false, if Session["StaffCode"] is null.
+        /// </returns>
         [HttpGet]
         public JsonResult CheckSession()
         {
@@ -213,23 +224,14 @@ namespace P2PERP.Controllers
         }
 
         /// <summary>
-        /// Creates a random 4-digit verification code and stores it in session.
+        /// Sends an email with optional CC, BCC, and attachments to the specified recipients.
         /// </summary>
-        /// <returns>The generated 4-digit code as a string.</returns>
-        public string CreateCode()
-        {
-            Random random = new Random();
-            int number = random.Next(0, 10000);
-            string fourDigitString = number.ToString("D4");
-            Session["VerificationCode"] = fourDigitString;
-            return fourDigitString;
-        }
-
-        /// <summary>
-        /// Sends a forgot password verification code to the given email address.
-        /// </summary>
-        /// <param name="mail">The recipient email address.</param>
-        /// <returns>1 if the email was sent successfully; otherwise 0.</returns>
+        /// <param name="email">The Email object containing recipients, subject, body, and attachments.</param>
+        /// <returns>
+        /// A JSON result indicating the outcome:
+        /// - success = true, message = "Email sent successfully." if the email was sent successfully.
+        /// - success = false, message = error details if sending failed.
+        /// </returns>
         [HttpPost]
         public JsonResult SendEmail(Email email)
         {
@@ -277,7 +279,6 @@ namespace P2PERP.Controllers
                 return Json(new { success = false, message = ex.Message });
             }
         }
-
 
         /// <summary>
         /// Retrieves all permissions assigned to the currently logged-in staff.
