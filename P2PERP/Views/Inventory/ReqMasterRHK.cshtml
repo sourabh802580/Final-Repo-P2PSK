@@ -53,10 +53,14 @@
                         <tr>
                             <th><input type="checkbox" id="selectAll"></th>
                             <th>Sr. No.</th>
-                            <th>Stock RequirementId</th>
+                            <th>Item Code</th>
+                            <th>Item Name</th>
+                            <th>Description</th>
+                            <th>Required Quantity</th>
+                            <th>Required Date</th>
+                            <th>Request Type</th>
                             <th>Added Date</th>
-                            <th>Status</th>
-                            <th>Action</th>
+                           <th>Added By</th>
                         </tr>
                     </thead>
                     <tbody id="tblRecent"></tbody>
@@ -97,28 +101,9 @@
     $(document).ready(function () {
 
 
-        // Handle View button click → load modal partial
-        $(document).off('click', '.btn-view-plan').on('click', '.btn-view-plan', function () {
-            let id = $(this).data("id");
-
-            $("#viewPlanContent").html(`
-                <div class="text-center my-5">
-                    <div class="spinner-border text-primary" role="status"></div>
-                    <p class="mt-2">Loading...</p>
-                </div>`);
-
-            $.get("/Inventory/ReqMasterViewPartialRHK", { id: id }, function (html) {
-                $("#viewPlanContent").html(html);
-                $("#viewPlanModal").modal("show");
-            }).fail(function () {
-                $("#viewPlanContent").html(`<div class="text-danger">❌ Failed to load plan details.</div>`);
-            });
-        });
-
-
-
-        // Load data and initialize table
+            // Load data and initialize table
         loadTableData();
+
 
         // ✅ Configure toastr once
         toastr.options = {
@@ -138,7 +123,7 @@
 
     function loadTableData() {
         $.ajax({
-            url: "/Inventory/ReqMasterListRHK",
+            url: "/Inventory/ViewReqMasterListRHK",
             type: "GET",
             success: function (response) {
                 console.log(response);
@@ -155,27 +140,26 @@
                 if (response?.data?.length > 0) {
                     let i = 1;
                     response.data.forEach(item => {
-                        // Fix: Determine status class based on d.Status
-                        let statusClass = item.Status == "Approved" ? "badge bg-success" : "badge bg-danger";
-
+                        
                         $('#tblRecent').append(`
-                            <tr>
-                                <td><input type="checkbox" class="row-select" value="${item.StockRequirementId}"></td>
-                                <td>${i++}</td>
-                                <td>${item.StockRequirementId}</td>
-                                <td>${moment(item.AddedDate).format('DD/MM/YYYY')}</td>
-                               <td><span class="${statusClass}">${item.Status || 'N/A'}</span></td>
-                                <td>
-                                <button class="btn btn-sm btn-primary btn-view-plan"
-                                 data-id="${item.StockRequirementId}"
-                                 data-bs-toggle="tooltip"
-                                 data-bs-placement="top"
-                                 title="View">
-                                <i class="bi bi-eye-fill"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                        `);
+<tr>
+    <td><input type="checkbox" class="row-select" value="${item.ItemCode}"></td>
+    <td>${i++}</td>
+    <td>${item.ItemCode || 'N/A'}</td>
+    <td>${item.ItemName || 'N/A'}</td>
+    <td>
+        <span data-bs-toggle="tooltip" title="${item.Description || ''}">
+            ${item.Description || 'N/A'}
+        </span>
+    </td>
+    <td>${item.RequiredQuantity || '0'}</td>
+    <td>${moment(item.RequiredDate).format('DD/MM/YYYY')}</td>
+    <td>${item.RequestType || 'N/A'}</td>
+    <td>${moment(item.AddedDate).format('DD/MM/YYYY')}</td>
+    <td>${item.AddedBy || 'N/A'}</td>
+</tr>
+`);
+
 
                         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
                         var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
@@ -198,6 +182,8 @@
             }
         });
     }
+
+
 
     function initDataTable() {
         dataTable = $('#reqTable').DataTable({
@@ -228,7 +214,7 @@
                         rows: function (idx, data, node) {
                             return $(node).find('.row-select').prop('checked');
                         },
-                        columns: ':visible:not(:first-child):not(:last-child)',
+                        columns: ':visible:not(:first-child)',
                         format: {
                             body: function (data, row, column, node) {
                                 if (column === 1)
@@ -328,7 +314,7 @@
                         rows: function (idx, data, node) {
                             return $(node).find('.row-select').prop('checked');
                         },
-                        columns: ':visible:not(:first-child):not(:last-child)',
+                        columns: ':visible:not(:first-child)',
                         format: {
                             body: function (data, row, column, node) {
                                 if (column === 1)
@@ -358,7 +344,7 @@
                         rows: function (idx, data, node) {
                             return $(node).find('.row-select').prop('checked');
                         },
-                        columns: ':visible:not(:first-child):not(:last-child)',
+                        columns: ':visible:not(:first-child)',
                         format: {
                             body: function (data, row, column, node) {
                                 if (column === 1)
@@ -388,7 +374,7 @@
                         rows: function (idx, data, node) {
                             return $(node).find('.row-select').prop('checked');
                         },
-                        columns: ':visible:not(:first-child):not(:last-child)',
+                        columns: ':visible:not(:first-child)',
                         format: {
                             body: function (data, row, column, node) {
                                 if (column === 1)
@@ -436,59 +422,61 @@
             },
             ranges: {
                 'Today': [moment(), moment()],
-                'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
                 'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-                'This Month': [moment().startOf('month'), moment().endOf('month')],
-                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                'Last 1 Month': [moment().subtract(1, 'months').startOf('day'), moment()],
+                'Last 3 Months': [moment().subtract(3, 'months').startOf('day'), moment()],
+                'Last 1 Year': [moment().subtract(12, 'months').startOf('day'), moment()]
             }
         });
 
-        // Apply date range when user selects
         $('#reportrange').on('apply.daterangepicker', function (ev, picker) {
             tableStartDate = picker.startDate;
             tableEndDate = picker.endDate;
             $(this).val(tableStartDate.format('YYYY-MM-DD') + ' - ' + tableEndDate.format('YYYY-MM-DD'));
-
-            // Filter the table based on date range
             filterTableByDate();
         });
 
-        // Clear date range on cancel
-        $('#reportrange').on('cancel.daterangepicker', function (ev, picker) {
+        $('#reportrange').on('cancel.daterangepicker', function () {
             tableStartDate = null;
             tableEndDate = null;
             $(this).val('');
-            dataTable.draw(); // Reset filtering
+
+            // Remove the custom filter and redraw
+            $.fn.dataTable.ext.search = $.fn.dataTable.ext.search.filter(f => !f.name || f.name !== 'addedDateFilter');
+            dataTable.draw();
         });
     }
+
 
 
 
 
     function filterTableByDate() {
         if (tableStartDate && tableEndDate) {
-            // Custom filtering function for date range
-            $.fn.dataTable.ext.search.push(
-                function (settings, data, dataIndex) {
-                    var date = moment(data[3], 'YYYY-MM-DD'); // Assuming date is in 4th column (index 3)
 
-                    if ((tableStartDate === null && tableEndDate === null) ||
-                        (tableStartDate === null && date <= tableEndDate) ||
-                        (tableStartDate <= date && tableEndDate === null) ||
-                        (tableStartDate <= date && date <= tableEndDate)) {
-                        return true;
-                    }
-                    return false;
-                }
-            );
+            // Remove any previous filters first
+            $.fn.dataTable.ext.search = $.fn.dataTable.ext.search.filter(f => !f.name || f.name !== 'addedDateFilter');
+
+            // Add new custom filter for Added Date (column index 8)
+            const addedDateFilter = function (settings, data, dataIndex) {
+                const addedDate = moment(data[8], 'DD/MM/YYYY'); // column 8 = Added Date
+
+                if (!addedDate.isValid()) return false;
+
+                // Include rows between selected start & end date
+                return addedDate.isSameOrAfter(tableStartDate, 'day') &&
+                    addedDate.isSameOrBefore(tableEndDate, 'day');
+            };
+
+            // Assign a name to easily remove later
+            addedDateFilter.name = 'addedDateFilter';
+
+            $.fn.dataTable.ext.search.push(addedDateFilter);
         }
 
         dataTable.draw();
-
-        // Remove the custom filter function after drawing
-        $.fn.dataTable.ext.search.pop();
     }
+
 
 
 

@@ -69,7 +69,7 @@
         let endDate = null;
 
         function cb(start, end) {
-            $('#returnGoodsRange').val(start.format('YYYY-MM-DD') + ' - ' + end.format('YYYY-MM-DD'));
+            $('#returnGoodsRange').val(start.format('DD/MM/YYYY') + ' - ' + end.format('DD/MM/YYYY'));
             startDate = start;
             endDate = end;
             if ($.fn.DataTable.isDataTable('#ReturnGoods')) {
@@ -102,7 +102,7 @@
         // Custom Filter
         $.fn.dataTable.ext.search.push(function (settings, data) {
             if (settings.nTable.id !== 'ReturnGoods') return true;
-            const addedDate = moment(data[3], ["YYYY-MM-DD", "YYYY-MM-DD HH:mm:ss"]); // index 3 = "GR Date"
+            const addedDate = moment(data[3], ["DD/MM/YYYY", "DD/MM/YYYY HH:mm:ss"]); // index 3 = "GR Date"
             if (!startDate || !endDate) return true; // ✅ no filter on first load
             if (!addedDate.isValid()) return true;
             return addedDate.isSameOrAfter(startDate, 'day') && addedDate.isSameOrBefore(endDate, 'day');
@@ -128,7 +128,15 @@
                     }
                 },
                 { data: "GoodReturnCode", title: "GR Code" },
-                { data: "AddedDate", title: "GR Date" },
+                {
+                    data: "AddedDate",
+                    title: "GR Date",
+                    render: function (data, type, row) {
+                        // Check if date is valid
+                        if (!data) return "";
+                        return moment(data).format("DD/MM/YYYY"); // Change to your desired format
+                    }
+                },
                 { data: "GRNCode", title: "GRN Code" },
                 {
                     data: "ReasonOfRejection",
@@ -188,6 +196,7 @@
             columnDefs: [
                 { targets: "_all", className: "text-center" } // center all columns
             ],
+            ordering: false,
             buttons: [
 
                 {

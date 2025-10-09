@@ -741,12 +741,13 @@ namespace P2PLibray.Inventory
         /// Gets bins by row code.
         /// Returns List of InventoryBinDRB (Code, Name, CurrentItems, MaxQuantity).
         /// </summary>
-        public async Task<List<InventoryBinDRB>> GetBinDRB(string code)
+        public async Task<List<InventoryBinDRB>> GetBinDRB(string code,string GrnItemCode)
         {
             Dictionary<string, string> param = new Dictionary<string, string>
                 {
                     { "@Flag", "GetBinDRB" },
-                    { "@RowCode", code }
+                    { "@RowCode", code },
+                    { "@GRNItemCode", GrnItemCode },
                 };
 
             DataSet ds = await obj.ExecuteStoredProcedureReturnDS("InventoryProcedure", param);
@@ -1100,12 +1101,12 @@ namespace P2PLibray.Inventory
         /// </summary>
         /// <param name="id">The unique identifier of the requirement to view</param>
         /// <returns>DataSet containing detailed requirement information</returns>
-        public async Task<DataSet> ViewReqMasterRHK(int id)
+        public async Task<DataSet> ViewReqMasterRHK()
         {
             // Create parameter dictionary for stored procedure
             Dictionary<string, string> para = new Dictionary<string, string>();
             para.Add("@Flag", "ViewRequirementMasterRHK"); // Flag for detailed view operation
-            para.Add("@Id", id.ToString()); // Specific requirement ID to retrieve
+          
 
             // Execute stored procedure and return results
             DataSet ds = await obj.ExecuteStoredProcedureReturnDS("InventoryProcedure", para);

@@ -265,7 +265,7 @@
                     <!-- TABLE HEADER WITH FILTERS AND EXPORT BUTTONS -->
                     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
                         <!-- Date Range Filter -->
-                        <div class="input-group" style="height: 40px; max-width: 280px;">
+                        <div class="input-group mt-4" style="height: 40px; max-width: 280px;">
                             <span class="input-group-text bg-primary text-white" style="height: 100%;">
                                 <i class="bi bi-calendar-date"></i>
                             </span>
@@ -336,10 +336,10 @@
 
                 <div class="modal-header bg-primary text-white position-relative">
                     <div class="w-100 text-center">
-                        <h5 class="modal-title text-white fw-bold mb-0" id="itemsModalLabel">Details</h5>
+                        <h5 class="modal-title text-white fw-bold mb-2" id="itemsModalLabel">Details</h5>
                     </div>
 
-                    <button type="button" class="btn-close btn-close-white position-absolute end-0 me-3" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close btn-close-white position-absolute end-0 me-3 mb-2" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
 
                 <div class="modal-body" id="modalContent">
@@ -402,11 +402,10 @@
                 },
                 ranges: {
                     'Today': [moment(), moment()],
-                    'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
                     'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-                    'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-                    'This Month': [moment().startOf('month'), moment().endOf('month')],
-                    'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                    'Last 1 Month': [moment().subtract(1, 'months').startOf('day'), moment()],
+                    'Last 3 Months': [moment().subtract(3, 'months').startOf('day'), moment()],
+                    'Last 1 Year': [moment().subtract(12, 'months').startOf('day'), moment()]
                 }
             });
 
@@ -492,12 +491,10 @@
                 },
                 ranges: {
                     'Today': [moment(), moment()],
-                    'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
                     'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-                    'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-                    'This Month': [moment().startOf('month'), moment().endOf('month')],
-                    'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
-                    'This Year': [moment().startOf('year'), moment().endOf('year')]
+                    'Last 1 Month': [moment().subtract(1, 'months').startOf('day'), moment()],
+                    'Last 3 Months': [moment().subtract(3, 'months').startOf('day'), moment()],
+                    'Last 1 Year': [moment().subtract(12, 'months').startOf('day'), moment()]
 
                 },
                 alwaysShowCalendars: true,
@@ -549,7 +546,7 @@
             $("#QCAssignedCount").html('<span class="spinner-border spinner-border-sm"></span>');
             $("#UpcomingItemCount").html('<span class="spinner-border spinner-border-sm"></span>');
 
-            // Load each KPI with date parameters
+            // Load each KPI with date parameters 
             $.getJSON("/GRN/GetTotalGRNRHK", { startDate: startDate, endDate: endDate }, function (data) {
                 $("#TotalGRNCount").text(data.count || 0);
             }).fail(function () {

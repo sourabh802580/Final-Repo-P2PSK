@@ -30,9 +30,9 @@
 </div>
 
 <!-- Create/Edit Category Modal -->
-<div class="modal fade" id="categoryModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
-        <div class="modal-content">
+<div class="modal fade" id="categoryModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="true" data-bs-keyboard="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content shadow-lg">
             <div class="modal-header bg-primary py-2 px-3" style="min-height:50px;">
                 <h5 class="modal-title m-0 flex-grow-1 text-white text-center fs-5" id="categoryModalTitle">Create / Edit Category</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
@@ -43,6 +43,7 @@
         </div>
     </div>
 </div>
+
 
 <script>
 toastr.options = {
@@ -63,7 +64,6 @@ $(document).ready(function () {
 
     // Initialize DataTable
     let table = $('#categoryTable').DataTable({
-        ordering: false,
         ajax: {
             url: '@Url.Action("GetAllCategoriesSSG","Inventory")',
             type: 'GET',
@@ -100,9 +100,6 @@ $(document).ready(function () {
                         <div class="d-flex gap-1 justify-content-center">
                             <button class="btn btn-secondary btn-sm btnEditCategory" data-id="${row.ItemCategoryId}" data-bs-toggle="tooltip" title="Edit Category">
                                 <i class="bi bi-pencil-square"></i>
-                            </button>
-                            <button class="btn btn-danger btn-sm btnDeleteCategory" data-id="${row.ItemCategoryId}" data-name="${row.ItemCategoryName}" data-bs-toggle="tooltip" title="Delete Category">
-                                <i class="bi bi-trash"></i>
                             </button>
                         </div>`;
                 }
@@ -206,33 +203,31 @@ $(document).ready(function () {
                 }
             },
 
-
-            // EXCEL
             {
                 extend: 'excelHtml5',
                 text: '<i class="bi bi-file-earmark-excel fs-5 text-success"></i>',
-                title: 'Category List - ' + moment().format("DD-MM-YYYY"),
+                filename: `Category_List_${moment().format("DD-MM-YYYY")}`,
+                title: 'Category List', // Excel title
                 exportOptions: {
-                    columns: [1,2,3,4],
-                    rows: (idx, data) => selectedCategories.has(data.ItemCategoryId),
-                    format: {
-                        body: function (data, row, column, node) {
-                            if (column === 0) return row + 1;
-                            return $('<div>').html(data).text();
-                        }
+                    columns: [1,2, 3, 4], // Category Name, Description, HSN Code
+                    rows: (idx, data) => selectedCategories.has(data.ItemCategoryId)
+                },
+                customizeData: function (data) {
+                    // Add S.No. column
+                    data.header.unshift('S.No.'); // Add header
+                    for (let i = 0; i < data.body.length; i++) {
+                        data.body[i].unshift(i + 1); // Add dynamic Sr. No.
                     }
                 },
-                customize: function (xlsx) {
-                    let sheet = xlsx.xl.worksheets['sheet1.xml'];
-                    $('row:first c', sheet).attr('s', '2');
-                },
                 action: function (e, dt, btn, config) {
-                    if (selectedCategories.size === 0) { showExportWarning(); return; }
+                    if (selectedCategories.size === 0) {
+                        toastr.warning("Select at least one row to export.", "Warning");
+                        return;
+                    }
                     $.fn.dataTable.ext.buttons.excelHtml5.action.call(this, e, dt, btn, config);
-                    showExportSuccess("Excel export completed.");
+                    dt.ajax.reload();
                 }
             },
-
             // CSV
             {
                 extend: 'csvHtml5',
@@ -314,50 +309,6 @@ $(document).ready(function () {
             .fail(()=>$('#categoryModalBody').html('<p class="text-danger text-center">Failed to load form.</p>'));
     });
 
-    // Delete Category with SweetAlert
-    $(document).on('click', '.btnDeleteCategory', function () {
-        var categoryId = $(this).data('id');
-        var categoryName = $(this).data('name');
-        var row = $(this).closest('tr');
-
-        Swal.fire({
-            title: "Are you sure?",
-            text: "This will delete the category \"" + categoryName + "\"!",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonColor: "#d33",
-            cancelButtonColor: "#3085d6",
-            confirmButtonText: "Yes, delete it!",
-            cancelButtonText: "No, cancel"
-        }).then((result) => {
-            if (result.isConfirmed) {
-                $.ajax({
-                    url: '/Inventory/DeleteCategorySSG',
-                    type: 'POST',
-                    data: { ItemCategoryId: categoryId },
-                    success: function (res) {
-                        if (res && res.success) {
-                            row.remove();
-                            $('#categoryTable').DataTable().ajax.reload(null, false);
-
-                            Swal.fire({
-                                icon: "success",
-                                title: "Deleted!",
-                                text: "Category \"" + categoryName + "\" has been deleted.",
-                                timer: 2000,
-                                showConfirmButton: false
-                            });
-                        } else {
-                            Swal.fire({ icon: "error", title: "Error!", text: res.message || "Could not delete the category." });
-                        }
-                    },
-                    error: function (xhr, status, error) {
-                        console.error("Delete error:", error);
-                        Swal.fire({ icon: "error", title: "Oops...", text: "Something went wrong while deleting!" });
-                    }
-                });
-            }
-        });
-    });
+  
 });
 </script>

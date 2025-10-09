@@ -20,7 +20,7 @@
 
             <!-- IndustryType Name Dropdown -->
             <div class="col-md-4">
-                <label for="IndustryType" class="form-label">Industry Type:</label>
+                <label for="IndustryType" class="form-label">Industry Type: <span class="text-danger">*</span></label>
                 <select id="IndustryType" class="form-control IndustryType">
                     <option value="">Select Industry Type</option>
                     @Html.ValidationMessage("IndustryType", "", new { @class = "text-danger" })
@@ -29,7 +29,7 @@
 
             <!-- Item Name Dropdown -->
             <div class="col-md-4">
-                <label for="ItemName" class="form-label">Item Name:</label>
+                <label for="ItemName" class="form-label">Item Name: <span class="text-danger">*</span></label>
                 <select id="ItemName" class="form-control ItemName">
                     <option value="">Select Item</option>
                 </select>
@@ -62,14 +62,14 @@
 
             <!-- Required Quantity -->
             <div class="col-md-4">
-                <label for="Qty" class="form-label">Required Quantity:</label>
+                <label for="Qty" class="form-label">Required Quantity: <span class="text-danger">*</span></label>
                 <input type="number" id="Qty" class="form-control" min="1" placeholder="Enter quantity" />
                 @Html.ValidationMessage("Qty", "", new { @class = "text-danger" })
             </div>
 
             <!-- Priority Dropdown -->
             <div class="col-md-4">
-                <label for="priority" class="form-label">Priority Name:</label>
+                <label for="priority" class="form-label">Priority Name: <span class="text-danger">*</span></label>
                 <select id="priority" class="form-control priority">
                     <option value="">Select Priority</option>
                 </select>
@@ -79,8 +79,9 @@
 
         <!-- Required Date -->
 <div class="col-md-4">
-    <label for="ToDate" class="form-label">Required Date:</label>
-    <input type="text" id="ToDate" class="form-control" placeholder="dd/mm/yyyy" readonly />
+    <label for="ToDate" class="form-label">Required Date: <span class="text-danger">*</span></label>
+    <input type="date" id="ToDate" class="form-control" />
+    <small id="ToDateDisplay" class="text-muted"></small>
     @Html.ValidationMessage("RequiredDate", "", new { @class = "text-danger" })
 </div>
 
@@ -249,7 +250,7 @@
                 "<td>" + itemName + "</td>" +
                 "<td>" + uom + "</td>" +
                 "<td>" + description + "</td>" +
-                "<td>" + unitRates + "</td>" +
+                "<td> ₹" + unitRates + "</td>" +
                 "<td>" + qty + "</td>" +
                 "<td><button type='button' class='btn btn-danger btn-sm remove'><i class='bi bi-trash'></i></button></td>" +
                 "</tr>";
@@ -280,14 +281,13 @@
 
         $(document).ready(function () {
 
+            const today = new Date();
+
             // 1️⃣ Restrict past dates
-            var today = new Date();
-            var minDate = today.toISOString().split('T')[0];
-            $('#ToDate').attr('min', minDate);
+            $('#ToDate').attr('min', today.toISOString().split('T')[0]);
 
             // 2️⃣ Load Priority dropdown
             $.getJSON('/Purchase/GetPrioritySP', function (data) {
-                console.log("Priority data from server:", data);
                 var ddl = $('#priority');
                 ddl.empty().append('<option value="">-- Select Priority --</option>');
                 $.each(data, function (i, item) {
@@ -295,38 +295,62 @@
                 });
             });
 
-            // 3️⃣ Auto-fill Required Date based on Priority selection
-            // Auto-fill Required Date based on Priority
+            // 3️⃣ Auto-fill Required Date based on Priority
             $('#priority').on('change', function () {
-                var priority = $(this).val().trim();
-                var date = new Date();
+                let priority = $(this).val().trim();
 
                 // Numeric to text mapping
                 if (priority === "9") priority = "Hot";
-                else if (priority === "10") priority = "Warm";
-                else if (priority === "11") priority = "Cold";
+                else if (priority === "10") priority = "Cold";
+                else if (priority === "11") priority = "Warm";
 
-                if (priority === "Hot") date.setDate(date.getDate() + 2);
-                else if (priority === "Warm") date.setDate(date.getDate() + 6);
-                else if (priority === "Cold") date.setDate(date.getDate() + 14);
-                else {
-                    $('#ToDate').val("").prop('readonly', false);
+                setToDateByPriority(priority);
+            });
+
+            function setToDateByPriority(priority) {
+                let minDate, maxDate;
+
+                if (priority === "Hot") {
+                    minDate = new Date(today);
+                    minDate.setDate(today.getDate() + 2);
+                    maxDate = new Date(today);
+                    maxDate.setDate(today.getDate() + 5);
+                } else if (priority === "Warm") {
+                    minDate = new Date(today);
+                    minDate.setDate(today.getDate() + 5);
+                    maxDate = new Date(today);
+                    maxDate.setDate(today.getDate() + 15);
+                } else if (priority === "Cold") {
+                    minDate = new Date(today);
+                    minDate.setDate(today.getDate() + 15);
+                    maxDate = null;
+                } else {
+                    $('#ToDate').val("").removeAttr('min').removeAttr('max');
+                    $('#ToDateDisplay').text('');
                     return;
                 }
 
-                // Format date as dd/mm/yyyy
-                var day = ("0" + date.getDate()).slice(-2);
-                var month = ("0" + (date.getMonth() + 1)).slice(-2);
-                var year = date.getFullYear();
-                var formattedDate = `${day}/${month}/${year}`;
+                // Apply min/max in ISO format (required by input type="date")
+                $('#ToDate').attr('min', minDate.toISOString().split('T')[0]);
+                if (maxDate) $('#ToDate').attr('max', maxDate.toISOString().split('T')[0]);
+                else $('#ToDate').removeAttr('max');
 
-                $('#ToDate').val(formattedDate).prop('readonly', true);
+                // Set default value in ISO format
+                $('#ToDate').val(minDate.toISOString().split('T')[0]);
+            }
+
+            // Update display when user manually changes the date
+            $('#ToDate').on('change', function () {
+                const dateValue = this.value; // yyyy-MM-dd
+                if (dateValue) {
+                    const [year, month, day] = dateValue.split('-');
+                    $('#ToDateDisplay').text(`Selected Date: ${day}/${month}/${year}`);
+                } else {
+                    $('#ToDateDisplay').text('');
+                }
             });
+
         });
-
-
-
-
 
         //  Remove item from table
         $(document).on('click', '.remove', function () {
@@ -356,6 +380,7 @@
             });
         });
 
+     
 
 
         //  Form Submit → Create PR
@@ -367,13 +392,6 @@
             var status = $("#Status").val();
             var priorityId = parseInt($("#priority").val());
             var description = $("#Description").val();
-
-            if (requiredDate) {
-                var parts = requiredDate.split('/');
-                var dt = new Date(parts[2], parts[1] - 1, parts[0]); // JS months are 0-based
-                requiredDate = dt.toISOString(); // sends in full ISO format
-            }
-
 
             var items = [];
             $("#ItemTable tbody tr").each(function () {
@@ -401,7 +419,6 @@
                 RequiredDate: requiredDate,
                 Status: 5,
                 PriorityId: priorityId,
-                Description: description,
                 ApproveRejectedDate: null,
                 Items: items
             };
