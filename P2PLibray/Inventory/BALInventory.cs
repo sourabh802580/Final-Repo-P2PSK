@@ -1008,12 +1008,11 @@ namespace P2PLibray.Inventory
                         ItemCode = dr["ItemCode"].ToString(),
                         ItemName = dr["ItemName"].ToString(),
                         CurrentQty = Convert.ToInt32(dr["TotalQty"]),
-                        AddedDate = dr["AddedDate"] != DBNull.Value ? Convert.ToDateTime(dr["AddedDate"]).ToString("dd-MM-yyyy") : string.Empty,
-                        ExpiryDate = dr["ExpiryDate"] != DBNull.Value ? Convert.ToDateTime(dr["ExpiryDate"]).ToString("dd-MM-yyyy") : string.Empty,
+                        AddedDate = dr["AddedDate"] != DBNull.Value ? Convert.ToDateTime(dr["AddedDate"]).ToString("dd/MM/yyyy") : string.Empty,
+                        ExpiryDate = dr["ExpiryDate"] != DBNull.Value ? Convert.ToDateTime(dr["ExpiryDate"]).ToString("dd/MM/yyyy") : string.Empty,
                         BinName = dr["BinList"].ToString(),
                         BinCode = dr["BinCodeList"].ToString()
                     });
-
                 }
             }
 
@@ -1065,7 +1064,7 @@ namespace P2PLibray.Inventory
                         ItemName = dr["ItemName"].ToString(),
                         ItemCount = Convert.ToInt32(dr["TotalItems"]),
                         Date = dr["AddedDate"] != DBNull.Value
-                        ? Convert.ToDateTime(dr["AddedDate"]).ToString("dd-MM-yyyy")
+                        ? Convert.ToDateTime(dr["AddedDate"]).ToString("dd/MM/yyyy")
                         : string.Empty,
                         Status = dr["StatusName"].ToString()
                     });
