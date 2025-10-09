@@ -116,7 +116,6 @@
                         <label class="form-label fw-bold text-primary">UOM</label>
                         <input type="text" id="UOM" class="form-control form-control-lg bg-light text-dark shadow-sm" readonly />
                     </div>
-                </div>
 
                 <!-- Fourth Row - Two Columns + Button -->
                 <div class="row g-3 mb-4">
@@ -188,23 +187,21 @@
 
 
 
-<script>
-    $(document).ready(function () {
 
-        // Load departments
+<script>
+   
+        // Load Departments
         $.getJSON("/Inventory/GetDepartmentsDRB", function (response) {
             let $ddl = $(".dept-select");
             $ddl.empty().append('<option value="">Select Department</option>');
             $.each(response, function (i, dept) {
                 $ddl.append($("<option>").val(dept.DeptID).text(dept.DepartmentName));
-            });
         });
 
-        // Load employees by department
+        // Load Employees by Department
         $(".dept-select").change(function () {
             let deptId = $(this).val();
             let $empSelect = $(".emp-select");
-
             $empSelect.empty().append('<option value="">Select Employee</option>');
 
             if (deptId) {
@@ -216,29 +213,25 @@
                     success: function (response) {
                         if (response && response.length > 0) {
                             $.each(response, function (i, emp) {
-                                $empSelect.append(
-                                    $("<option>").val(emp.StaffCode).text(emp.EmployeeName)
-                                );
+                                $empSelect.append($("<option>").val(emp.StaffCode).text(emp.EmployeeName));
                             });
                         } else {
                             $empSelect.append('<option value="">No employees found</option>');
                         }
                     },
-                    error: function (xhr, status, error) {
-                        console.error("Error loading employees:", error);
+                    error: function () {
                         Swal.fire("Error", "Failed to load employees for this department.", "error");
                     }
                 });
             }
         });
 
-        // Load items
-        // Load items (unique)
+        // Load Items
         $.getJSON("/Inventory/GetInStockItemsDRB", function (response) {
             let $ddl = $(".item-select");
             $ddl.empty().append('<option value="">Select Item</option>');
-
             let uniqueItems = new Set();
+
             $.each(response, function (i, item) {
                 if (!uniqueItems.has(item.ItemCode)) {
                     uniqueItems.add(item.ItemCode);
@@ -247,15 +240,11 @@
                         .text(item.ItemName)
                         .data("details", item));
                 }
-            });
         });
 
-
-        // Load IssueCode
+        // Load Issue Code
         $.getJSON("/Inventory/getIssueCodeDRB", function (response) {
             $("#IssueCode").val(response[0].IssueCode);
-
-
         });
 
 
@@ -265,7 +254,7 @@
         $(".item-select").change(function () {
             let selected = $(this).find("option:selected").data("details");
             if (selected) {
-                var item = $("#ItemCode").val(selected.ItemCode);
+                $("#ItemCode").val(selected.ItemCode);
                 $("#ItemCategory").val(selected.ItemCategoryName);
                 $("#UOM").val(selected.UOMName);
                 $("#PricePerUnit").val(selected.UnitPrice);
@@ -274,14 +263,11 @@
             }
         });
 
-        // Load Bins by Items
-        // 🔹 Global stock tracker
-        let binStockMap = {};  // { BinCode: remainingQty }
-
+        // Load Bins by Item
+        let binStockMap = {};
         $(".item-select").change(function () {
             let ItemId = $(this).val();
             let $BinSelect = $(".item-bin");
-
             $BinSelect.empty().append('<option value="">Select Bin</option>');
 
             if (ItemId) {
@@ -293,16 +279,8 @@
                     success: function (response) {
                         if (response && response.length > 0) {
                             $.each(response, function (i, emp) {
-
-                                // Check if we already reduced stock earlier
-                                let remaining = binStockMap[emp.BinCode] !== undefined
-                                    ? binStockMap[emp.BinCode]
-                                    : emp.CurrentItems;
-
-                                // Save in map
+                                let remaining = binStockMap[emp.BinCode] !== undefined ? binStockMap[emp.BinCode] : emp.CurrentItems;
                                 binStockMap[emp.BinCode] = remaining;
-
-                                // If stock > 0 show in dropdown
                                 if (remaining > 0) {
                                     $BinSelect.append(
                                         $("<option>")
@@ -316,14 +294,19 @@
                         } else {
                             $BinSelect.append('<option value="">No Bin found</option>');
                         }
+                        initSelect2('.item-bin');
                     }
                 });
             }
         });
 
+        // Bin change → show available quantity
+        $(document).on("change", ".item-bin", function () {
+            let currentItems = $(this).find(":selected").data("currentitems") || 0;
+            $("#Quantity").val(currentItems);
+        });
 
-
-        // Add item to table
+        // Add Item to Table
         $("#btnAddItem").click(function () {
             let code = $("#ItemCode").val();
             let name = $("#ItemName option:selected").text();
@@ -332,13 +315,11 @@
             let qty = parseInt($("#Quantity").val());
             let price = parseFloat($("#PricePerUnit").val()) || 0;
             let amount = (qty * price).toFixed(2);
-
             let $bin = $("#BinName option:selected");
             let binCode = $bin.val();
             let binName = $bin.data("binname");
             let currentItems = $bin.data("currentitems") || 0;
 
-            // 🔹 Validation
             if (!code || !qty || !price || !binCode) {
                 Swal.fire("Warning", "Select item, bin, and enter valid quantity!", "warning");
                 return;
@@ -348,45 +329,35 @@
                 return;
             }
 
-            // 🔹 Add row to Issued Items Table
             $("#issuedItemsTable tbody").append(`
-        <tr  data-bincode="${binCode}">
-            <td>${code}</td>
-            <td>${name}</td>
-            <td>${cat}</td>
-            <td>${uom}</td>
-            <td>${qty}</td>
-            <td>${price}</td>
-            <td>₹${amount}</td>
-            <td>${binName}</td>   <!-- show Bin column -->
-            <td class="text-center">
-                <button type="button" class="btn btn-sm btn-danger btn-delete">Delete</button>
-            </td>
-        </tr>
-    `);
+                <tr data-bincode="${binCode}">
+                    <td>${code}</td>
+                    <td>${name}</td>
+                    <td>${cat}</td>
+                    <td>${uom}</td>
+                    <td>${qty}</td>
+                    <td>${price}</td>
+                    <td>₹${amount}</td>
+                    <td>${binName}</td>
+                    <td class="text-center">
+                        <button type="button" class="btn btn-sm btn-danger btn-delete">Delete</button>
+                    </td>
+                </tr>
+            `);
 
-            // 🔹 Deduct stock from dropdown + global map
             let newQty = currentItems - qty;
-            binStockMap[binCode] = newQty; // update global tracker
+            binStockMap[binCode] = newQty;
 
             if (newQty > 0) {
                 $bin.data("currentitems", newQty);
                 $bin.text(binName + " (Available: " + newQty + ")");
             } else {
-                $bin.remove(); // remove from dropdown if stock exhausted
+                $bin.remove();
             }
 
-            // 🔹 Update total amount
             updateTotal();
-
-            // 🔹 Reset form fields
-            $("#ItemName").val("");
-            $("#BinName").val("");
-            $("#ItemCode").val("");
-            $("#ItemCategory").val("");
-            $("#UOM").val("");
-            $("#Quantity").val("");
-            $("#PricePerUnit").val("");
+            $("#ItemName, #BinName, #ItemCode, #ItemCategory, #UOM, #Quantity, #PricePerUnit").val("");
+            $(".item-select, .item-bin").val(null).trigger('change');
         });
 
         // Render quantity based on Bin change
@@ -436,26 +407,22 @@
                     row.remove();
                     updateTotal();
 
-                    // Restore Bin stock
                     $("#BinName option").each(function () {
                         if ($(this).data("binname") === binName) {
                             let restored = ($(this).data("currentitems") || 0) + qty;
                             $(this).data("currentitems", restored);
                             $(this).text(binName + " (Available: " + restored + ")");
                         }
-
                     });
                 }
             });
         });
 
-
-        // Submit issued items (without confirmation popup)
+        // Submit
         $("#btnSubmitIssuedItems").click(function () {
             let header = {
                 IssueCode: $("#IssueCode").val(),
                 IssueDate: $("#IssueDate").val(),
-                //BinCode: $("#BinName").val(),
                 StaffCode: $("#Employee").val()
             };
 
@@ -472,7 +439,6 @@
                 });
             });
 
-            // validation
             if (!header.StaffCode || items.length === 0) {
                 Swal.fire({
                     icon: "warning",
@@ -483,7 +449,6 @@
                 return;
             }
 
-            // directly save (no confirmation)
             $.ajax({
                 url: "/Inventory/SaveIssueHeaderDRB",
                 type: "POST",
@@ -526,17 +491,14 @@
             });
         });
 
+        // Quantity Validation
+        $(document).on("input", "#Quantity", function () {
+            let maxQty = $("#BinName option:selected").data("currentitems") || 0;
+            let entered = parseInt($(this).val()) || 0;
+            if (entered > maxQty) {
+                Swal.fire("Warning", "Quantity cannot exceed available stock in bin!", "warning");
+                $(this).val(maxQty);
+            }
+        });
     });
-
-    // Prevent entering quantity more than CurrentItems
-    $(document).on("input", "#Quantity", function () {
-        let maxQty = $("#BinName option:selected").data("currentitems") || 0;
-        let entered = parseInt($(this).val()) || 0;
-
-        if (entered > maxQty) {
-            Swal.fire("Warning", "Quantity cannot exceed available stock in bin!", "warning");
-            $(this).val(maxQty); // reset to max
-        }
-    });
-
 </script>

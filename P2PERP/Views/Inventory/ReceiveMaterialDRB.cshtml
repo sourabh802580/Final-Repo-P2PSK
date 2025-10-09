@@ -372,10 +372,10 @@
                     orderable: false,
                     searchable: false,
                     render: function (data, type, row) {
-                       
-                            return '<button type="button" class="btn btn-success btn-InStock square-pill d-inline-flex align-items-center px-3 shadow-InStock" data-bs-toggle="tooltip" title="In Stock"><i class="bi bi-box-seam fs-5"></i></button>';
-                       
-                      
+                        return `
+            <button type="button" class="btn btn-success btn-InStock square-pill d-inline-flex align-items-center px-2 py-1 shadow-InStock" data-bs-toggle="tooltip" title="In Stock">
+                <i class="bi bi-box-seam fs-6"></i>
+            </button>`;
                     }
                 }
             ],
