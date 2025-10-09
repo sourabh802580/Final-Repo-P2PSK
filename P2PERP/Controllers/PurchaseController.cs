@@ -512,6 +512,10 @@ namespace P2PERP.Controllers
             return Json(data, JsonRequestBehavior.AllowGet);
         }
 
+        public ActionResult ApprovedPOsPartialVNK()
+        {
+            return PartialView("_ApprovedPOsPartialVNK"); // returns the partial view
+        }
 
         //nur
 
