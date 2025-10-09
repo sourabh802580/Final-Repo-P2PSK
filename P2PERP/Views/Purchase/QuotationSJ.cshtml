@@ -4,8 +4,39 @@
 }
 <style>
     .dtpicker {
-        max-width: 200px !important;
+        max-width: 215px !important;
     }
+
+        /* Remove focus border from input */
+        .dtpicker:focus,
+        .dtpicker:focus-visible {
+            outline: none !important;
+            box-shadow: none !important;
+            border-color: #ced4da !important; /* default Bootstrap border color */
+        }
+
+    /* Also remove focus highlight from input-group wrapper */
+    .input-group:focus-within {
+        box-shadow: none !important;
+        border-color: #ced4da !important;
+    }
+
+    #tblRFQ th,
+    #tblRFQ td,
+    #tblRecent th,
+    #tblRecent td,
+    #tblPRItems td,
+    #tblRFQDetails td,
+    #tblVendors td {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    #rfqList h6 {
+        text-align: center;
+    }
+
+
 </style>
 
 
@@ -627,24 +658,6 @@
     </div>
 </div>
 
-<style>
-
-    #tblRFQ th,
-    #tblRFQ td,
-    #tblRecent th,
-    #tblRecent td,
-    #tblPRItems td,
-    #tblRFQDetails td,
-    #tblVendors td {
-        text-align: center;
-        vertical-align: middle;
-    }
-
-    #rfqList h6 {
-        text-align: center;
-    }
-</style>
-
 
 
 
@@ -652,6 +665,35 @@
 
 <script>
     $(document).ready(function () {
+
+        function formatDate(dateStr) {
+            if (!dateStr) return "N/A";
+
+            // Normalize all separators
+            let clean = dateStr.trim().replace('T', ' ').replace(/\./g, '-').replace(/\//g, '-');
+
+            // Case 1: ISO or SQL format like 2025-10-06 00:00:00 or 2025-10-06T00:00:00
+            let isoMatch = clean.match(/^(\d{4})-(\d{2})-(\d{2})/);
+            if (isoMatch) {
+                const [_, y, m, d] = isoMatch;
+                return `${d}/${m}/${y}`; // ✅ dd/MM/yyyy
+            }
+
+            // Case 2: dd-MM-yyyy or dd/MM/yyyy
+            let dmyMatch = clean.match(/^(\d{2})-(\d{2})-(\d{4})/);
+            if (dmyMatch) {
+                const [_, d, m, y] = dmyMatch;
+                return `${d}/${m}/${y}`;
+            }
+
+            // Case 3: last resort — use Date() safely
+            const d = new Date(clean);
+            if (!isNaN(d.getTime())) {
+                return d.toLocaleDateString("en-GB"); // dd/MM/yyyy
+            }
+
+            return "N/A";
+        }
 
         // PDF/Print customization function
         function customizeDoc(doc) {
@@ -1308,6 +1350,7 @@
         });
 
 
+
         $(document).on("click", "#btnCreateRFQ", function () {
             $("#rfqExtraFields").removeClass("d-none");
             $(this).addClass("d-none");
@@ -1962,10 +2005,24 @@
             }
 
 
+            // Initially disable the button
+            $("#btnSendToSelected").prop("disabled", true);
+
+            // Handle industry selection
             $("#industryFilter").off("change").on("change", function () {
                 let industryId = $(this).val();
+
+                // Reload vendors based on selected industry
                 loadVendors(industryId);
+
+                // Enable or disable the button based on selection
+                if (industryId && industryId !== "") {
+                    $("#btnSendToSelected").prop("disabled", false);
+                } else {
+                    $("#btnSendToSelected").prop("disabled", true);
+                }
             });
+
         });
 
         // ==============================
