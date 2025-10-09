@@ -87,6 +87,18 @@
 
                     data.forEach(function (i, index) {
                         const addedDate = i.AddedDate ? moment(i.AddedDate).format("DD/MM/YYYY") : "";
+                       
+
+                            // Format Expected Date
+                        let deleveryDate = "";
+                        if (i.ExpectedDateString) {
+                                let parts = i.ExpectedDateString.split('-'); // Expect YYYY-MM-DD
+                                if (parts.length === 3) {
+                                    deleveryDate = parts[0] + '/' + parts[1] + '/' + parts[2]; // DD/MM/YYYY
+                                }
+
+                            }
+
 
                         $tbody.append(`
                             <tr>
@@ -96,7 +108,7 @@
                                 <td>${i.RQCode}</td>
                                 <td>${addedDate}</td>
                                 <td>${i.VenderName}</td>
-                                <td>${i.ExpectedDateString }</td>
+                                <td>${deleveryDate}</td>
                                 <td>${i.CompanyName}</td>
                                 <td>₹${i.TotalAmount}</td>
                             </tr>

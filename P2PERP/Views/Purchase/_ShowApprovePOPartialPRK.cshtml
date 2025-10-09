@@ -87,6 +87,17 @@
 
                     data.forEach(function (i, index) {
                         const addedDate = i.AddedDate ? moment(i.AddedDate).format("DD/MM/YYYY") : "";
+                        
+
+                        // Format Expected Date
+                        let approveDate = "";
+                        if (i.ApprovedRejectedDateString) {
+                            let parts = i.ApprovedRejectedDateString.split('-'); // Expect YYYY-MM-DD
+                            if (parts.length === 3) {
+                                approveDate = parts[0] + '/' + parts[1] + '/' + parts[2]; // DD/MM/YYYY
+                            }
+
+                        }
                         $tbody.append(`
                             <tr>
                                 <td><input type="checkbox" class="row-select" value="${i.POCode}"></td>
@@ -94,7 +105,7 @@
                                 <td>${i.POCode}</td>
                                 <td>${i.RQCode}</td>
                                 <td>${addedDate}</td>
-                                <td>${i.ApprovedRejectedDateString}</td>
+                                <td>${approveDate}</td>
                                 <td>₹${i.TotalAmount.toLocaleString('en-IN')}</td>
                                 <td>${i.FullName}</td>
                                 <td>${i.Address}</td>
