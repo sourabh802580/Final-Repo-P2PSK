@@ -106,12 +106,13 @@
 
     let tableStartDate = null; // Start date for table filtering
     let tableEndDate = null;   // End date for table filtering
-    let dataTable; // Declare dataTable variable globally
+    let dataTable; // More specific name // Declare dataTable variable globally
 
 
 
 
     $(document).ready(function () {
+
         loadStockPlans();
 
         // Handle View button click → load modal partial (using event delegation)
@@ -189,8 +190,8 @@
 
                     $('[data-bs-toggle="tooltip"]').tooltip();
 
-                    initDataTable();
-                    initDateRangePicker();
+                    initDataTable1();
+                    initDateRangePicker1();
 
                 } else {
                     $('#tblRecent').html(`<tr><td colspan="6" class="text-center text-muted">No stock plans found</td></tr>`);
@@ -202,17 +203,14 @@
         });
     }
 
-    // Format date to dd/MM/yyyy
-    function formatDisplayDate(dateValue) {
-        const d = new Date(dateValue);
-        return isNaN(d) ? dateValue : d.toLocaleDateString('en-GB');
-    }
 
 
 
 
 
-    function initDataTable() {
+
+    function initDataTable1() {
+
         dataTable = $('#reqTable').DataTable({
             pageLength: 10,
             paging: true,
@@ -457,12 +455,12 @@
 
 
 
-    function initDateRangePicker() {
+    function initDateRangePicker1() {
         $('#reportrange').daterangepicker({
             autoUpdateInput: false,
             locale: {
                 cancelLabel: 'Clear',
-                format: 'DD-MM-YYYY'
+                format: 'YYYY-MM-DD'
             },
             ranges: {
                 'Today': [moment(), moment()],
@@ -478,7 +476,7 @@
         $('#reportrange').on('apply.daterangepicker', function (ev, picker) {
             tableStartDate = picker.startDate;
             tableEndDate = picker.endDate;
-            $(this).val(tableStartDate.format('DD-MM-YYYY') + ' - ' + tableEndDate.format('DD-MM-YYYY'));
+            $(this).val(tableStartDate.format('YYYY-MM-DD') + ' - ' + tableEndDate.format('YYYY-MM-DD'));
 
             // Filter the table based on date range
             filterTableByDate();
@@ -494,12 +492,14 @@
     }
 
 
+
+
     function filterTableByDate() {
         if (tableStartDate && tableEndDate) {
             // Custom filtering function for date range
             $.fn.dataTable.ext.search.push(
                 function (settings, data, dataIndex) {
-                    var date = moment(data[3], 'DD-MM-YYYY'); // Assuming date is in 4th column (index 3)
+                    var date = moment(data[3], 'YYYY-MM-DD'); // Assuming date is in 4th column (index 3)
 
                     if ((tableStartDate === null && tableEndDate === null) ||
                         (tableStartDate === null && date <= tableEndDate) ||
