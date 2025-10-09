@@ -357,8 +357,9 @@
                 },
                 { data: "GRNCode", title: "GRN Code" },
                 {
-                    data: "AddedDate", title: "GRN Date",
-                        render: function (data, type, row) {
+                    data: "AddedDate",
+                    title: "GRN Date",
+                    render: function (data, type, row) {
                         if (!data) return "";
                         return data.replace(/-/g, "/");
                     },

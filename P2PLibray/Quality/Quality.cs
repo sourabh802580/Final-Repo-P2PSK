@@ -107,9 +107,16 @@ namespace P2PLibray.Quality
         public string StatusName { get; set; }
         public string AddedDate { get; set; }
 
+		// Model class for Pending Items
+		public class PendingItemPR
+		{
+			public string GRNCode { get; set; }
+			public string ItemCode { get; set; }
+			public string ItemName { get; set; }
+			public string AddedDate { get; set; }
+		}
+		#endregion Prashant
 
-        #endregion Prashant
 
-       
-    }
+	}
 }

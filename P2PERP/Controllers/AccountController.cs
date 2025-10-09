@@ -87,12 +87,15 @@ namespace P2PERP.Controllers
         }
 
         /// <summary>
-        /// Verifies whether the provided email exists and sends a reset code.
+        /// Handles a user's request to reset their password.
+        /// Verifies if the provided email exists in the system, 
+        /// and if valid, stores relevant session information for the password reset process.
         /// </summary>
-        /// <param name="acc">The account object containing the email address.</param>
+        /// <param name="acc">An <see cref="Account"/> object containing the user's email address.</param>
         /// <returns>
-        /// A JSON result indicating success or failure. 
-        /// On success, a verification code is sent to the user’s email.
+        /// Returns a JSON result:
+        /// - If the email is valid: { success = true } and stores the staff code and email in session for further steps.
+        /// - If the email is invalid: { success = false, message = "Invalid Email" }.
         /// </returns>
         [HttpPost]
         public async Task<ActionResult> ForgotPassword(Account acc)
@@ -107,25 +110,22 @@ namespace P2PERP.Controllers
             Session["StaffCodeForForgotPassword"] = str;
             Session["ForgetPasswordEmail"] = acc.EmailAddress;
 
-            string code = CreateCode();
+            return Json(new { success = true });
+        }
 
-            var email = new Email
-            {
-                ToEmails = new List<string> { acc.EmailAddress },
-                Subject = "Forgot Password Verification Code",
-                Body = $"The Code For Your <b> {acc.EmailAddress} </b> is <p style='text-align: center;font-size: xx-large;'><b> {code} </b></p>",
-                IsBodyHtml = true
-            };
-
-            int send = SendEmail(email);
-            if (send == 1)
-            {
-                return Json(new { success = true });
-            }
-            else
-            {
-                return Json(new { success = false });
-            }
+        /// <summary>
+        /// Checks whether the current user session contains a valid StaffCode.
+        /// </summary>
+        /// <returns>
+        /// Returns a JSON object with:
+        /// - success = true, if Session["StaffCode"] exists.
+        /// - success = false, if Session["StaffCode"] is null.
+        /// </returns>
+        [HttpGet]
+        public JsonResult CheckSession()
+        {
+            bool isValid = Session["StaffCode"] != null;
+            return Json(new { success = isValid }, JsonRequestBehavior.AllowGet);
         }
 
         /// <summary>
@@ -224,70 +224,60 @@ namespace P2PERP.Controllers
         }
 
         /// <summary>
-        /// Creates a random 4-digit verification code and stores it in session.
+        /// Sends an email with optional CC, BCC, and attachments to the specified recipients.
         /// </summary>
-        /// <returns>The generated 4-digit code as a string.</returns>
-        public string CreateCode()
+        /// <param name="email">The Email object containing recipients, subject, body, and attachments.</param>
+        /// <returns>
+        /// A JSON result indicating the outcome:
+        /// - success = true, message = "Email sent successfully." if the email was sent successfully.
+        /// - success = false, message = error details if sending failed.
+        /// </returns>
+        [HttpPost]
+        public JsonResult SendEmail(Email email)
         {
-            Random random = new Random();
-            int number = random.Next(0, 10000);
-            string fourDigitString = number.ToString("D4");
-            Session["VerificationCode"] = fourDigitString;
-            return fourDigitString;
-        }
-
-        /// <summary>
-        /// Sends a forgot password verification code to the given email address.
-        /// </summary>
-        /// <param name="mail">The recipient email address.</param>
-        /// <returns>1 if the email was sent successfully; otherwise 0.</returns>
-        public int SendEmail(Email email)
-        {
-            int sent = 0;
             try
             {
-                string senderEmail = WebConfigurationManager.AppSettings["MainEmail"];
-                string appPassword = WebConfigurationManager.AppSettings["AppPassword"];
-
-                using (SmtpClient smtpClient = new SmtpClient("smtp.gmail.com", 587))
+                var smtpClient = new System.Net.Mail.SmtpClient("smtp.gmail.com")
                 {
-                    smtpClient.Credentials = new NetworkCredential(senderEmail, appPassword);
-                    smtpClient.EnableSsl = true;
+                    Port = 587,
+                    Credentials = new System.Net.NetworkCredential(
+                        System.Web.Configuration.WebConfigurationManager.AppSettings["MainEmail"],
+                        System.Web.Configuration.WebConfigurationManager.AppSettings["AppPassword"]
+                    ),
+                    EnableSsl = true,
+                };
 
-                    using (MailMessage mailMessage = new MailMessage())
+                var mail = new System.Net.Mail.MailMessage
+                {
+                    From = new System.Net.Mail.MailAddress(System.Web.Configuration.WebConfigurationManager.AppSettings["MainEmail"]),
+                    Subject = email.Subject,
+                    Body = email.Body,
+                    IsBodyHtml = email.IsBodyHtml
+                };
+
+                // Add recipients
+                email.ToEmails?.ForEach(x => mail.To.Add(x));
+                email.CcEmails?.ForEach(x => mail.CC.Add(x));
+                email.BccEmails?.ForEach(x => mail.Bcc.Add(x));
+
+                // Add attachments (if any)
+                if (email.AttachmentPaths != null)
+                {
+                    foreach (var path in email.AttachmentPaths)
                     {
-                        mailMessage.From = new MailAddress(senderEmail);
-                        mailMessage.Subject = email.Subject;
-                        mailMessage.Body = email.Body;
-                        mailMessage.IsBodyHtml = email.IsBodyHtml;
-
-                        // Add To
-                        if (email.ToEmails != null)
-                            email.ToEmails.ForEach(e => mailMessage.To.Add(e));
-
-                        // Add CC
-                        if (email.CcEmails != null)
-                            email.CcEmails.ForEach(e => mailMessage.CC.Add(e));
-
-                        // Add BCC
-                        if (email.BccEmails != null)
-                            email.BccEmails.ForEach(e => mailMessage.Bcc.Add(e));
-
-                        // Add Attachments
-                        if (email.AttachmentPaths != null)
-                            email.AttachmentPaths.ForEach(path => mailMessage.Attachments.Add(new Attachment(path)));
-
-                        smtpClient.Send(mailMessage);
-                        sent = 1;
+                        if (System.IO.File.Exists(path))
+                            mail.Attachments.Add(new System.Net.Mail.Attachment(path));
                     }
                 }
+
+                smtpClient.Send(mail);
+
+                return Json(new { success = true, message = "Email sent successfully." });
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Email send failed: {ex.Message}");
+                return Json(new { success = false, message = ex.Message });
             }
-
-            return sent;
         }
 
         /// <summary>

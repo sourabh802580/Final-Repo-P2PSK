@@ -313,20 +313,34 @@ namespace P2PLibray.Quality
 		}
 
 
+		//pending iem method 
+		public async Task<SqlDataReader> GetPendingItemsAsyncPR(string startDate = null, string endDate = null)
+		{
+			var param = new Dictionary<string, string>
+	{
+		{ "@Flag", "PendingItem" }
+	};
 
+			if (!string.IsNullOrEmpty(startDate))
+				param.Add("@StartDate", startDate);
+			if (!string.IsNullOrEmpty(endDate))
+				param.Add("@EndDate", endDate);
+
+			return await obj.ExecuteStoredProcedureReturnDataReader("QualityCheckProcedure", param);
+		}
 
 		#endregion Prashant
 
 
-	
 
 
-        #region Rajlaxmi
-        /// <summary>
-        /// Retrieves all GRN items for quality check grid (RG view).
-        /// </summary>
-        /// <returns>List of <see cref="Quality"/> with GRN details.</returns>
-        public async Task<List<Quality>> AllItemCheckGridRG()
+
+		#region Rajlaxmi
+		/// <summary>
+		/// Retrieves all GRN items for quality check grid (RG view).
+		/// </summary>
+		/// <returns>List of <see cref="Quality"/> with GRN details.</returns>
+		public async Task<List<Quality>> AllItemCheckGridRG()
         {
             Dictionary<string, string> dic = new Dictionary<string, string>();
             dic.Add("@Flag", "AllQualityGRNItemRG");

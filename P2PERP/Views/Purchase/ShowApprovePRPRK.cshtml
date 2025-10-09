@@ -22,7 +22,7 @@
 
             <!-- Header -->
             <div class="text-center mb-3">
-                <h2 class="text-primary fw-bold">Approved Purchase Requisition</h2>
+                <h3 class="text-primary fw-bold">Approved Purchase Requisition</h3>
             </div>
 
             <!-- Date Range Picker -->
@@ -44,6 +44,7 @@
                             <th>Sr No</th>
                             <th>PR Code</th>
                             <th>Added Date</th>
+                            <th>EXPECTED DATE</th>
                             <th>Approved Date</th>
                             <th>Priority</th>
                             <th>Action</th>
@@ -61,7 +62,7 @@
     <div class="modal-dialog modal-xl modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header bg-primary text-white justify-content-center">
-                <h5 class="modal-title fw-bold mb-0 text-white">Approved Purchase Requisition Items</h5>
+                <h5 class="modal-title fw-bold mb-4 text-white">Approved Purchase Requisition Items</h5>
                 <button type="button" class="btn-close btn-close-white position-absolute end-0 me-3" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body" id="prModalBody"></div>
@@ -149,7 +150,7 @@
         }
 
         let table;
-        function exportColumns(idx) { return idx !== 0 && idx !== 6; }
+        function exportColumns(idx) { return idx !== 0 && idx !== 7; }
 
         function loadApprovedPR() {
             table = $('#approvedPRTable').DataTable({
@@ -163,6 +164,7 @@
                     { data: null, orderable: false, className: 'text-center', render: (d, t, r, meta) => meta.row + 1 },
                     { data: 'PRCode', className: 'text-center' },
                     { data: 'AddedDate', className: 'text-center', render: d => d ? moment(d).format('DD/MM/YYYY') : '', type: 'date', defaultContent: '' },
+                    { data: 'RequiredDate', render: d => d ? moment(d).format('DD/MM/YYYY') : '' },
                     { data: 'ApprovedRejectedDate', className: 'text-center', render: d => d ? moment(d).format('DD/MM/YYYY') : '', type: 'date', defaultContent: '' },
                     {
                         data: 'Priority', defaultContent: '', render: function (data) {
@@ -265,7 +267,7 @@
                             },
                             format: {
                                 body: function (data, rowIdx, colIdx) {
-                                    if (colIdx === 3 || colIdx === 6) return moment(data).format('DD/MM/YYYY');
+                                    //if (colIdx === 1 || colIdx === 7) return moment(data).format('DD/MM/YYYY');
                                     if (colIdx === 0) return rowIdx + 1;
                                     if (typeof data === 'string') return data.replace(/<\/?[^>]+(>|$)/g, "").trim();
                                     return data;
@@ -302,7 +304,7 @@
                                     hLineColor: () => '#dddddd',
                                     vLineColor: () => '#dddddd',
                                     paddingLeft: () => 30,
-                                    paddingRight: () => 30,
+                                    paddingRight: () => 20,
                                     paddingTop: () => 4,
                                     paddingBottom: () => 4
                                 };
@@ -338,7 +340,7 @@
                             format: {
                                 body: function (data, rowIdx, colIdx) {
                                     if (colIdx === 1) return ++window.__excelSrCounter;
-                                    if (colIdx === 3 || colIdx === 4) return moment(data).format('DD/MM/YYYY');
+                                    //if (colIdx === 3 || colIdx === 4) return moment(data).format('DD/MM/YYYY');
                                     if (typeof data === 'string') return data.replace(/<\/?[^>]+(>|$)/g, "").trim();
                                     return data;
                                 }
@@ -367,7 +369,7 @@
                             format: {
                                 body: function (data, rowIdx, colIdx) {
                                     if (colIdx === 0) return rowIdx + 1;
-                                    if (colIdx === 3 || colIdx === 4) return moment(data).format('DD/MM/YYYY');
+                                    //if (colIdx === 3 || colIdx === 4) return moment(data).format('DD/MM/YYYY');
                                     if (typeof data === 'string') return data.replace(/<\/?[^>]+(>|$)/g, "").trim();
                                     return data;
                                 }
@@ -408,11 +410,10 @@
                     locale: { cancelLabel: 'Clear', applyLabel: 'Apply' },
                     ranges: {
                         'Today': [moment(), moment()],
-                        'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
                         'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-                        'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-                        'This Month': [moment().startOf('month'), moment().endOf('month')],
-                        'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                        'Last 1 Month': [moment().subtract(1, 'months').startOf('day'), moment()],
+                        'Last 3 Months': [moment().subtract(3, 'months').startOf('day'), moment()],
+                        'Last 1 Year': [moment().subtract(12, 'months').startOf('day'), moment()]
                     }
                 }, function (start, end) {
                     $('#PRdatepicker').val(start.format('DD/MM/YYYY') + ' - ' + end.format('DD/MM/YYYY'));

@@ -1429,12 +1429,11 @@ namespace P2PLibray.Purchase
             Dictionary<string, string> prParam = new Dictionary<string, string>();
             prParam.Add("@Flag", "NewPRSP");
             prParam.Add("@PRCode", purchase.PRCode);
-            prParam.Add("@RequiredDate", purchase.RequiredDate.ToString());
+            prParam.Add("@RequiredDate", purchase.RequiredDate.ToString("yyyy-MM-dd HH:mm:ss"));
             prParam.Add("@StatusId", purchase.Status.ToString());
             prParam.Add("@AddedBy", purchase.AddedBy);
             prParam.Add("@AddedDate", DateTime.Now.ToString());
             prParam.Add("@PriorityId", purchase.PriorityId.ToString());
-            prParam.Add("@Description", purchase.Description);
 
             await obj.ExecuteStoredProcedure("PurchaseProcedure", prParam);
 
@@ -1860,6 +1859,10 @@ namespace P2PLibray.Purchase
             para.Add("@Flag", "GetQuotationAllDatatoCreatePOOK");
             para.Add("@RegisterQuotationCode", RegisterQuotationCode);
             DataSet ds = await obj.ExecuteStoredProcedureReturnDS("PurchaseProcedure", para);
+            for (int i = 0; i < ds.Tables.Count; i++)
+            {
+                Console.WriteLine($"Table {i}: {ds.Tables[i].Rows.Count} rows");
+            }
             return ds;
         }
 
@@ -1972,6 +1975,28 @@ namespace P2PLibray.Purchase
             Dictionary<string, string> para = new Dictionary<string, string>();
             para.Add("@Flag", "FetchPOdetailsForPOPDFOK");
             para.Add("@POCode", POCode);
+            DataSet ds = await obj.ExecuteStoredProcedureReturnDS("PurchaseProcedure", para);
+            return ds;
+        }
+        //<summary>
+        //Fetch All Just In Time Items to create the PO
+        //</summary>
+        public async Task<DataSet> FetchAllJITItemsOK()
+        {
+            Dictionary<string, string> para = new Dictionary<string, string>();
+            para.Add("@Flag", "FetchAllJITItemsOK");
+            DataSet ds = await obj.ExecuteStoredProcedureReturnDS("PurchaseProcedure", para);
+            return ds;
+        }
+        /// <summary>
+        /// Fetch item details for selected JIT items
+        /// </summary>
+        public async Task<DataSet> FetchSelectedJITItemDetailstOK(List<string> itemCodes)
+        {
+            Dictionary<string, string> para = new Dictionary<string, string>();
+            string csvItemCodes = string.Join(",", itemCodes);
+            para.Add("@Flag", "FetchJITDetaistoPOOK");
+            para.Add("@ItemCodes", csvItemCodes);
             DataSet ds = await obj.ExecuteStoredProcedureReturnDS("PurchaseProcedure", para);
             return ds;
         }
@@ -2170,6 +2195,7 @@ namespace P2PLibray.Purchase
                         p.AddedDate = Convert.ToDateTime(row["AddedDate"].ToString());
                         p.AddedDateString = p.AddedDate.ToString("dd-MM-yyyy");
                         p.FullName = row["FullName"].ToString();
+                        p.RequiredDate = Convert.ToDateTime(row["RequiredDate"].ToString());
                         //p.StatusName = row["StatusName"].ToString();
                         p.Priority = row["Priority"].ToString();
                         lst.Add(p);
@@ -2251,6 +2277,7 @@ namespace P2PLibray.Purchase
                         p.PRCode = row["PRCode"].ToString();
                         p.AddedDate = Convert.ToDateTime(row["AddedDate"].ToString());
                         p.AddedDateString = p.AddedDate.ToString("dd-MM-yyyy");
+                        p.RequiredDate = Convert.ToDateTime(row["RequiredDate"].ToString());
                         //p.StatusName = row["StatusName"].ToString();
                         p.ApprovedRejectedDate = Convert.ToDateTime(row["ApproveRejectedDate"].ToString());
                         p.ApprovedRejectedDateString = p.ApprovedRejectedDate.ToString("dd-MM-yyyy");
@@ -2403,7 +2430,7 @@ namespace P2PLibray.Purchase
                     { "@PRCode", prCode },
                     {"@StaffCode", model.StaffCode },
                     { "@StatusId", statusId.ToString() },
-                    { "@ApproveRejectedDate",DateTime.Now.ToString()},
+                    { "@ApproveRejectedDate",DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")},
                     { "@Description", note }
                 };
 
@@ -2432,7 +2459,7 @@ namespace P2PLibray.Purchase
                     { "@PRCode", prCode },
                     {"@StaffCode",model.StaffCode },
                     { "@StatusId", statusId.ToString() },
-                    { "@ApproveRejectedDate",DateTime.Now.ToString()},
+                    { "@ApproveRejectedDate",DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")},
                     { "@Description", note }
                 };
 
@@ -2555,7 +2582,8 @@ namespace P2PLibray.Purchase
                         p.VenderName = row["VenderName"].ToString();
                         p.CompanyName = row["CompanyName"].ToString();
                         p.TotalAmount = Convert.ToDecimal(row["TotalAmount"].ToString());
-
+                        p.ExpectedDate = Convert.ToDateTime(row["VendorDeliveryDate"].ToString());
+                        p.ExpectedDateString = p.ExpectedDate.ToString("dd-MM-yyyy");
 
                         lst.Add(p);
                     }
@@ -2634,9 +2662,13 @@ namespace P2PLibray.Purchase
 
                         p.POCode = row["POCode"].ToString();
                         p.AddedDate = Convert.ToDateTime(row["PODate"].ToString());
+                        p.RQCode = row["RegisterQuotationCode"].ToString();
+                        p.ApprovedRejectedDate = Convert.ToDateTime(row["ApprovedRejectedDate"].ToString());
+                        p.ApprovedRejectedDateString = p.ApprovedRejectedDate.ToString("dd-MM-yyyy");
                         p.AddedDateString = p.AddedDate.ToString("dd-MM-yyyy");
                         p.TotalAmount = Convert.ToDecimal(row["POCost"].ToString());
                         p.FullName = row["CreatedBy"].ToString();
+                        p.Address = row["BillingAddress"].ToString();
 
                         lst.Add(p);
 

@@ -16,7 +16,7 @@ namespace P2PERP
             routes.MapRoute(
                 name: "Default",
                 url: "{controller}/{action}/{id}",
-                defaults: new { controller = "Account", action = "MainLogin", id = UrlParameter.Optional }
+                defaults: new { controller = "Account", action = "Logout", id = UrlParameter.Optional }
             );
         }
     }
