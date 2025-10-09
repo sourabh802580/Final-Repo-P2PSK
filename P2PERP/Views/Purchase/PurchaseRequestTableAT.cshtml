@@ -28,7 +28,7 @@
 
         <!-- ✅ Table Section -->
         <div class="card p-3 shadow">
-            <h3 class="mb-3">Purchase Requisition List</h3>
+            <h3 class="mb-3 text-center text-primary">Purchase Requisition List</h3>
             <div class="table-responsive">
                 <table id="purchaseTable" class="table table-striped table-bordered nowrap w-100">
                     <thead class="table-dark">
@@ -86,8 +86,8 @@
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header bg-primary text-white position-relative">
-                <h5 class="modal-title text-white w-100 text-center">Purchase Requisition Items</h5>
-                <button type="button" class="btn-close btn-close-white position-absolute end-0 me-3" data-bs-dismiss="modal"></button>
+                <h5 class="modal-title text-white w-100 text-center mb-2">Purchase Requisition Items</h5>
+                <button type="button" class="btn-close btn-close-white position-absolute end-0 me-3 mb-2" data-bs-dismiss="modal"></button>
             </div>
 
             <div class="modal-body">
@@ -136,6 +136,59 @@
 
 
 <script>
+
+
+    // Clear processing state for all DataTable buttons
+    window.__dt_clearAllProcessing = function () {
+        try {
+            // Try to clear via DataTables API
+            var tables = $.fn.dataTable.tables();
+            for (var i = 0; i < tables.length; i++) {
+                try {
+                    var api = $(tables[i]).DataTable();
+                    if (!api || !api.buttons) continue;
+                    var btnCount = (api.buttons().nodes && api.buttons().nodes().length) || 0;
+                    for (var j = 0; j < btnCount; j++) {
+                        try { api.button(j).processing(false); } catch (e) { }
+                    }
+                } catch (e) { }
+            }
+        } catch (e) { }
+
+        // Fallback DOM cleanup
+        try {
+            $('.dt-button').removeClass('dt-button-processing');
+            $('.dt-button').prop('disabled', false);
+        } catch (e) { }
+    };
+
+    // Listen for print-done message from print window
+    window.addEventListener('message', function (ev) {
+        if (ev && ev.data === 'dt_print_done') {
+            window.__dt_clearAllProcessing();
+        }
+    });
+
+    // Store original button actions if not already stored
+    if (!$.fn.dataTable.ext.buttons.pdfHtml5.__originalAction) {
+        $.fn.dataTable.ext.buttons.pdfHtml5.__originalAction =
+            $.fn.dataTable.ext.buttons.pdfHtml5.action;
+    }
+    if (!$.fn.dataTable.ext.buttons.print.__originalAction) {
+        $.fn.dataTable.ext.buttons.print.__originalAction =
+            $.fn.dataTable.ext.buttons.print.action;
+    }
+    if (!$.fn.dataTable.ext.buttons.excelHtml5.__originalAction) {
+        $.fn.dataTable.ext.buttons.excelHtml5.__originalAction =
+            $.fn.dataTable.ext.buttons.excelHtml5.action;
+    }
+    if (!$.fn.dataTable.ext.buttons.csvHtml5.__originalAction) {
+        $.fn.dataTable.ext.buttons.csvHtml5.__originalAction =
+            $.fn.dataTable.ext.buttons.csvHtml5.action;
+    }
+
+
+
     var table;
     var statusChart;
     var startDate = null;
@@ -191,13 +244,48 @@
                             }
                         }
                     },
+                    //action: function (e, dt, button, config) {
+                    //    if ($('.rowCheckbox:checked').length === 0) {
+                    //        showExportToast();
+                    //        return;
+                    //    }
+                    //    $.fn.dataTable.ext.buttons.print.action.call(this, e, dt, button, config);
+                    //},
                     action: function (e, dt, button, config) {
-                        if ($('.rowCheckbox:checked').length === 0) {
+                        var selected = dt.rows().nodes().to$().find('input.row-select:checked').length;
+                        var btnApi = dt.button(button);
+
+                        // 🔹 Check both .row-select and .rowCheckbox for flexibility
+                        var selectedCount = selected || $('.rowCheckbox:checked').length;
+
+                        // --- No selection: show toast and stop ---
+                        if (selectedCount === 0) {
                             showExportToast();
+                            try { btnApi.processing(false); } catch (err) { }
                             return;
                         }
-                        $.fn.dataTable.ext.buttons.print.action.call(this, e, dt, button, config);
+
+                        // --- Show spinner ---
+                        try { btnApi.processing(true); } catch (err) { }
+
+                        // --- Execute original Print action safely ---
+                        try {
+                            // Use your intended print action here
+                            $.fn.dataTable.ext.buttons.print.action.call(this, e, dt, button, config);
+                        } catch (err) {
+                            // Fallback: ensure spinner stops even on error
+                            setTimeout(function () {
+                                try { btnApi.processing(false); } catch (e) { }
+                            }, 300);
+                            throw err;
+                        }
+
+                        // --- Final safeguard to stop spinner if print window doesn't respond ---
+                        setTimeout(function () {
+                            try { btnApi.processing(false); } catch (err) { }
+                        }, 2000);
                     },
+
                     customize: function (win) {
                         var exportDate = new Date().toLocaleDateString('en-GB');
 
@@ -229,42 +317,93 @@
                 },
 
                 // ----- PDF: exclude checkbox column, keep PR Code intact, add Export Date & header style -----
+                
                 {
-
                     extend: 'pdfHtml5',
                     title: 'Purchase Requisition List',
                     text: '<i class="bi bi-file-earmark-pdf text-danger fs-5"></i>',
                     className: 'btn bg-muted btn-outline-dark border-2 fw-bold',
+
                     exportOptions: {
-                        columns: function (idx, data, node) { return idx !== 0; },
-                        rows: function (idx, data, node) { return selectedPRCodes.length === 0 || selectedPRCodes.includes(data[2]); },
+                        // Exclude the actual first and last columns dynamically
+                        columns: function (idx, data, node) {
+                            var dt = table; // uses your existing DataTable instance
+                            var colIndexes = dt.columns().indexes().toArray(); // actual column indexes
+                            var firstIdx = colIndexes[0];
+                            var lastIdx = colIndexes[colIndexes.length - 1];
+                            return idx !== firstIdx && idx !== lastIdx;
+                        },
+
+                        // Export only selected PRs if any
+                        rows: function (idx, data, node) {
+                            return selectedPRCodes.length === 0 || selectedPRCodes.includes(data[2]);
+                        },
+
+                        // Recalculate serial number based on exported first column
                         format: {
                             body: function (data, rowIdx, colIdx, node) {
-                                if (colIdx === 0) return rowIdx + 1;
+                                var dt = table;
+                                var colIndexes = dt.columns().indexes().toArray();
+                                var firstIdx = colIndexes[0];
+                                if (colIdx === firstIdx) return rowIdx + 1; // Serial no.
                                 if (typeof data === 'string') return data.replace(/<\/?[^>]+(>|$)/g, "").trim();
                                 return data;
                             }
                         }
                     },
 
+                    // ✅ Prevent export if no row selected
+                    //action: function (e, dt, button, config) {
+                    //    if ($('.rowCheckbox:checked').length === 0) {
+                    //        showExportToast(); // your existing toast notification
+                    //        return;
+                    //    }
+                    //    $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, button, config);
+                    //},
                     action: function (e, dt, button, config) {
-                        if ($('.rowCheckbox:checked').length === 0) {
-                            showExportToast(); // 🔔 will now work
+                        var selected = dt.rows().nodes().to$().find('input.row-select:checked').length;
+                        var btnApi = dt.button(button);
+
+                        // Check both row-select and rowCheckbox for flexibility
+                        var selectedCount = selected || $('.rowCheckbox:checked').length;
+
+                        if (selectedCount === 0) {
+                            showExportToast();
+                            try { btnApi.processing(false); } catch (err) { }
                             return;
                         }
-                        $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, button, config);
+
+                        // Show spinner
+                        try { btnApi.processing(true); } catch (err) { }
+
+                        // ✅ Call original PDF export action
+                        try {
+                            $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, button, config);
+                        } catch (err) {
+                            // Ensure spinner not left running
+                            setTimeout(function () {
+                                try { btnApi.processing(false); } catch (e) { }
+                            }, 300);
+                            throw err;
+                        }
+
+                        // Final fallback: if export takes long or fails silently, clear spinner
+                        setTimeout(function () {
+                            try { btnApi.processing(false); } catch (err) { }
+                        }, 2000);
                     },
+
 
                     customize: function (doc) {
                         try {
-                            // center title
+                            // --- Center title ---
                             if (doc.content && doc.content.length > 0 && doc.content[0].text) {
                                 doc.content[0].alignment = 'center';
                                 doc.content[0].fontSize = 14;
                             }
 
-                            // insert Export Date right below title
-                            var exportDate = new Date().toLocaleDateString('en-GB'); // dd/mm/yyyy
+                            // --- Add Export Date below title ---
+                            const exportDate = new Date().toLocaleDateString('en-GB'); // dd/mm/yyyy
                             doc.content.splice(1, 0, {
                                 text: 'Export Date: ' + exportDate,
                                 alignment: 'center',
@@ -272,50 +411,37 @@
                                 fontSize: 10
                             });
 
-                            // find the first content node that contains a table
-                            var tableNodeIndex = -1;
-                            for (var i = 0; i < doc.content.length; i++) {
-                                if (doc.content[i] && doc.content[i].table) {
-                                    tableNodeIndex = i;
-                                    break;
-                                }
-                            }
+                            // --- Locate table node ---
+                            let tableNodeIndex = doc.content.findIndex(n => n.table);
                             if (tableNodeIndex === -1) return;
+                            const tableNode = doc.content[tableNodeIndex];
 
-                            var tableNode = doc.content[tableNodeIndex];
-
-                            // ensure style objects exist
+                            // --- Table header/body style ---
                             doc.styles = doc.styles || {};
-                            doc.styles.tableHeader = doc.styles.tableHeader || {};
-                            doc.styles.tableBodyEven = doc.styles.tableBodyEven || {};
-                            doc.styles.tableBodyOdd = doc.styles.tableBodyOdd || {};
+                            doc.styles.tableHeader = {
+                                alignment: 'center',
+                                fillColor: '#212529',
+                                color: '#ffffff',
+                                bold: true
+                            };
+                            doc.styles.tableBodyEven = { alignment: 'center' };
+                            doc.styles.tableBodyOdd = { alignment: 'center' };
 
-                            // header style: dark background + white text + centered
-                            doc.styles.tableHeader.alignment = 'center';
-                            doc.styles.tableHeader.fillColor = '#212529';
-                            doc.styles.tableHeader.color = '#ffffff';
-                            doc.styles.tableHeader.bold = true;
-
-                            // center body cells
-                            doc.styles.tableBodyEven.alignment = 'center';
-                            doc.styles.tableBodyOdd.alignment = 'center';
-
-                            // borders & padding
+                            // --- Borders and padding ---
                             tableNode.layout = {
-                                hLineWidth: function (i, node) { return 0.5; },
-                                vLineWidth: function (i, node) { return 0.5; },
-                                hLineColor: function (i, node) { return '#dddddd'; },
-                                vLineColor: function (i, node) { return '#dddddd'; },
-                                paddingLeft: function (i, node) { return 6; },
-                                paddingRight: function (i, node) { return 6; },
-                                paddingTop: function (i, node) { return 4; },
-                                paddingBottom: function (i, node) { return 4; }
+                                hLineWidth: () => 0.5,
+                                vLineWidth: () => 0.5,
+                                hLineColor: () => '#dddddd',
+                                vLineColor: () => '#dddddd',
+                                paddingLeft: () => 6,
+                                paddingRight: () => 6,
+                                paddingTop: () => 4,
+                                paddingBottom: () => 4
                             };
 
-                            // recompute Sr.No in the exported table body (exported column 0)
-                            var body = tableNode.table && tableNode.table.body ? tableNode.table.body : null;
-                            if (!body || !body.length) return;
-                            for (var r = 1; r < body.length; r++) {
+                            // --- Recompute Sr.No in exported table body ---
+                            const body = tableNode.table.body;
+                            for (let r = 1; r < body.length; r++) {
                                 body[r][0] = { text: String(r), alignment: 'center' };
                             }
                         } catch (err) {
@@ -323,6 +449,7 @@
                         }
                     }
                 },
+
 
                 // ----- EXCEL: same column exclusion and Sr.No handling -----
                 {
@@ -343,12 +470,40 @@
                         }
                     },
                     action: function (e, dt, button, config) {
-                        if ($('.rowCheckbox:checked').length === 0) {
+                        var selected = dt.rows().nodes().to$().find('input.row-select:checked').length;
+                        var btnApi = dt.button(button);
+
+                        // Allow fallback to .rowCheckbox for compatibility
+                        var selectedCount = selected || $('.rowCheckbox:checked').length;
+
+                        // --- No selection ---
+                        if (selectedCount === 0) {
                             showExportToast();
+                            try { btnApi.processing(false); } catch (err) { }
                             return;
                         }
-                        $.fn.dataTable.ext.buttons.excelHtml5.action.call(this, e, dt, button, config);
+
+                        // --- Show spinner ---
+                        try { btnApi.processing(true); } catch (err) { }
+
+                        try {
+                            // ✅ Call original Excel export action
+                            $.fn.dataTable.ext.buttons.excelHtml5.action.call(this, e, dt, button, config);
+                        } catch (err) {
+                            console.error('Excel export error:', err);
+                            // Ensure spinner not left running
+                            setTimeout(function () {
+                                try { btnApi.processing(false); } catch (e) { }
+                            }, 300);
+                            throw err;
+                        }
+
+                        // --- Fallback: stop spinner after short delay ---
+                        setTimeout(function () {
+                            try { btnApi.processing(false); } catch (err) { }
+                        }, 1500);
                     },
+
                 },
 
                 // ----- CSV: same -----
@@ -368,13 +523,46 @@
                             }
                         }
                     },
+                    //action: function (e, dt, button, config) {
+                    //    if ($('.rowCheckbox:checked').length === 0) {
+                    //        showExportToast();
+                    //        return;
+                    //    }
+                    //    $.fn.dataTable.ext.buttons.csvHtml5.action.call(this, e, dt, button, config);
+                    //},
                     action: function (e, dt, button, config) {
-                        if ($('.rowCheckbox:checked').length === 0) {
+                        var selected = dt.rows().nodes().to$().find('input.row-select:checked').length;
+                        var btnApi = dt.button(button);
+
+                        // Support both checkbox classes
+                        var selectedCount = selected || $('.rowCheckbox:checked').length;
+
+                        // --- No selection ---
+                        if (selectedCount === 0) {
                             showExportToast();
+                            try { btnApi.processing(false); } catch (err) { }
                             return;
                         }
-                        $.fn.dataTable.ext.buttons.csvHtml5.action.call(this, e, dt, button, config);
+
+                        // --- Show spinner ---
+                        try { btnApi.processing(true); } catch (err) { }
+
+                        // --- Call original CSV export ---
+                        try {
+                            $.fn.dataTable.ext.buttons.csvHtml5.action.call(this, e, dt, button, config);
+                        } catch (err) {
+                            console.error('CSV export error:', err);
+                            // Ensure spinner stops on error
+                            setTimeout(function () { try { btnApi.processing(false); } catch (e) { } }, 300);
+                            throw err;
+                        }
+
+                        // --- Fallback: stop spinner shortly after ---
+                        setTimeout(function () {
+                            try { btnApi.processing(false); } catch (err) { }
+                        }, 300);
                     },
+
                 },
 
                 'colvis'
