@@ -438,7 +438,7 @@ namespace P2PERP.Controllers
                     return Json(city, JsonRequestBehavior.AllowGet);
                 }
 
-                return Json(body, JsonRequestBehavior.AllowGet);
+                return Json(cities, JsonRequestBehavior.AllowGet);
             }
         }
 
