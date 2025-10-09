@@ -443,9 +443,9 @@
                             ],
                             paging: true,
                             searching: true,
-                            ordering: true,
+                            ordering: false,
                             lengthChange: false,
-                            pageLength: 5,
+                            pageLength: 10,
                             drawCallback: function () {
                                 // Re-number rows
                                 this.api().rows({ order: 'applied', search: 'applied' }).nodes().each(function (row, i) {
