@@ -1978,6 +1978,28 @@ namespace P2PLibray.Purchase
             DataSet ds = await obj.ExecuteStoredProcedureReturnDS("PurchaseProcedure", para);
             return ds;
         }
+        //<summary>
+        //Fetch All Just In Time Items to create the PO
+        //</summary>
+        public async Task<DataSet> FetchAllJITItemsOK()
+        {
+            Dictionary<string, string> para = new Dictionary<string, string>();
+            para.Add("@Flag", "FetchAllJITItemsOK");
+            DataSet ds = await obj.ExecuteStoredProcedureReturnDS("PurchaseProcedure", para);
+            return ds;
+        }
+        /// <summary>
+        /// Fetch item details for selected JIT items
+        /// </summary>
+        public async Task<DataSet> FetchSelectedJITItemDetailstOK(List<string> itemCodes)
+        {
+            Dictionary<string, string> para = new Dictionary<string, string>();
+            string csvItemCodes = string.Join(",", itemCodes);
+            para.Add("@Flag", "FetchJITDetaistoPOOK");
+            para.Add("@ItemCodes", csvItemCodes);
+            DataSet ds = await obj.ExecuteStoredProcedureReturnDS("PurchaseProcedure", para);
+            return ds;
+        }
 
         #endregion
 
