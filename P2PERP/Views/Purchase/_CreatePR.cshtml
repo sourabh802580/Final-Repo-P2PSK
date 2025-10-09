@@ -1,6 +1,6 @@
 ﻿@model P2PLibray.Purchase.Purchase
 
-<h3 class="text-center fw-bold">Create Purchase Requisition</h3>
+<h3 class="text-center fw-bold text-primary">Create Purchase Requisition</h3>
 
 <div class="container mt-4">
     @using (Html.BeginForm("CreatePR", "Purchase", FormMethod.Post, new { id = "prForm" }))
@@ -14,6 +14,7 @@
             <div class="col-md-4">
                 <label for="PRcode" class="form-label">Purchase Requisition No:</label>
                 @Html.TextBoxFor(m => m.PRCode, new { @class = "form-control", @id = "PRcode", placeholder = "Auto-generated", @readonly = "readonly" })
+                @Html.ValidationMessage("PRCode", "", new { @class = "text-danger" })
             </div>
 
 
@@ -22,6 +23,7 @@
                 <label for="IndustryType" class="form-label">Industry Type:</label>
                 <select id="IndustryType" class="form-control IndustryType">
                     <option value="">Select Industry Type</option>
+                    @Html.ValidationMessage("IndustryType", "", new { @class = "text-danger" })
                 </select>
             </div>
 
@@ -31,6 +33,7 @@
                 <select id="ItemName" class="form-control ItemName">
                     <option value="">Select Item</option>
                 </select>
+                @Html.ValidationMessage("ItemName", "", new { @class = "text-danger" })
             </div>
 
             <!-- Item Code (Auto-filled) -->
@@ -61,12 +64,7 @@
             <div class="col-md-4">
                 <label for="Qty" class="form-label">Required Quantity:</label>
                 <input type="number" id="Qty" class="form-control" min="1" placeholder="Enter quantity" />
-            </div>
-
-            <!-- Required Date -->
-            <div class="col-md-4">
-                <label for="ToDate" class="form-label">Required Date:</label>
-                <input type="date" id="ToDate" class="form-control" />
+                @Html.ValidationMessage("Qty", "", new { @class = "text-danger" })
             </div>
 
             <!-- Priority Dropdown -->
@@ -75,8 +73,17 @@
                 <select id="priority" class="form-control priority">
                     <option value="">Select Priority</option>
                 </select>
+                @Html.ValidationMessage("priority", "", new { @class = "text-danger" })
             </div>
         </div>
+
+        <!-- Required Date -->
+<div class="col-md-4">
+    <label for="ToDate" class="form-label">Required Date:</label>
+    <input type="text" id="ToDate" class="form-control" placeholder="dd/mm/yyyy" readonly />
+    @Html.ValidationMessage("RequiredDate", "", new { @class = "text-danger" })
+</div>
+
 
         <!-- Add Item Button -->
         <div class="mb-4 text-end">
@@ -160,14 +167,7 @@
             }
         });
 
-        //  Fetch and populate Priority dropdown
-        $.getJSON('/Purchase/GetPrioritySP', function (data) {
-            var ddl = $('#priority');
-            ddl.empty().append('<option value="">-- Select Priority --</option>');
-            $.each(data, function (i, item) {
-                ddl.append($('<option>').val(item.Value).text(item.Text));
-            });
-        });
+
 
         // Load IndustryType dropdown
         $.getJSON('/Purchase/GetIndustryTypeSP', function (data) {
@@ -219,6 +219,7 @@
         });
 
         //  Add Item to Table
+        // Track selected items globally
         var selectedItems = [];
 
         // Add Item to Table
@@ -248,7 +249,7 @@
                 "<td>" + itemName + "</td>" +
                 "<td>" + uom + "</td>" +
                 "<td>" + description + "</td>" +
-                "<td>" + unitRates + "</td>" +
+                "<td> ₹" + unitRates + "</td>" +
                 "<td>" + qty + "</td>" +
                 "<td><button type='button' class='btn btn-danger btn-sm remove'><i class='bi bi-trash'></i></button></td>" +
                 "</tr>";
@@ -262,10 +263,11 @@
 
             // Remove selected item from dropdown
             $(".ItemName option:selected").remove();
-            $(".ItemName").val(""); 
+            $(".ItemName").val(""); // reset selection
 
             // Clear input fields after adding
             $(".ItemCode, #UOM, .Description, .UnitRate, #Qty").val("");
+            //$("#Status").val("");
 
             Swal.fire({
                 icon: "success",
@@ -274,6 +276,56 @@
                 timer: 1500
             });
         });
+
+
+        $(document).ready(function () {
+
+            // 1️⃣ Restrict past dates
+            var today = new Date();
+            var minDate = today.toISOString().split('T')[0];
+            $('#ToDate').attr('min', minDate);
+
+            // 2️⃣ Load Priority dropdown
+            $.getJSON('/Purchase/GetPrioritySP', function (data) {
+                console.log("Priority data from server:", data);
+                var ddl = $('#priority');
+                ddl.empty().append('<option value="">-- Select Priority --</option>');
+                $.each(data, function (i, item) {
+                    ddl.append($('<option>').val(item.Value).text(item.Text));
+                });
+            });
+
+            // 3️⃣ Auto-fill Required Date based on Priority selection
+            // Auto-fill Required Date based on Priority
+            $('#priority').on('change', function () {
+                var priority = $(this).val().trim();
+                var date = new Date();
+
+                // Numeric to text mapping
+                if (priority === "9") priority = "Hot";
+                else if (priority === "10") priority = "Warm";
+                else if (priority === "11") priority = "Cold";
+
+                if (priority === "Hot") date.setDate(date.getDate() + 2);
+                else if (priority === "Warm") date.setDate(date.getDate() + 6);
+                else if (priority === "Cold") date.setDate(date.getDate() + 14);
+                else {
+                    $('#ToDate').val("").prop('readonly', false);
+                    return;
+                }
+
+                // Format date as dd/mm/yyyy
+                var day = ("0" + date.getDate()).slice(-2);
+                var month = ("0" + (date.getMonth() + 1)).slice(-2);
+                var year = date.getFullYear();
+                var formattedDate = `${day}/${month}/${year}`;
+
+                $('#ToDate').val(formattedDate).prop('readonly', true);
+            });
+        });
+
+
+
 
 
         //  Remove item from table
@@ -304,15 +356,6 @@
             });
         });
 
-        var today = new Date();
-        var day = String(today.getDate()).padStart(2, '0');
-        var month = String(today.getMonth() + 1).padStart(2, '0'); 
-        var year = today.getFullYear();
-        var minDate = year + '-' + month + '-' + day;
-
-        $('#ToDate').attr('min', minDate); 
-
-
 
 
         //  Form Submit → Create PR
@@ -324,6 +367,13 @@
             var status = $("#Status").val();
             var priorityId = parseInt($("#priority").val());
             var description = $("#Description").val();
+
+            if (requiredDate) {
+                var parts = requiredDate.split('/');
+                var dt = new Date(parts[2], parts[1] - 1, parts[0]); // JS months are 0-based
+                requiredDate = dt.toISOString(); // sends in full ISO format
+            }
+
 
             var items = [];
             $("#ItemTable tbody tr").each(function () {
@@ -351,7 +401,6 @@
                 RequiredDate: requiredDate,
                 Status: 5,
                 PriorityId: priorityId,
-                Description: description,
                 ApproveRejectedDate: null,
                 Items: items
             };
@@ -369,7 +418,7 @@
                             title: "Purchase Requisition Created",
                             text: "Your PR has been created successfully!",
                             timer: 2000,
-                            showConfirmButton: false
+                            showConfirmButton: false,
                         }).then(() => {
                             window.location.href = '/Purchase/AllRequisitionSP';
                         });
@@ -377,8 +426,15 @@
                         Swal.fire({
                             icon: "error",
                             title: "Error",
-                            text: response.message || "Failed to create PR!"
+                            text: response.message || "Failed to create PR!",
+                            timer: 2000,
+                            showConfirmButton: false
                         });
+
+                        // Focus on the field that has error
+                        if (response.field) {
+                            $('#' + response.field).focus();
+                        }
                     }
                 },
                 error: function (xhr, status, error) {
@@ -390,6 +446,7 @@
                     });
                 }
             });
+
         });
 
     });

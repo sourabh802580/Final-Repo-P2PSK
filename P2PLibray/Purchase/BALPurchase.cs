@@ -84,40 +84,34 @@ namespace P2PLibray.Purchase
         public async Task CreatePRADDItemPSM(CreatePRPSM purchase)
         {
             // Basic validation
-            if (purchase == null) throw new ArgumentNullException(nameof(purchase));
-            if (string.IsNullOrEmpty(purchase.PRCode)) throw new ArgumentException("PRCode is required", nameof(purchase.PRCode));
+            if (purchase == null)
+                throw new ArgumentNullException(nameof(purchase));
+            if (string.IsNullOrEmpty(purchase.PRCode))
+                throw new ArgumentException("PRCode is required", nameof(purchase.PRCode));
 
             // Insert PR header
-            Dictionary<string, string> prParam = new Dictionary<string, string>();
+            Dictionary<string, object> prParam = new Dictionary<string, object>();
             prParam.Add("@flag", "CreatePRPSM");
             prParam.Add("@PRCode", purchase.PRCode);
+            prParam.Add("@RequiredDate", purchase.RequiredDate); 
             prParam.Add("@AddedBy", purchase.AddedBy ?? "");
-            prParam.Add("@RequiredDate", purchase.RequiredDate.ToString("yyyy-MM-dd"));
-            prParam.Add("@AddedDate", purchase.AddedDate.ToString("yyyy-MM-dd HH:mm:ss"));
-            prParam.Add("@Priority", purchase.PriorityId.ToString());
-            prParam.Add("@Description", purchase.Description ?? "");
+            prParam.Add("@AddedDate", purchase.AddedDate);  
+            prParam.Add("@Priority", purchase.PriorityId);
 
-            // Suggestion: wrap in DB transaction in your DAL (pseudocode)
-            // obj.BeginTransaction(); 
+            // Insert header record
             await obj.ExecuteStoredProcedure("PurchaseProcedure", prParam);
 
-            // Insert each item — IMPORTANT: use purchase.PRCode (header) rather than item.PRCode
+            // Insert PR items
             foreach (var item in purchase.Items)
             {
-                Dictionary<string, string> itemParam = new Dictionary<string, string>();
+                Dictionary<string, object> itemParam = new Dictionary<string, object>();
                 itemParam.Add("@flag", "AddPRItemPSM");
-
-                // Use header PRCode to guarantee it's not null
-                itemParam.Add("@PRCode", purchase.PRCode);
-
-                // ItemCode & RequiredQuantity must exist on item
+                itemParam.Add("@PRCode", purchase.PRCode);          
                 itemParam.Add("@ItemCode", item.ItemCode ?? "");
-                itemParam.Add("@RequiredQuantity", item.RequiredQuantity.ToString());
+                itemParam.Add("@RequiredQuantity", item.RequiredQuantity);
 
                 await obj.ExecuteStoredProcedure("PurchaseProcedure", itemParam);
             }
-
-            // obj.CommitTransaction();
         }
 
         // Add ItemReqStatusPSM to Dropdown
@@ -655,7 +649,8 @@ namespace P2PLibray.Purchase
                             ItemCode = row["ItemCode"].ToString(),
                             ItemName = row["ItemName"].ToString(),
                             UOMName = row["UOMName"]?.ToString(),
-                            Description = row["Description"]?.ToString()
+                            Description = row["Description"]?.ToString(),
+                            Quantity = Convert.ToInt32(row["RequiredQuantity"]?.ToString())
                         });
                     }
                 }
@@ -1153,9 +1148,9 @@ namespace P2PLibray.Purchase
             try
             {
                 Dictionary<string, string> param = new Dictionary<string, string>
-                {
-                    { "@Flag", "PendingSupplierQuotAMG" }
-                };
+        {
+            { "@Flag", "PendingSupplierQuotAMG" }
+        };
 
                 using (SqlDataReader dr = await obj.ExecuteStoredProcedureReturnDataReader("PurchaseProcedure", param))
                 {
@@ -1168,11 +1163,20 @@ namespace P2PLibray.Purchase
                         {
                             RFQCode = row["RFQCode"].ToString(),
                             RegisterQuotationCode = row["RegisterQuotationCode"].ToString(),
-                            AddedDate = Convert.ToDateTime(row["AddedDate"])
-                 .ToString("dd/MM/yyyy"),
+                            AddedDate = Convert.ToDateTime(row["AddedDate"]).ToString("dd/MM/yyyy"),
                             VenderName = row["VenderName"].ToString(),
                             CompanyName = row["CompanyName"].ToString(),
-                            TotalAmount = row["TotalAmount"].ToString()
+                            TotalAmount = row["TotalAmount"].ToString(),
+
+                            ExpectedDate = row["ExpectedDate"] != DBNull.Value
+                                ? Convert.ToDateTime(row["ExpectedDate"]).ToString("dd/MM/yyyy")
+                                : string.Empty,
+                            VendorDeliveryDate = row["VendorDeliveryDate"] != DBNull.Value
+                                ? Convert.ToDateTime(row["VendorDeliveryDate"]).ToString("dd/MM/yyyy")
+                                : string.Empty,
+                            DeliverySpeed = row["DeliverySpeed"].ToString(),
+                            AffordableRank = row["AffordableRank"].ToString(),
+                            RecommendedQuotation = row["RecommendedQuotation"].ToString()
                         };
 
                         list.Add(item);
@@ -1181,12 +1185,12 @@ namespace P2PLibray.Purchase
             }
             catch (Exception ex)
             {
-                // Log exception (or rethrow as needed)
                 throw new Exception("Error while retrieving pending supplier quotations.", ex);
             }
 
             return list;
         }
+
 
         /// <summary>
         /// Retrieves the header information of a specific quotation (AMG).
@@ -1425,12 +1429,11 @@ namespace P2PLibray.Purchase
             Dictionary<string, string> prParam = new Dictionary<string, string>();
             prParam.Add("@Flag", "NewPRSP");
             prParam.Add("@PRCode", purchase.PRCode);
-            prParam.Add("@RequiredDate", purchase.RequiredDate.ToString("yyyy-MM-dd"));
+            prParam.Add("@RequiredDate", purchase.RequiredDate.ToString("yyyy-MM-dd HH:mm:ss"));
             prParam.Add("@StatusId", purchase.Status.ToString());
             prParam.Add("@AddedBy", purchase.AddedBy);
-            prParam.Add("@AddedDate", DateTime.Now.ToString("yyyy-MM-dd"));
+            prParam.Add("@AddedDate", DateTime.Now.ToString());
             prParam.Add("@PriorityId", purchase.PriorityId.ToString());
-            prParam.Add("@Description", purchase.Description);
 
             await obj.ExecuteStoredProcedure("PurchaseProcedure", prParam);
 
@@ -2399,7 +2402,7 @@ namespace P2PLibray.Purchase
                     { "@PRCode", prCode },
                     {"@StaffCode", model.StaffCode },
                     { "@StatusId", statusId.ToString() },
-                    { "@ApproveRejectedDate",DateTime.Now.ToString("yyyy-MM-dd")},
+                    { "@ApproveRejectedDate",DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")},
                     { "@Description", note }
                 };
 
@@ -2428,7 +2431,7 @@ namespace P2PLibray.Purchase
                     { "@PRCode", prCode },
                     {"@StaffCode",model.StaffCode },
                     { "@StatusId", statusId.ToString() },
-                    { "@ApproveRejectedDate",DateTime.Now.ToString("yyyy-MM-dd")},
+                    { "@ApproveRejectedDate",DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")},
                     { "@Description", note }
                 };
 
@@ -2829,9 +2832,8 @@ namespace P2PLibray.Purchase
 
         //}
 
-        public async Task<int> SaveRFQSJ(Purchase model)
+        public async Task<int> SaveRFQSJ(Purchase model, string staffCode, string addedDate)
         {
-            // Use indexer assignment to safely overwrite if key exists
             var para = new Dictionary<string, string>
             {
                 ["@Flag"] = "SaveRFQSJ",
@@ -2840,11 +2842,12 @@ namespace P2PLibray.Purchase
                 ["@PRCode"] = model.PRCode ?? "",
                 ["@ExpectedDate"] = model.ExpectedDate.ToString("yyyy-MM-dd"),
                 ["@WarehouseCode"] = model.Warehouse ?? "",
-                ["@Note"] = model.Note ?? ""
+                ["@Note"] = model.Note ?? "",
+                ["@StaffCode"] = staffCode ?? "",   // ✅ Passed as string
+                ["@AddedDate"] = addedDate ?? ""    // ✅ Passed as string
             };
 
             DataSet ds = await obj.ExecuteStoredProcedureReturnDS("PurchaseProcedure", para);
-
             return (ds != null) ? 1 : 0;
         }
 
@@ -3007,6 +3010,8 @@ namespace P2PLibray.Purchase
                 para.Add("@VendorAlternateNo", p.AlternateNo.ToString());
                 para.Add("@VendorEmail", p.Email);
                 para.Add("@VendorAddress", p.Address);
+                para.Add("@StaffCode", p.StaffCode ?? "");
+                para.Add("@AddedDate", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));  // formatted string
 
                 // VendorCompany parameters
                 para.Add("@VendorCompanyCode", p.VendorCompanyCode);
@@ -3041,7 +3046,7 @@ namespace P2PLibray.Purchase
         /// <summary>
         /// Save the RFQ and vendors code 
         /// </summary>
-        public async Task<int> SaveRFQVendorsSJ(Purchase model)
+        public async Task<int> SaveRFQVendorsSJ(Purchase model, string staffCode, string addedDate)
         {
             if (model == null || model.Vendors == null || model.Vendors.Count == 0)
                 return 0;
@@ -3055,7 +3060,8 @@ namespace P2PLibray.Purchase
             { "@Flag", "SaveRFQVendorSJ" },
             { "@RFQCode", model.RFQCode },
             { "@VendorCode", vendorId.ToString() },
-            { "@AddedDate", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") }
+            { "@StaffCode", staffCode ?? "" }, 
+            { "@AddedDate", addedDate ?? "" }    
         };
 
                 DataSet ds = await obj.ExecuteStoredProcedureReturnDS("PurchaseProcedure", para);
@@ -3066,6 +3072,7 @@ namespace P2PLibray.Purchase
 
             return rowsAffected;
         }
+
 
         #endregion
     }
