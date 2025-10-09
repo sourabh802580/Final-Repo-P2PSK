@@ -356,7 +356,15 @@
                     orderable: false,
                 },
                 { data: "GRNCode", title: "GRN Code" },
-                { data: "AddedDate", title: "GRN Date" },
+                {
+                    data: "AddedDate",
+                    title: "GRN Date",
+                    render: function (data, type, row) {
+                        if (!data) return "";
+                        return data.replace(/-/g, "/");
+                    },
+                    className: "text-center align-middle"
+                },
                 //{ data: "StatusName", title: "GRNstatus" },
                 {
                     data: "StatusName",
