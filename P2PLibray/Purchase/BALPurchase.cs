@@ -2176,6 +2176,7 @@ namespace P2PLibray.Purchase
                         p.AddedDate = Convert.ToDateTime(row["AddedDate"].ToString());
                         p.AddedDateString = p.AddedDate.ToString("dd-MM-yyyy");
                         p.FullName = row["FullName"].ToString();
+                        p.RequiredDate = Convert.ToDateTime(row["RequiredDate"].ToString());
                         //p.StatusName = row["StatusName"].ToString();
                         p.Priority = row["Priority"].ToString();
                         lst.Add(p);
@@ -2257,6 +2258,7 @@ namespace P2PLibray.Purchase
                         p.PRCode = row["PRCode"].ToString();
                         p.AddedDate = Convert.ToDateTime(row["AddedDate"].ToString());
                         p.AddedDateString = p.AddedDate.ToString("dd-MM-yyyy");
+                        p.RequiredDate = Convert.ToDateTime(row["RequiredDate"].ToString());
                         //p.StatusName = row["StatusName"].ToString();
                         p.ApprovedRejectedDate = Convert.ToDateTime(row["ApproveRejectedDate"].ToString());
                         p.ApprovedRejectedDateString = p.ApprovedRejectedDate.ToString("dd-MM-yyyy");
@@ -2409,7 +2411,7 @@ namespace P2PLibray.Purchase
                     { "@PRCode", prCode },
                     {"@StaffCode", model.StaffCode },
                     { "@StatusId", statusId.ToString() },
-                    { "@ApproveRejectedDate",DateTime.Now.ToString()},
+                    { "@ApproveRejectedDate",DateTime.Now.ToString("yyyy-MM-dd")},
                     { "@Description", note }
                 };
 
@@ -2438,7 +2440,7 @@ namespace P2PLibray.Purchase
                     { "@PRCode", prCode },
                     {"@StaffCode",model.StaffCode },
                     { "@StatusId", statusId.ToString() },
-                    { "@ApproveRejectedDate",DateTime.Now.ToString()},
+                    { "@ApproveRejectedDate",DateTime.Now.ToString("yyyy-MM-dd")},
                     { "@Description", note }
                 };
 
@@ -2561,7 +2563,8 @@ namespace P2PLibray.Purchase
                         p.VenderName = row["VenderName"].ToString();
                         p.CompanyName = row["CompanyName"].ToString();
                         p.TotalAmount = Convert.ToDecimal(row["TotalAmount"].ToString());
-
+                        p.ExpectedDate = Convert.ToDateTime(row["VendorDeliveryDate"].ToString());
+                        p.ExpectedDateString = p.ExpectedDate.ToString("dd-MM-yyyy");
 
                         lst.Add(p);
                     }
@@ -2640,9 +2643,13 @@ namespace P2PLibray.Purchase
 
                         p.POCode = row["POCode"].ToString();
                         p.AddedDate = Convert.ToDateTime(row["PODate"].ToString());
+                        p.RQCode = row["RegisterQuotationCode"].ToString();
+                        p.ApprovedRejectedDate = Convert.ToDateTime(row["ApprovedRejectedDate"].ToString());
+                        p.ApprovedRejectedDateString = p.ApprovedRejectedDate.ToString("dd-MM-yyyy");
                         p.AddedDateString = p.AddedDate.ToString("dd-MM-yyyy");
                         p.TotalAmount = Convert.ToDecimal(row["POCost"].ToString());
                         p.FullName = row["CreatedBy"].ToString();
+                        p.Address = row["BillingAddress"].ToString();
 
                         lst.Add(p);
 
