@@ -1859,6 +1859,10 @@ namespace P2PLibray.Purchase
             para.Add("@Flag", "GetQuotationAllDatatoCreatePOOK");
             para.Add("@RegisterQuotationCode", RegisterQuotationCode);
             DataSet ds = await obj.ExecuteStoredProcedureReturnDS("PurchaseProcedure", para);
+            for (int i = 0; i < ds.Tables.Count; i++)
+            {
+                Console.WriteLine($"Table {i}: {ds.Tables[i].Rows.Count} rows");
+            }
             return ds;
         }
 
