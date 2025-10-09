@@ -2413,7 +2413,7 @@ namespace P2PERP.Controllers
                         SrNo = dr["SrNo"].ToString(),
                         PRCode = dr["PRCode"].ToString(),
                         RFQCode = dr["RFQCode"]?.ToString(),
-                        RequiredDate = dr["ExpectedDate"]?.ToString(),
+                        RequiredDate = dr["ExpectedDate"].ToString(),
                         Description = dr["Description"]?.ToString(),
                         Status = dr["StatusName"]?.ToString()
                     });

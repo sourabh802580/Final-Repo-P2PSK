@@ -741,12 +741,13 @@ namespace P2PLibray.Inventory
         /// Gets bins by row code.
         /// Returns List of InventoryBinDRB (Code, Name, CurrentItems, MaxQuantity).
         /// </summary>
-        public async Task<List<InventoryBinDRB>> GetBinDRB(string code)
+        public async Task<List<InventoryBinDRB>> GetBinDRB(string code,string GrnItemCode)
         {
             Dictionary<string, string> param = new Dictionary<string, string>
                 {
                     { "@Flag", "GetBinDRB" },
-                    { "@RowCode", code }
+                    { "@RowCode", code },
+                    { "@GRNItemCode", GrnItemCode },
                 };
 
             DataSet ds = await obj.ExecuteStoredProcedureReturnDS("InventoryProcedure", param);

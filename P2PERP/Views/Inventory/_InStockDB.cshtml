@@ -395,32 +395,41 @@
 
         // 🔹 Row → Bin
         $(document).on("change", ".row-ddl", function () {
-            var rowCode = $(this).val();
-            var $row = $(this).closest("tr");
-            var $bin = $row.find(".bin-ddl");
+    var rowCode = $(this).val();
+    var $row = $(this).closest("tr");
+    var grnItemCode = $row.find(".grnitemcode").val(); // ✅ Fixed selector
+    var $bin = $row.find(".bin-ddl");
 
-            $bin.empty().append($('<option/>').val("").text("-- Select Bin --"));
+    $bin.empty().append($('<option/>').val("").text("-- Select Bin --"));
 
-            if (rowCode) {
-                $.ajax({
-                    url: '@Url.Action("GetBinDRB", "Inventory")',
-                    type: 'GET',
-                    data: { Rowcode: rowCode },
-                    success: function (data) {
-                        console.log("Bins:", data);
-                        $.each(data, function (i, bin) {
-                            $bin.append(
-                                $('<option/>')
-                                    .val(bin.BinCode)
-                                    .text(bin.BinName)
-                                    .attr("data-max", bin.MaxQuantity)
-                                    .attr("data-current", bin.CurrentItems)
-                            );
-                        });
-                    }
+    if (rowCode) {
+        $.ajax({
+            url: '@Url.Action("GetBinDRB", "Inventory")',
+            type: 'GET',
+            dataType: 'json', // ✅ ensure response parsed correctly
+            data: {
+                RowCode: rowCode,       // ✅ match exact param name
+                GRNItemCode: grnItemCode
+            },
+            success: function (data) {
+                console.log("Bins:", data);
+                $.each(data, function (i, bin) {
+                    $bin.append(
+                        $('<option/>')
+                            .val(bin.BinCode)
+                            .text(bin.BinName)
+                            .attr("data-max", bin.MaxQuantity)
+                            .attr("data-current", bin.CurrentItems)
+                    );
                 });
+            },
+            error: function (xhr, status, error) {
+                console.error("Error loading bins:", error);
             }
         });
+    }
+});
+
 
         // Bin → Show capacity
         $(document).on("change", ".bin-ddl", function () {

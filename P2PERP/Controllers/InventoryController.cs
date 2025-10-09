@@ -300,12 +300,12 @@ namespace P2PERP.Controllers
 
         // Gets the list of Bins for a given Row
         [HttpGet]
-        public async Task<JsonResult> GetBinDRB(string Rowcode)
+        public async Task<JsonResult> GetBinDRB(string RowCode, string GRNItemCode)
         {
-            List<InventoryBinDRB> grnItemsList = await bal.GetBinDRB(Rowcode);
-
-            return Json(grnItemsList, JsonRequestBehavior.AllowGet);
+            List<InventoryBinDRB> bins = await bal.GetBinDRB(RowCode, GRNItemCode);
+            return Json(bins, JsonRequestBehavior.AllowGet);
         }
+
 
         // Gets the Issue In-House items based on Status Id
         [HttpGet]
