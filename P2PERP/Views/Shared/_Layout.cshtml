@@ -4,6 +4,10 @@
     string currentAction = ViewContext.RouteData.Values["action"].ToString();
     string currentController = ViewContext.RouteData.Values["controller"].ToString();
     string role = Session["RoleId"] != null ? Session["RoleId"].ToString() : "";
+    if (Session["StaffCode"] == null)
+    {
+        Response.Redirect("~/Account/Logout");
+    }
 }
 <html>
 <head>
@@ -1481,6 +1485,7 @@
     </div>
 
     <script>
+
         // Enhanced Navbar Functionality
         document.addEventListener('DOMContentLoaded', function() {
             // Theme Toggle
@@ -1689,11 +1694,11 @@
                         $('#layout-profile-photo').attr('src', res.profilePhoto || defaultPhoto);
                         $('#layout-another-photo').attr('src', res.profilePhoto || defaultPhoto);
                     } else {
-                        window.location.href = '/Account/MainLogin';
+                        window.location.href = '/Account/Logout';
                     }
                 },
                 error: function () {
-                    window.location.href = '/Account/MainLogin';
+                    window.location.href = '/Account/Logout';
                 },
                 complete: function() {
                     hideLoader();
@@ -1705,6 +1710,18 @@
 
             async function fetchNotifications() {
                 try {
+                    // Check session via AJAX or hidden value
+                    const sessionValid = await $.ajax({
+                        url: '/Account/CheckSession',
+                        type: 'GET'
+                    });
+
+                    if (!sessionValid.success) {
+                        // Session expired → redirect to logout
+                        window.location.href = '/Account/Logout';
+                        return;
+                    }
+
                     const notifications = await $.ajax({
                         url: '/Account/GetNotifications',
                         type: 'GET'
