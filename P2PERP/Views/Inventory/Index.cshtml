@@ -318,14 +318,30 @@
                 { data: "ItemName", title: "Item Name" },
                 { data: "ItemCode", title: "Item Code" },
                 { data: "QuantityStored", title: "Quantity" },
-                { data: "CreatedDate", title: "Receive Date" }
+                {
+                    data: "CreatedDate",
+                    title: "Receive Date",
+                    render: function (data, type, row) {
+                        // Check if date is valid
+                        if (!data) return "";
+                        return moment(data).format("DD/MM/YYYY"); // Change to your desired format
+                    }
+                }
             );
         }  else if (chartType === "IssueHouse") {
             columns.push(
                 { data: "ItemName", title: "Item Name" },
                 //{ data: "BinCode", title: "Bin" },
                 { data: "ItemsCounts", title: "Quantity" },
-                { data: "AddedDate", title: "Issue Date" }
+                {
+                    data: "AddedDate",
+                    title: "Issue Date",
+                    render: function (data, type, row) {
+                        // Check if date is valid
+                        if (!data) return "";
+                        return moment(data).format("DD/MM/YYYY"); // Change to your desired format
+                    }
+                }
             );
         }
 
@@ -357,6 +373,7 @@
                 }
             },
             columns: columns,
+            ordering: false,
             buttons: [
                 // PRINT
                 {
