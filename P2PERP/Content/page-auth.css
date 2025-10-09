@@ -33,7 +33,7 @@
   inset-inline-start: 0;
 }
 .authentication-wrapper .authentication-image-model {
-  inline-size: 768px;
+  inline-size: 950px;
 }
 .authentication-wrapper.authentication-cover {
   align-items: flex-start;
@@ -72,4 +72,5 @@
 }
 .authentication-wrapper .authentication-bg {
   background-color: #fff;
+  border-radius: 5%;
 }

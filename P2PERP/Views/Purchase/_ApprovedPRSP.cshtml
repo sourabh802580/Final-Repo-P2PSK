@@ -3,7 +3,7 @@
 <!-- ===================== Main Container ===================== -->
 <div class="container mt-4">
     <div class="table-responsive">
-        <h3 class="text-center fw-bold">Approved Purchase Requisition</h3>
+        <h3 class="text-center fw-bold text-primary">Approved Purchase Requisition</h3>
 
 
         <!-- Date Filters -->
@@ -42,8 +42,7 @@
             <!-- Modal Header -->
             <div class="modal-header bg-primary text-white d-flex justify-content-center position-relative p-0">
                 <h4 class="modal-title m-0 fw-bold text-white flex-grow-1 text-center py-3">Purchase Requisition Details</h4>
-                <button type="button" class="btn-close btn-close-white position-absolute end-0 top-0 m-0 p-3 h-100"
-                        data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn btn-close btn-close-white position-absolute top-0 end-0 m-3 fs-4" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
 
             <!-- Modal Body -->
@@ -123,8 +122,7 @@
         <div class="modal-content">
             <div class="modal-header bg-primary text-white d-flex justify-content-center position-relative p-0">
                 <h4 class="modal-title m-0 text-white fw-bold flex-grow-1 text-center py-3">Update Purchase Requisition</h4>
-                <button type="button" class="btn-close btn-close-white position-absolute end-0 top-0 m-0 p-3 h-100"
-                        data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn btn-close btn-close-white position-absolute top-0 end-0 m-3 fs-4" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <!-- Requisition Info -->
@@ -280,7 +278,7 @@
                     render: function (data) {
                         if (data === "Hot") return '<span class="badge bg-danger">Hot</span>';
                         if (data === "Warm") return '<span class="badge bg-warning">Warm</span>';
-                        if (data === "Cold") return '<span class="badge bg-info">Cold</span>';
+                        if (data === "Cold") return '<span class="badge bg-success">Cold</span>';
                         return '<span class="badge bg-secondary">Unknown</span>';
                     }
                 },
@@ -332,6 +330,10 @@
                     }
                 }
             ],
+            columnDefs: [
+                { className: "text-center", targets: "_all" }
+            ],
+            ordering: false,
             dom: '<"d-flex justify-content-between align-items-center mb-2"Bf>rt<"d-flex justify-content-between align-items-center mt-2"ip>',
             buttons: [
                 {
@@ -536,11 +538,10 @@
             },
             ranges: {
                 'Today': [moment(), moment()],
-                'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
                 'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-                'This Month': [moment().startOf('month'), moment().endOf('month')],
-                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                'Last 1 Month': [moment().subtract(1, 'months').startOf('day'), moment()],
+                'Last 3 Months': [moment().subtract(3, 'months').startOf('day'), moment()],
+                'Last 1 Year': [moment().subtract(12, 'months').startOf('day'), moment()]
             }
         });
 
@@ -623,7 +624,7 @@
 
                     let statusText = response.data.Status;
                     let statusDiv = $("#Status3");
-                    statusDiv.removeClass("text-success text-danger text-warning text-dark"); 
+                    statusDiv.removeClass("text-success text-danger text-warning text-dark"); // old classes remove
                     statusDiv.text(statusText);
 
                     if (statusText === "Approved") {
@@ -680,13 +681,20 @@
                 { data: "ItemCode", title: "ITEM CODE" },
                 { data: "ItemName", title: "ITEM NAME" },
                 {
-                    data: "Description",
-                    title: "DESCRIPTION",
-                    render: function (data, type, row) {
-                        return '<span data-bs-toggle="tooltip" data-bs-placement="top" title="' + data + '">' + data + '</span>';
+                    data: "Description", title: "DESCRIPTION",
+                    createdCell: function (td, cellData) {
+                        if (cellData) {
+                            // truncate text if too long
+                            let shortText = cellData.length > 25 ? cellData.substring(0, 25) + "..." : cellData;
+                            $(td)
+                                .text(shortText)
+                                .attr("title", cellData)
+                                .attr("data-bs-toggle", "tooltip")
+                                .attr("data-bs-placement", "top");
+                        }
                     }
-                },
-               { data: "RequiredQuantity", title: "QTY" },
+},
+                { data: "RequiredQuantity", title: "QTY" },
                 {
                     data: "UnitRate",
                     title: "UNIT RATE",
@@ -710,6 +718,11 @@
                     }
                 }
             ],
+            columnDefs: [
+                { className: "text-center", targets: "_all" }
+            ],
+
+            ordering: false,
             dom: '<"d-flex justify-content-between align-items-center mb-2"Bf>rt<"d-flex justify-content-between align-items-center mt-2"ip>',
 
             buttons: [
@@ -726,28 +739,40 @@
 
                         // Custom Header HTML
                         let headerHtml = `
-            <h2 class="text-center mb-3">Purchase Requisition Details</h2>
-            <table class="table table-borderless mb-3">
-                <tr>
-                    <td><b>PR CODE :</b> ${prCode}</td>
-                    <td><b>Required Date :</b> ${reqDate}</td>
-                </tr>
-                <tr>
-                    <td><b>Created By :</b> ${fullName}</td>
-                    <td><b>Status :</b> ${status}</td>
-                </tr>
-            </table>
-        `;
+        <h2 class="text-center mb-2">Purchase Requisition Details</h2>
+        <div style="text-align:center; margin-bottom:10px; font-size:11pt; font-style:italic;">
+            Generated on: ${moment().format("YYYY-MM-DD")}
+        </div>
+        <table class="table table-borderless mb-3">
+            <tr>
+                <td><b>PR CODE :</b> ${prCode}</td>
+                <td><b>Required Date :</b> ${reqDate}</td>
+            </tr>
+            <tr>
+                <td><b>Created By :</b> ${fullName}</td>
+                <td><b>Status :</b> ${status}</td>
+            </tr>
+        </table>
+    `;
 
+                        // Prepend info section
                         $(win.document.body).prepend(headerHtml);
 
+                        // DataTable table formatting
                         let table = $(win.document.body).find('table.dataTable');
 
-                        table.addClass('table table-bordered'); 
-                        table.find('thead').addClass('table-dark'); 
+                        // Apply borders forcefully using !important
+                        table.css('border-collapse', 'collapse');
+                        table.find('thead th, tbody td').each(function () {
+                            $(this).css({
+                                'border': '1px solid #000',
+                                'padding': '5px',
+                                'border-collapse': 'collapse'
+                            });
+                        });
 
-                        table.find('thead th').removeAttr('style');
-                        table.find('tbody td').css('border', '1px solid #000'); 
+                        // Header styling
+                        table.find('thead').css('background-color', '#343a40').css('color', '#fff');
                     }
                 }
             ],
@@ -817,7 +842,7 @@
             data: { id: prCode },
             success: function (response) {
                 if (response.success) {
-                    $("#ItemTableBodyUpdate3").empty(); 
+                    $("#ItemTableBodyUpdate3").empty(); // Clear old rows
 
                     $.each(response.data, function (i, item) {
                         var row = `
@@ -825,7 +850,10 @@
                             <td>${i + 1}</td>
                             <td>${item.ItemCode}</td>
                             <td>${item.ItemName}</td>
-                            <td>${item.Description}</td>
+                            <td title="${item.Description}" data-bs-toggle="tooltip" data-bs-placement="top" 
+    style="max-width:180px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+    ${item.Description}
+</td>
                             <td>
                                 <input type="number" class="form-control qty-input"
                                     value="${item.RequiredQuantity}" min="1" />
@@ -837,6 +865,17 @@
                             </td>
                         </tr>`;
                         $("#ItemTableBodyUpdate3").append(row);
+                    });
+                    // Initialize DataTable or re-initialize safely
+                    $("#ItemTableUpdate3").DataTable({
+                        ordering: false,
+                        paging: true,
+                        searching: true,
+                        info: true,
+                        destroy: true,
+                        columnDefs: [
+                            { className: "text-center", targets: "_all" }
+                        ]  // Important to allow re-initialization
                     });
                 }
             },
@@ -865,9 +904,11 @@
                         icon: 'success',
                         confirmButtonText: 'OK'
                     }).then(() => {
+                        // Close the Update Modal after SweetAlert
                         $('#updateapproeModal').modal('hide');
                     });
                 } else {
+                    // SweetAlert2 error popup if backend returns failure
                     Swal.fire({
                         title: 'Error!',
                         text: response.message || 'Failed to update item.',
@@ -887,6 +928,4 @@
             }
         });
     });
-
-
 </script>
