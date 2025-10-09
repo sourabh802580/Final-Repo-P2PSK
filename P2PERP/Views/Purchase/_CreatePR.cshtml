@@ -80,7 +80,7 @@
         <!-- Required Date -->
 <div class="col-md-4">
     <label for="ToDate" class="form-label">Required Date:</label>
-    <input type="text" id="ToDate" class="form-control" placeholder="dd/mm/yyyy" readonly />
+    <input type="date" id="ToDate" class="form-control" placeholder="dd/mm/yyyy" />
     @Html.ValidationMessage("RequiredDate", "", new { @class = "text-danger" })
 </div>
 
@@ -299,34 +299,62 @@
             // Auto-fill Required Date based on Priority
             $('#priority').on('change', function () {
                 var priority = $(this).val().trim();
-                var date = new Date();
 
                 // Numeric to text mapping
                 if (priority === "9") priority = "Hot";
-                else if (priority === "10") priority = "Warm";
-                else if (priority === "11") priority = "Cold";
+                else if (priority === "10") priority = "Cold";
+                else if (priority === "11") priority = "Warm";
 
-                if (priority === "Hot") date.setDate(date.getDate() + 2);
-                else if (priority === "Warm") date.setDate(date.getDate() + 6);
-                else if (priority === "Cold") date.setDate(date.getDate() + 14);
-                else {
-                    $('#ToDate').val("").prop('readonly', false);
-                    return;
-                }
-
-                // Format date as dd/mm/yyyy
-                var day = ("0" + date.getDate()).slice(-2);
-                var month = ("0" + (date.getMonth() + 1)).slice(-2);
-                var year = date.getFullYear();
-                var formattedDate = `${day}/${month}/${year}`;
-
-                $('#ToDate').val(formattedDate).prop('readonly', true);
+                setToDateByPriority(priority);
             });
         });
 
+        function setToDateByPriority(priority) {
+            const today = new Date();
+            let minDate, maxDate;
 
+            if (priority === "Hot") {
+                minDate = new Date(today);
+                minDate.setDate(today.getDate() + 2); // 2 days from today
+                maxDate = new Date(today);
+                maxDate.setDate(today.getDate() + 5); // 5 days from today
+            }
+            else if (priority === "Warm") {
+                minDate = new Date(today);
+                minDate.setDate(today.getDate() + 5); // 5 days from today
+                maxDate = new Date(today);
+                maxDate.setDate(today.getDate() + 15); // 15 days from today
+            }
+            else if (priority === "Cold") {
+                minDate = new Date(today);
+                minDate.setDate(today.getDate() + 15); // 15 days from today
+                maxDate = null; // no max
+            }
+            else {
+                $('#ToDate').val("").removeAttr('min').removeAttr('max');
+                return;
+            }
 
+            // Format date as yyyy-mm-dd
+            const formatDate = date => date.toISOString().split('T')[0];
+            const formatDisplayDate = date => {
+                const day = ("0" + date.getDate()).slice(-2);
+                const month = ("0" + (date.getMonth() + 1)).slice(-2);
+                const year = date.getFullYear();
+                return `${day}/${month}/${year}`;
+            };
 
+            // Set min and max attributes
+            $('#ToDate').attr('min', formatDate(minDate));
+            if (maxDate) {
+                $('#ToDate').attr('max', formatDate(maxDate));
+            } else {
+                $('#ToDate').removeAttr('max');
+            }
+
+            // Set display format (dd/mm/yyyy) for user
+            $('#ToDate').val(formatDisplayDate(minDate));
+        }
 
         //  Remove item from table
         $(document).on('click', '.remove', function () {
