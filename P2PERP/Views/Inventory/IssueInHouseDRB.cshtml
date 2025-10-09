@@ -3,35 +3,30 @@
     ViewBag.Title = "Issue In-House";
 }
 
-
-
 <div class="container mt-4">
-
-    <div class="card-header bg-primary text-white d-flex justify-content-center align-items-center rounded-top p-2">
-        <h5 class="modal-title fw-bold text-white">Transfer In-House</h5>
-
+    <!-- Header -->
+    <div class="card-header bg-primary text-white text-center rounded-top p-2">
+        <h5 class="fw-bold mb-0">Transfer In-House</h5>
     </div>
 
-    <!-- Header Form -->
-    <div class="card shadow-lg border-0 rounded">
-
-
-
-
+    <div class="card shadow-lg border-0 rounded-bottom-4">
         <div class="card-body p-4">
             <form id="issueItemForm">
                 <div class="row g-3">
+                    <!-- Issue Code -->
                     <div class="col-md-6">
                         <label class="form-label fw-bold">Issue Code</label>
                         <input type="text" id="IssueCode" class="form-control bg-secondary-subtle text-dark" readonly />
                     </div>
+
+                    <!-- Issue Date -->
                     <div class="col-md-6">
                         @Html.LabelFor(m => m.IssueDate, new { @class = "form-label fw-bold" })
                         @Html.TextBoxFor(
                             m => m.IssueDate,
                             "{0:yyyy-MM-dd}",
                             new
-                                 {
+                            {
                                 @class = "form-control bg-secondary-subtle text-dark",
                                 type = "date",
                                 id = "IssueDate",
@@ -41,69 +36,79 @@
                         )
                     </div>
 
+                    <!-- Department -->
                     <div class="col-md-6">
                         @Html.LabelFor(m => m.Department, new { @class = "form-label fw-bold" })
                         <select class="form-select dept-select" id="Department"></select>
                     </div>
 
+                    <!-- Employee -->
                     <div class="col-md-6">
                         @Html.LabelFor(m => m.EmployeeName, new { @class = "form-label fw-bold" })
                         <select class="form-select emp-select" id="Employee"></select>
                     </div>
 
+                    <!-- Item Name -->
                     <div class="col-md-6">
                         <label class="form-label fw-bold">Item Name</label>
                         <select class="form-select item-select" id="ItemName"></select>
                     </div>
+
+                    <!-- Bin Name -->
                     <div class="col-md-6">
                         <label class="form-label fw-bold">Bin Name</label>
-                        <select class="form-select item-bin" id="BinName">
-                        </select>
+                        <select class="form-select item-bin" id="BinName"></select>
                     </div>
 
+                    <!-- Item Code -->
                     <div class="col-md-6">
                         <label class="form-label fw-bold">Item Code</label>
                         <input type="text" id="ItemCode" class="form-control bg-secondary-subtle" readonly />
                     </div>
 
+                    <!-- Category -->
                     <div class="col-md-6">
                         <label class="form-label fw-bold">Category</label>
                         <input type="text" id="ItemCategory" class="form-control bg-secondary-subtle" readonly />
                     </div>
 
+                    <!-- UOM -->
                     <div class="col-md-6">
                         <label class="form-label fw-bold">UOM</label>
                         <input type="text" id="UOM" class="form-control bg-secondary-subtle" readonly />
                     </div>
 
+                    <!-- Quantity -->
                     <div class="col-md-6">
                         <label class="form-label fw-bold">Quantity</label>
                         <input type="text" id="Quantity" class="form-control bg-secondary-subtle" />
                     </div>
-                </div>
 
-                <div class="row g-3">
+                    <!-- Unit Price -->
                     <div class="col-md-6">
                         <label class="form-label fw-bold">Unit Price</label>
                         <input type="number" id="PricePerUnit" class="form-control bg-secondary-subtle" readonly />
                     </div>
-                    <div class="col-md-6 pt-10">
+
+                    <!-- Add Item Button -->
+                    <div class="col-md-6 d-flex align-items-end">
                         <button type="button" id="btnAddItem" class="btn btn-success px-4 square-pill">
                             <i class="bi bi-plus-circle me-2"></i> Add Item
                         </button>
                     </div>
                 </div>
-               
             </form>
         </div>
 
-        <div class="container d-flex justify-content-end">
+        <!-- Issue Button -->
+        <div class="container d-flex justify-content-end mb-3">
             <button type="button" id="btnSubmitIssuedItems" class="btn btn-warning btn-sm square-pill">
                 <i class="bi bi-check2-circle me-2"></i> Issue
             </button>
         </div>
 
-        <div class="container table-responsive mt-10">
+        <!-- Table -->
+        <div class="container table-responsive mb-4">
             <table id="issuedItemsTable" class="table table-hover align-middle">
                 <thead class="table-primary text-dark">
                     <tr>
@@ -114,7 +119,7 @@
                         <th>Qty</th>
                         <th>Unit Price</th>
                         <th>Amount</th>
-                        <th>BinName</th>
+                        <th>Bin Name</th>
                         <th class="text-center">Action</th>
                     </tr>
                 </thead>
@@ -122,35 +127,29 @@
             </table>
         </div>
 
-        <!-- Total Amount Display -->
-        <div class="container d-flex justify-content-end mt-3 align-items-center">
+        <!-- Total Amount -->
+        <div class="container d-flex justify-content-end align-items-center mb-4">
             <label class="fw-bold me-2 mb-0">Total Amount:</label>
-            <input type="text" id="TotalAmount" class="form-control w-20 text-center fw-bold bg-success text-white" value="0.00" readonly />
+            <input type="text" id="TotalAmount" class="form-control text-center fw-bold bg-success text-white w-auto px-3" value="0.00" readonly />
         </div>
-
     </div>
-
- 
-
 </div>
 
-<script>
-    $(document).ready(function () {
 
-        // Load departments
+<script>
+   
+        // Load Departments
         $.getJSON("/Inventory/GetDepartmentsDRB", function (response) {
             let $ddl = $(".dept-select");
             $ddl.empty().append('<option value="">Select Department</option>');
             $.each(response, function (i, dept) {
                 $ddl.append($("<option>").val(dept.DeptID).text(dept.DepartmentName));
-            });
         });
 
-        // Load employees by department
+        // Load Employees by Department
         $(".dept-select").change(function () {
             let deptId = $(this).val();
             let $empSelect = $(".emp-select");
-
             $empSelect.empty().append('<option value="">Select Employee</option>');
 
             if (deptId) {
@@ -162,29 +161,25 @@
                     success: function (response) {
                         if (response && response.length > 0) {
                             $.each(response, function (i, emp) {
-                                $empSelect.append(
-                                    $("<option>").val(emp.StaffCode).text(emp.EmployeeName)
-                                );
+                                $empSelect.append($("<option>").val(emp.StaffCode).text(emp.EmployeeName));
                             });
                         } else {
                             $empSelect.append('<option value="">No employees found</option>');
                         }
                     },
-                    error: function (xhr, status, error) {
-                        console.error("Error loading employees:", error);
+                    error: function () {
                         Swal.fire("Error", "Failed to load employees for this department.", "error");
                     }
                 });
             }
         });
 
-        // Load items
-        // Load items (unique)
+        // Load Items
         $.getJSON("/Inventory/GetInStockItemsDRB", function (response) {
             let $ddl = $(".item-select");
             $ddl.empty().append('<option value="">Select Item</option>');
-
             let uniqueItems = new Set();
+
             $.each(response, function (i, item) {
                 if (!uniqueItems.has(item.ItemCode)) {
                     uniqueItems.add(item.ItemCode);
@@ -193,41 +188,31 @@
                         .text(item.ItemName)
                         .data("details", item));
                 }
-            });
         });
 
-
-        // Load IssueCode
+        // Load Issue Code
         $.getJSON("/Inventory/getIssueCodeDRB", function (response) {
             $("#IssueCode").val(response[0].IssueCode);
-
-
         });
 
-
-        
-
-        // When item selected → auto-fill details
+        // Item Selection → Fill details
         $(".item-select").change(function () {
             let selected = $(this).find("option:selected").data("details");
             if (selected) {
-                var item = $("#ItemCode").val(selected.ItemCode);
+                $("#ItemCode").val(selected.ItemCode);
                 $("#ItemCategory").val(selected.ItemCategoryName);
                 $("#UOM").val(selected.UOMName);
-                $("#PricePerUnit").val(selected.UnitPrice);  
+                $("#PricePerUnit").val(selected.UnitPrice);
             } else {
                 $("#ItemCode, #ItemCategory, #UOM, #Quantity, #PricePerUnit").val("");
             }
         });
 
-        // Load Bins by Items
-        // 🔹 Global stock tracker
-        let binStockMap = {};  // { BinCode: remainingQty }
-
+        // Load Bins by Item
+        let binStockMap = {};
         $(".item-select").change(function () {
             let ItemId = $(this).val();
             let $BinSelect = $(".item-bin");
-
             $BinSelect.empty().append('<option value="">Select Bin</option>');
 
             if (ItemId) {
@@ -239,16 +224,8 @@
                     success: function (response) {
                         if (response && response.length > 0) {
                             $.each(response, function (i, emp) {
-
-                                // Check if we already reduced stock earlier
-                                let remaining = binStockMap[emp.BinCode] !== undefined
-                                    ? binStockMap[emp.BinCode]
-                                    : emp.CurrentItems;
-
-                                // Save in map
+                                let remaining = binStockMap[emp.BinCode] !== undefined ? binStockMap[emp.BinCode] : emp.CurrentItems;
                                 binStockMap[emp.BinCode] = remaining;
-
-                                // If stock > 0 show in dropdown
                                 if (remaining > 0) {
                                     $BinSelect.append(
                                         $("<option>")
@@ -262,14 +239,19 @@
                         } else {
                             $BinSelect.append('<option value="">No Bin found</option>');
                         }
+                        initSelect2('.item-bin');
                     }
                 });
             }
         });
 
+        // Bin change → show available quantity
+        $(document).on("change", ".item-bin", function () {
+            let currentItems = $(this).find(":selected").data("currentitems") || 0;
+            $("#Quantity").val(currentItems);
+        });
 
-
-        // Add item to table
+        // Add Item to Table
         $("#btnAddItem").click(function () {
             let code = $("#ItemCode").val();
             let name = $("#ItemName option:selected").text();
@@ -278,13 +260,11 @@
             let qty = parseInt($("#Quantity").val());
             let price = parseFloat($("#PricePerUnit").val()) || 0;
             let amount = (qty * price).toFixed(2);
-
             let $bin = $("#BinName option:selected");
             let binCode = $bin.val();
             let binName = $bin.data("binname");
             let currentItems = $bin.data("currentitems") || 0;
 
-            // 🔹 Validation
             if (!code || !qty || !price || !binCode) {
                 Swal.fire("Warning", "Select item, bin, and enter valid quantity!", "warning");
                 return;
@@ -294,74 +274,48 @@
                 return;
             }
 
-            // 🔹 Add row to Issued Items Table
             $("#issuedItemsTable tbody").append(`
-        <tr  data-bincode="${binCode}">
-            <td>${code}</td>
-            <td>${name}</td>
-            <td>${cat}</td>
-            <td>${uom}</td>
-            <td>${qty}</td>
-            <td>${price}</td>
-            <td>₹${amount}</td>
-            <td>${binName}</td>   <!-- show Bin column -->
-            <td class="text-center">
-                <button type="button" class="btn btn-sm btn-danger btn-delete">Delete</button>
-            </td>
-        </tr>
-    `);
+                <tr data-bincode="${binCode}">
+                    <td>${code}</td>
+                    <td>${name}</td>
+                    <td>${cat}</td>
+                    <td>${uom}</td>
+                    <td>${qty}</td>
+                    <td>${price}</td>
+                    <td>₹${amount}</td>
+                    <td>${binName}</td>
+                    <td class="text-center">
+                        <button type="button" class="btn btn-sm btn-danger btn-delete">Delete</button>
+                    </td>
+                </tr>
+            `);
 
-            // 🔹 Deduct stock from dropdown + global map
             let newQty = currentItems - qty;
-            binStockMap[binCode] = newQty; // update global tracker
+            binStockMap[binCode] = newQty;
 
             if (newQty > 0) {
                 $bin.data("currentitems", newQty);
                 $bin.text(binName + " (Available: " + newQty + ")");
             } else {
-                $bin.remove(); // remove from dropdown if stock exhausted
+                $bin.remove();
             }
 
-            // 🔹 Update total amount
             updateTotal();
-
-            // 🔹 Reset form fields
-            $("#ItemName").val("");
-            $("#BinName").val("");
-            $("#ItemCode").val("");
-            $("#ItemCategory").val("");
-            $("#UOM").val("");
-            $("#Quantity").val("");
-            $("#PricePerUnit").val("");
+            $("#ItemName, #BinName, #ItemCode, #ItemCategory, #UOM, #Quantity, #PricePerUnit").val("");
+            $(".item-select, .item-bin").val(null).trigger('change');
         });
 
-        // Render quantity based on Bin change
-        $(document).on("change", ".item-bin", function () {
-            let currentItems = $(this).find(":selected").data("currentitems") || 0;
-            $("#Quantity").val(currentItems);   //show in textbox
-        });
-
-
-
-        
-
-
-       
-
-        // Function to calculate and display total amount
+        // Update Total Amount
         function updateTotal() {
             let total = 0;
             $("#issuedItemsTable tbody tr").each(function () {
-                let amt = parseFloat($(this).find("td:eq(6)").text()) || 0;
+                let amt = parseFloat($(this).find("td:eq(6)").text().replace('₹', '')) || 0;
                 total += amt;
             });
             $("#TotalAmount").val("₹ " + total.toFixed(2));
         }
 
-        
-
-
-        // Delete row (with SweetAlert confirm)
+        // Delete Row
         $("#issuedItemsTable").on("click", ".btn-delete", function () {
             let row = $(this).closest("tr");
             let qty = parseInt(row.find("td:eq(4)").text());
@@ -379,26 +333,22 @@
                     row.remove();
                     updateTotal();
 
-                    // Restore Bin stock
                     $("#BinName option").each(function () {
                         if ($(this).data("binname") === binName) {
                             let restored = ($(this).data("currentitems") || 0) + qty;
                             $(this).data("currentitems", restored);
                             $(this).text(binName + " (Available: " + restored + ")");
                         }
-
                     });
                 }
             });
         });
 
-
-        // Submit issued items (without confirmation popup)
+        // Submit
         $("#btnSubmitIssuedItems").click(function () {
             let header = {
                 IssueCode: $("#IssueCode").val(),
                 IssueDate: $("#IssueDate").val(),
-                //BinCode: $("#BinName").val(),
                 StaffCode: $("#Employee").val()
             };
 
@@ -407,7 +357,7 @@
                 let row = $(this).find("td");
                 items.push({
                     IssueCode: header.IssueCode,
-                    BinCode: $(this).data("bincode"), 
+                    BinCode: $(this).data("bincode"),
                     ItemCode: $(row[0]).text(),
                     Quantity: $(row[4]).text(),
                     UnitPrice: $(row[5]).text(),
@@ -415,7 +365,6 @@
                 });
             });
 
-            // validation
             if (!header.StaffCode || items.length === 0) {
                 Swal.fire({
                     icon: "warning",
@@ -426,7 +375,6 @@
                 return;
             }
 
-            // directly save (no confirmation)
             $.ajax({
                 url: "/Inventory/SaveIssueHeaderDRB",
                 type: "POST",
@@ -469,17 +417,14 @@
             });
         });
 
+        // Quantity Validation
+        $(document).on("input", "#Quantity", function () {
+            let maxQty = $("#BinName option:selected").data("currentitems") || 0;
+            let entered = parseInt($(this).val()) || 0;
+            if (entered > maxQty) {
+                Swal.fire("Warning", "Quantity cannot exceed available stock in bin!", "warning");
+                $(this).val(maxQty);
+            }
+        });
     });
-
-    // Prevent entering quantity more than CurrentItems
-    $(document).on("input", "#Quantity", function () {
-        let maxQty = $("#BinName option:selected").data("currentitems") || 0;
-        let entered = parseInt($(this).val()) || 0;
-
-        if (entered > maxQty) {
-            Swal.fire("Warning", "Quantity cannot exceed available stock in bin!", "warning");
-            $(this).val(maxQty); // reset to max
-        }
-    });
-
 </script>
