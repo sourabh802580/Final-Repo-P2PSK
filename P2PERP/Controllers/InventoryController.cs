@@ -19,6 +19,14 @@ namespace P2PERP.Controllers
         // GET: InventoryP2P
         public ActionResult Index()
         {
+            var RoleId = Convert.ToInt32(Session["RoleId"]);
+
+            switch (RoleId)
+            {
+                case 2: return View();
+                case 3: return RedirectToAction("ReceiveMaterialDRB");
+                case 4: return RedirectToAction("ShowStocklevelMHB");
+            }
             return View();
         }
 

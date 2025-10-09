@@ -1909,7 +1909,7 @@ namespace P2PERP.Controllers
             {
                 case 5: return RedirectToAction("CreatePRADDItemPSM");
                 case 6: return RedirectToAction("QuotationSJ");
-                case 7: return RedirectToAction("RegisterQuotationVNK");
+                case 7: return RedirectToAction("ShowAllRFQsVNK");
                 case 8: return view();
                 case 9: return RedirectToAction("SelectedQuotationListShowOK");
             }
