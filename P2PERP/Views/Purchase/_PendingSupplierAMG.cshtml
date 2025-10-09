@@ -118,6 +118,7 @@
     $(document).ready(function () {
 
         function loadPendingQuotations() {
+            
             $.ajax({
                 url: "/Purchase/AllPendingQuotsDataAMG",
                 type: "GET",
@@ -127,6 +128,7 @@
                     tblPending = $("#pendingTable").DataTable({
                         destroy: true,
                         data: data,
+                        ordering: false,
                         dom: '<"d-flex justify-content-between align-items-center mt-1 mb-2"Bf>rt<"d-flex justify-content-between mt-2"<"datatable-info"i><"datatable-pagination"p>>',
                         buttons: [
                             {
@@ -274,14 +276,24 @@
                                     columns: ':visible:not(:first-child):not(:last-child)',
                                     format: {
                                         body: function (data, row, column, node) {
+                                            // If column is the RecommendedQuotation column, remove HTML
+                                            if (column === 9) { // adjust index if needed
+                                                return $(data).text().trim() || '-';
+                                            }
+
+                                            // Handle checkbox numbering for first columns
                                             if (column === 1) {
                                                 return $('#pendingTable tbody input.row-check:checked')
                                                     .index($(node).closest('tr').find('.row-check')) + 1;
                                             }
-                                            return data;
+
+                                            return typeof data === 'string'
+                                                ? data.replace(/<[^>]*>/g, '') // strip any remaining HTML
+                                                : data;
                                         }
                                     }
                                 }
+
                             },
                             {
                                 extend: 'excelHtml5',
