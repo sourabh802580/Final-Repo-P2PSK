@@ -16,7 +16,7 @@
 </style>
 
 <div class="container mt-4 card shadow-sm">
-    <h3 class="text-primary text-center fw-bolder mt-3">Quality Cheak Stock</h3>
+    <h3 class="text-primary text-center fw-bolder mt-3">Quality Check Stock</h3>
     <table id="qualityCheackStockTable" class="table table-bordered table-striped wrap">
         <thead class="table-dark text-center">
             <tr>
@@ -76,7 +76,11 @@ var qualityCheackTable = $('#qualityCheackStockTable').DataTable({
         { "data": "QualityCheackCode", orderable: false, "className": "text-center" },
         { "data": "ItemName", orderable: false, "className": "text-center" },
         { "data": "ItemCount", orderable: false, "className": "text-center" },
-        { "data": "Date", orderable: false, "className": "text-center" },
+        {
+            "data": "Date", render: function (data, type, row) {
+                if (!data) return "";
+                return data.replace(/-/g, "/");
+            }, orderable: false, "className": "text-center" },
         {
             "data": "Status",
             orderable: false,
@@ -134,9 +138,11 @@ var qualityCheackTable = $('#qualityCheackStockTable').DataTable({
                 $(win.document.body).find('table')
                     .css('border', '1px solid black')
                     .css('border-collapse', 'collapse')
+                    .css('margin', '0 auto') // ✅ center table horizontally
                     .find('th, td')
                     .css('border', '1px solid black')
-                    .css('padding', '5px');
+                    .css('padding', '5px')
+                    .css('text-align', 'center'); // ✅ center all cell data
 
                 $(win.document.body).find('th')
                     .css('background-color', 'black')
@@ -150,13 +156,17 @@ var qualityCheackTable = $('#qualityCheackStockTable').DataTable({
             text: '<i class="bi bi-file-earmark-pdf text-danger fs-5"></i>',
             title: `Quality Check Stock - ${moment().format("YYYY-MM-DD")}`,
             exportOptions: {
-                columns: ':visible:not(:first-child)', // last column included
+                columns: ':visible:not(:first-child)', // Exclude first column (checkbox)
                 rows: function (idx, data, node) {
                     let uniqueId = data.ItemCode + "_" + idx;
                     return selectedQualityIds.has(uniqueId);
                 },
                 format: {
                     body: function (data, row, column, node) {
+                        var tmp = document.createElement("DIV");
+                        tmp.innerHTML = data;
+                        var text = tmp.textContent || tmp.innerText || "";
+
                         if (column === 1) {
                             return qualityCheackTable.rows({ filter: 'applied' }).indexes()
                                 .filter(i => {
@@ -165,7 +175,8 @@ var qualityCheackTable = $('#qualityCheackStockTable').DataTable({
                                     return selectedQualityIds.has(uid);
                                 }).indexOf(row) + 1;
                         }
-                        return data;
+
+                        return text.trim();
                     }
                 }
             },
@@ -177,13 +188,13 @@ var qualityCheackTable = $('#qualityCheackStockTable').DataTable({
                 $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, button, config);
             },
             customize: function (doc) {
-                // --- Table header style ---
+                // Table header style
                 doc.styles.tableHeader.fillColor = 'black';
                 doc.styles.tableHeader.color = 'white';
                 doc.styles.tableHeader.alignment = 'center';
                 doc.styles.tableHeader.bold = true;
 
-                // --- Table layout ---
+                // Table layout
                 var objLayout = {};
                 objLayout['hLineWidth'] = function (i) { return 0.5; };
                 objLayout['vLineWidth'] = function (i) { return 0.5; };
@@ -193,7 +204,11 @@ var qualityCheackTable = $('#qualityCheackStockTable').DataTable({
                 objLayout['paddingRight'] = function (i) { return 5; };
                 doc.content[1].layout = objLayout;
 
-                // ✅ Add "Generated Date" just below the heading
+                // ✅ Center table horizontally
+                doc.content[1].table.widths = Array(doc.content[1].table.body[0].length).fill('*');
+                doc.content[1].alignment = 'center';
+
+                // Add "Generated Date" under title
                 var generatedDate = moment().format("YYYY-MM-DD");
                 doc.content.splice(1, 0, {
                     text: `Generated Date: ${generatedDate}`,
@@ -204,6 +219,7 @@ var qualityCheackTable = $('#qualityCheackStockTable').DataTable({
                 });
             }
         },
+
 
         // --- Excel ---
         {
@@ -276,10 +292,9 @@ var qualityCheackTable = $('#qualityCheackStockTable').DataTable({
 
 });
 
-// ======================
-// Quality Check Date Range Filter
-// ======================
-$("#qualityCheackStockTable_wrapper").prepend(`
+
+    // ✅ Add Date Range Picker
+    $("#qualityCheackStockTable_wrapper").prepend(`
   <div class="input-group mb-2 mt-5" style="max-width: 280px;">
     <span class="input-group-text bg-primary text-white">
       <i class="bi bi-calendar-date"></i>
@@ -288,45 +303,68 @@ $("#qualityCheackStockTable_wrapper").prepend(`
   </div>
 `);
 
-$('#qualityRange').daterangepicker({
-    autoUpdateInput: false,
-    locale: { cancelLabel: 'Clear' },
-    ranges: {
-        'Today': [moment(), moment()],
-        'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-        'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-        'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-        'This Month': [moment().startOf('month'), moment().endOf('month')],
-        'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
-    }
-});
+    // Initialize Date Range Picker
+    $('#qualityRange').daterangepicker({
+        autoUpdateInput: false,
+        locale: {
+            cancelLabel: 'Clear',
+            format: 'YYYY-MM-DD',
+            applyLabel: 'Apply'
+        },
+        ranges: {
+            'Today': [moment(), moment()],
+            'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+            'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+            'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+            'This Month': [moment().startOf('month'), moment().endOf('month')],
+            'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+        }
+    });
 
-// Custom filter for Date column (index = 5)
-$.fn.dataTable.ext.search.push(function(settings, data, dataIndex){
-    if(settings.nTable.id !== "qualityCheackStockTable") return true;
+    // Set initial placeholder with gray text
+    $('#qualityRange').val('Select Date Range').css({
+        'color': '#6c757d',
+        'font-weight': '500'
+    });
 
-    var dateRange = $('#qualityRange').val();
-    if(!dateRange) return true;
+    // Custom DataTables filter
+    $.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
+        if (settings.nTable.id !== "qualityCheackStockTable") return true;
 
-    var minMax = dateRange.split(' to ');
-    var min = moment(minMax[0], 'YYYY-MM-DD');
-    var max = moment(minMax[1], 'YYYY-MM-DD');
+        var dateRange = $('#qualityRange').val();
+        if (!dateRange || dateRange === 'Select Date Range') return true;
 
-    var date = moment(data[5], 'YYYY-MM-DD'); // Date column
-    return date.isBetween(min, max, 'day', '[]');
-});
+        try {
+            var dates = dateRange.split(' to ');
+            var min = moment(dates[0], 'YYYY-MM-DD');
+            var max = moment(dates[1], 'YYYY-MM-DD');
 
-// Apply filter on selection
-$('#qualityRange').on('apply.daterangepicker', function(ev, picker){
-    $(this).val(picker.startDate.format('YYYY-MM-DD') + ' to ' + picker.endDate.format('YYYY-MM-DD'));
-    qualityCheackTable.draw();
-});
+            var rowDateStr = data[5]; // Date column index
+            if (!rowDateStr) return false;
 
-// Clear filter
-$('#qualityRange').on('cancel.daterangepicker', function(){
-    $(this).val('');
-    qualityCheackTable.draw();
-});
+            var rowDate = moment(rowDateStr, ['YYYY-MM-DD', 'DD-MM-YYYY', 'DD/MM/YYYY']);
+            if (!rowDate.isValid()) return false;
+
+            return rowDate.isBetween(min, max, 'day', '[]');
+        } catch (e) {
+            console.error('Date filter error:', e);
+            return true;
+        }
+    });
+
+    // Event handlers for apply and cancel
+    $('#qualityRange').on('apply.daterangepicker', function (ev, picker) {
+        $(this).val(picker.startDate.format('YYYY-MM-DD') + ' to ' + picker.endDate.format('YYYY-MM-DD'))
+            .css({ 'color': '#212529' }); // Reset color after selection
+        if (typeof qualityCheackTable !== 'undefined') qualityCheackTable.draw();
+    });
+
+    $('#qualityRange').on('cancel.daterangepicker', function () {
+        $(this).val('Select Date Range').css({ 'color': '#6c757d' });
+        if (typeof qualityCheackTable !== 'undefined') qualityCheackTable.draw();
+    });
+
+
 
 // --- Row checkbox logic ---
 $('#qualityCheackStockTable tbody').on('change', '.row-checkbox-quality', function () {
