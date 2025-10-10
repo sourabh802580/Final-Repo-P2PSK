@@ -40,9 +40,9 @@
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
             <!-- Header -->
-            <div class="modal-header bg-primary  text-white position-relative">
+            <div class="modal-header bg-primary text-white position-relative">
                 <h5 class="modal-title mb-3 h3 text-white w-100 text-center" id="warehouseModalTitle">Add Warehouse</h5>
-                <button type="button" class="btn-close btn-close-white mb-3 " data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close btn-close-white mb-3" data-bs-dismiss="modal"></button>
             </div>
 
             <!-- Body -->
@@ -54,7 +54,7 @@
                             <span class="input-group-text"><i class="ri-barcode-line"></i></span>
                             <div class="form-floating form-floating-outline">
                                 <input type="text" class="form-control" id="WarehouseCode" name="WarehouseCode" readonly>
-                                <label for="WarehouseCode">Warehouse Code</label>
+                                <label for="WarehouseCode">Warehouse Code <span class="text-danger">*</span></label>
                             </div>
                         </div>
                     </div>
@@ -65,7 +65,7 @@
                             <span class="input-group-text"><i class="ri-building-4-line"></i></span>
                             <div class="form-floating form-floating-outline">
                                 <input type="text" class="form-control" name="WarehouseName" required>
-                                <label for="WarehouseName">Warehouse Name</label>
+                                <label for="WarehouseName">Warehouse Name <span class="text-danger">*</span></label>
                             </div>
                         </div>
                     </div>
@@ -76,7 +76,7 @@
                             <span class="input-group-text"><i class="ri-map-pin-line"></i></span>
                             <div class="form-floating form-floating-outline">
                                 <input type="text" class="form-control" name="Address" required>
-                                <label for="Address">Address</label>
+                                <label for="Address">Address <span class="text-danger">*</span></label>
                             </div>
                         </div>
                     </div>
@@ -86,10 +86,10 @@
                         <div class="input-group input-group-merge mb-3">
                             <span class="input-group-text"><i class="ri-earth-line"></i></span>
                             <div class="form-floating form-floating-outline">
-                                <select class="form-select" id="CountryId" name="CountryCode" required>
+                                <select class="form-select h-auto " id="CountryId" name="CountryCode" required>
                                     <option value="">-- Select Country --</option>
                                 </select>
-                                <label for="CountryId">Country</label>
+                                <label for="CountryId">Country <span class="text-danger">*</span></label>
                             </div>
                         </div>
                     </div>
@@ -102,7 +102,7 @@
                                 <select class="form-select" id="StateId" name="StateCode" required>
                                     <option value="">-- Select State --</option>
                                 </select>
-                                <label for="StateId">State</label>
+                                <label for="StateId">State <span class="text-danger">*</span></label>
                             </div>
                         </div>
                     </div>
@@ -115,7 +115,7 @@
                                 <select class="form-select" id="CityId" name="CityId" required>
                                     <option value="">-- Select City --</option>
                                 </select>
-                                <label for="CityId">City</label>
+                                <label for="CityId">City <span class="text-danger">*</span></label>
                             </div>
                         </div>
                     </div>
@@ -126,7 +126,7 @@
                             <span class="input-group-text"><i class="ri-phone-fill"></i></span>
                             <div class="form-floating form-floating-outline">
                                 <input type="tel" class="form-control" name="Phone" required pattern="[0-9]{10}" placeholder="Enter 10-digit phone">
-                                <label for="Phone">Phone</label>
+                                <label for="Phone">Phone <span class="text-danger">*</span></label>
                             </div>
                         </div>
                     </div>
@@ -137,7 +137,7 @@
                             <span class="input-group-text"><i class="ri-mail-line"></i></span>
                             <div class="form-floating form-floating-outline">
                                 <input type="email" class="form-control" name="Email" required>
-                                <label for="Email">Email</label>
+                                <label for="Email">Email <span class="text-danger">*</span></label>
                             </div>
                         </div>
                     </div>
@@ -147,7 +147,7 @@
                         <div class="input-group input-group-merge mb-3">
                             <span class="input-group-text"><i class="ri-file-text-line"></i></span>
                             <div class="form-floating form-floating-outline">
-                                <textarea class="form-control" name="Description" rows="3" required></textarea>
+                                <textarea class="form-control" name="Description" rows="3"></textarea>
                                 <label for="Description">Description</label>
                             </div>
                         </div>
@@ -159,18 +159,17 @@
                             <span class="input-group-text"><i class="ri-archive-line"></i></span>
                             <div class="form-floating form-floating-outline">
                                 <input type="number" class="form-control" name="Capacity" required>
-                                <label for="Capacity">Capacity</label>
+                                <label for="Capacity">Capacity <span class="text-danger">*</span></label>
                             </div>
                         </div>
                     </div>
-
                 </form>
             </div>
 
             <!-- Footer -->
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline-danger bg-danger text-white px-4" data-bs-dismiss="modal">
-                    <i class="bi bi-x-circle  me-2"></i>Close
+                    <i class="bi bi-x-circle me-2"></i>Close
                 </button>
                 <button type="submit" form="addWarehouseForm" class="btn btn-success px-4" id="warehouseModalSubmitBtn">
                     <i class="bi bi-check-circle me-2 text-white"></i>Save
