@@ -262,13 +262,13 @@
 
 <!-- ✅ Tabs Section -->
 <div class="tab-section">
-    <ul class="nav nav-pills nav-justified  p-2 rounded" id="stockTabs" role="tablist">
-        <li class="nav-item card shadow-sm" role="presentation">
+    <ul class="nav nav-pills" id="stockTabs" role="tablist">
+        <li class="nav-item" role="presentation">
             <button class="nav-link active" id="current-tab" data-bs-toggle="tab" data-bs-target="#current" type="button" role="tab">
                 ConfirmItem
             </button>
         </li>
-        <li class="nav-item card shadow-sm" role="presentation">
+        <li class="nav-item" role="presentation">
             <button class="nav-link" id="nonmoving-tab" data-bs-toggle="tab" data-bs-target="#nonmoving" type="button" role="tab">
                 Non-ConfirmItem
             </button>
@@ -312,7 +312,7 @@
             ranges: {
                 'Today': [moment(), moment()],
                 'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                
                 'Last 1 Month': [moment().subtract(1, 'months').startOf('day'), moment()],
                 'Last 3 Months': [moment().subtract(3, 'months').startOf('day'), moment()],
                 'Last 1 Year': [moment().subtract(12, 'months').startOf('day'), moment()]
