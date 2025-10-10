@@ -1822,13 +1822,11 @@
                     // Format RequiredDate if it exists
                     if (header.RequiredDate) {
                         let ts = header.RequiredDate.toString();
-                        let timestamp = ts.includes("/Date")
-                            ? parseInt(ts.replace(/[^0-9]/g, ''))
-                            : Date.parse(ts);
+                      
 
-                        if (!isNaN(timestamp)) {
-                            $("#rfqRequiredDate").val(moment(timestamp).format("D/M/YYYY"));
-                        }
+                       
+                        $("#rfqRequiredDate").val(ts);
+                     
                     }
 
                     $("#rfqCreatedBy").val(header.CreatedBy || "");

@@ -702,7 +702,7 @@ namespace P2PLibray.Account
                     grnDetails.InvoiceCode = dr["InvoiceNo"].ToString();
                     grnDetails.CompanyAddress = dr["CompanyAddress"].ToString();
                     grnDetails.BillingAddress = dr["BillingAddress"].ToString();
-                    grnDetails.StatusName = dr["StatusName"].ToString();
+                    //grnDetails.StatusName = dr["StatusName"].ToString();
                     grnDetails.TotalAmount = dr["TotalAmount"] != DBNull.Value ? Convert.ToDecimal(dr["TotalAmount"]) : 0;
                     grnDetails.ShippingCharges = dr["ShippingCharges"] != DBNull.Value ? Convert.ToDecimal(dr["ShippingCharges"]) : 0;
                 }
