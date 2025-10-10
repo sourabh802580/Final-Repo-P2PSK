@@ -16,7 +16,7 @@
 </style>
 
 <div class="container mt-4 card shadow-sm">
-    <h3 class="text-primary text-center fw-bolder mt-3">Current Stock</h3>
+    <h3 class="text-primary text-center fw-bolder mt-3">Current Stock Check</h3>
     <table id="currentStockTable" class="table table-bordered table-striped wrap">
         <thead class="table-dark text-center">
             <tr>
@@ -37,17 +37,41 @@
 
 <!-- Modal -->
 <div class="modal fade" id="viewModal" tabindex="-1" aria-labelledby="viewModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <!-- Added modal-dialog-centered -->
         <div class="modal-content">
-            <div class="modal-header bg-primary justify-content-center position-relative">
+            <div class="modal-header bg-primary justify-content-center position-relative" style="padding-top: 0.7rem; padding-bottom: 0.7rem;">
                 <h4 class="modal-title text-white text-center" id="viewModalLabel">View Item</h4>
                 <button type="button" class="btn-close btn-close-white position-absolute end-0 me-2" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
+
             <div class="modal-body">
-                <p><strong>Item Code:</strong> <span id="modalItemCode"></span></p>
-                <p><strong>Item Name:</strong> <span id="modalItemName"></span></p>
-                <p><strong>Current Quantity:</strong> <span id="modalQuantity"></span></p>
-                <p><strong>Reorder Quantity:</strong> <span id="modalReorderQty"></span></p>
+                <div class="row mb-2">
+                    <!-- Left Column -->
+                    <div class="col-md-6">
+                        <div class="mb-2">
+                            <label class="form-label fw-bold">Item Code:</label>
+                            <input type="text" id="modalItemCode" class="form-control bg-light text-muted" readonly>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label fw-bold">Item Name:</label>
+                            <input type="text" id="modalItemName" class="form-control bg-light text-muted" readonly>
+                        </div>
+                    </div>
+
+                    <!-- Right Column -->
+                    <div class="col-md-6">
+                        <div class="mb-2">
+                            <label class="form-label fw-bold">Current Quantity:</label>
+                            <input type="text" id="modalQuantity" class="form-control bg-light text-muted" readonly>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label fw-bold">Reorder Quantity:</label>
+                            <input type="text" id="modalReorderQty" class="form-control bg-light text-muted" readonly>
+                        </div>
+                    </div>
+                </div>
+
                 <hr />
                 <h5>Bin Details</h5>
                 <table class="table table-sm table-bordered">
@@ -65,6 +89,7 @@
         </div>
     </div>
 </div>
+
 
 <script>
 $(document).ready(function () {
@@ -128,7 +153,7 @@ $(document).ready(function () {
                     data-id="${row.ItemCode}"
                     title="View Current Stock"
                     data-bs-toggle="tooltip">
-                <i class="bi bi-eye"></i>
+                <i class="bi bi-eye-fill"></i>
             </button>`;
                 }
 
@@ -165,15 +190,18 @@ $(document).ready(function () {
                     $(win.document.body).find('table')
                         .css('border', '1px solid black')
                         .css('border-collapse', 'collapse')
+                        .css('margin', '0 auto') // ✅ center table horizontally on page
                         .find('th, td')
                         .css('border', '1px solid black')
-                        .css('padding', '5px');
+                        .css('padding', '5px')
+                        .css('text-align', 'center'); // ✅ center all text
 
                     $(win.document.body).find('th')
                         .css('background-color', 'black')
                         .css('color', 'white');
                 }
             },
+
             // --- PDF ---
             {
                 extend: 'pdfHtml5',
@@ -314,12 +342,13 @@ $(document).ready(function () {
     $('#currentStockTable tbody').on('click', '.transfer-btn', function () {
         var rowData = currentStockTable.row($(this).closest('tr')).data();
 
-        $('#modalItemCode').text(rowData.ItemCode);
-        $('#modalItemName').text(rowData.ItemName);
-        $('#modalQuantity').text(rowData.CurrentQty);
-        $('#modalReorderQty').text(rowData.ReorderQuantity);
+        // Fill input fields instead of span/label
+        $('#modalItemCode').val(rowData.ItemCode);
+        $('#modalItemName').val(rowData.ItemName);
+        $('#modalQuantity').val(rowData.CurrentQty);
+        $('#modalReorderQty').val(rowData.ReorderQuantity);
 
-        // Fill Bin table with Sr.No.
+        // Fill Bin table with Sr.No. (unchanged)
         let binList = rowData.BinName ? rowData.BinName.split(",") : [];
         let binRows = "";
         let srNo = 1;
@@ -328,16 +357,17 @@ $(document).ready(function () {
             let parts = bin.trim().match(/(.*)\((\d+)\)/);
             if (parts) {
                 binRows += `<tr class="text-center">
-                              <td>${srNo++}</td>
-                              <td>${parts[1].trim()}</td>
-                              <td>${parts[2]}</td>
-                            </tr>`;
+                          <td>${srNo++}</td>
+                          <td>${parts[1].trim()}</td>
+                          <td>${parts[2]}</td>
+                        </tr>`;
             }
         });
 
         $('#modalBinTable').html(binRows);
         $('#viewModal').modal('show');
     });
+
 
     // Initialize Bootstrap tooltips
     $('body').tooltip({

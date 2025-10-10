@@ -100,10 +100,10 @@
         <div class="modal-content">
             <div class="modal-header bg-primary text-white">
                 <div class="w-100 text-center">
-                    <h5 class="modal-title text-white bg-gradient-primary mb-0">Purchase Order Items</h5>
+                    <h5 class="modal-title text-white bg-gradient-primary mb-3">Purchase Order Items</h5>
                 </div>
 
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close btn-close-white mb-2" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <table id="poItemsTable" class="table table-striped table-bordered w-100">
@@ -156,6 +156,59 @@
 
 
 <script>
+
+
+    // Clear processing state for all DataTable buttons
+    window.__dt_clearAllProcessing = function () {
+        try {
+            // Try to clear via DataTables API
+            var tables = $.fn.dataTable.tables();
+            for (var i = 0; i < tables.length; i++) {
+                try {
+                    var api = $(tables[i]).DataTable();
+                    if (!api || !api.buttons) continue;
+                    var btnCount = (api.buttons().nodes && api.buttons().nodes().length) || 0;
+                    for (var j = 0; j < btnCount; j++) {
+                        try { api.button(j).processing(false); } catch (e) { }
+                    }
+                } catch (e) { }
+            }
+        } catch (e) { }
+
+        // Fallback DOM cleanup
+        try {
+            $('.dt-button').removeClass('dt-button-processing');
+            $('.dt-button').prop('disabled', false);
+        } catch (e) { }
+    };
+
+    // Listen for print-done message from print window
+    window.addEventListener('message', function (ev) {
+        if (ev && ev.data === 'dt_print_done') {
+            window.__dt_clearAllProcessing();
+        }
+    });
+
+    // Store original button actions if not already stored
+    if (!$.fn.dataTable.ext.buttons.pdfHtml5.__originalAction) {
+        $.fn.dataTable.ext.buttons.pdfHtml5.__originalAction =
+            $.fn.dataTable.ext.buttons.pdfHtml5.action;
+    }
+    if (!$.fn.dataTable.ext.buttons.print.__originalAction) {
+        $.fn.dataTable.ext.buttons.print.__originalAction =
+            $.fn.dataTable.ext.buttons.print.action;
+    }
+    if (!$.fn.dataTable.ext.buttons.excelHtml5.__originalAction) {
+        $.fn.dataTable.ext.buttons.excelHtml5.__originalAction =
+            $.fn.dataTable.ext.buttons.excelHtml5.action;
+    }
+    if (!$.fn.dataTable.ext.buttons.csvHtml5.__originalAction) {
+        $.fn.dataTable.ext.buttons.csvHtml5.__originalAction =
+            $.fn.dataTable.ext.buttons.csvHtml5.action;
+    }
+
+
+
     var table, poChart;
     var startDate = null, endDate = null;
 
@@ -233,13 +286,46 @@
                             }
                         }
                     },
+                    //action: function (e, dt, button, config) {
+                    //    if ($('.rowCheckbox:checked').length === 0) {
+                    //        showExportToast();
+                    //        return;
+                    //    }
+                    //    $.fn.dataTable.ext.buttons.print.action.call(this, e, dt, button, config);
+                    //},
                     action: function (e, dt, button, config) {
-                        if ($('.rowCheckbox:checked').length === 0) {
+                        var selected = dt.rows().nodes().to$().find('input.row-select:checked').length;
+                        var btnApi = dt.button(button);
+
+                        // Support both checkbox classes
+                        var selectedCount = selected || $('.rowCheckbox:checked').length;
+
+                        // --- No selection ---
+                        if (selectedCount === 0) {
                             showExportToast();
+                            try { btnApi.processing(false); } catch (err) { }
                             return;
                         }
-                        $.fn.dataTable.ext.buttons.print.action.call(this, e, dt, button, config);
+
+                        // --- Show spinner ---
+                        try { btnApi.processing(true); } catch (err) { }
+
+                        // --- Call original Print action ---
+                        try {
+                            $.fn.dataTable.ext.buttons.print.action.call(this, e, dt, button, config);
+                        } catch (err) {
+                            console.error('Print export error:', err);
+                            // Ensure spinner stops on error
+                            setTimeout(function () { try { btnApi.processing(false); } catch (e) { } }, 300);
+                            throw err;
+                        }
+
+                        // --- Fallback: stop spinner after 2s ---
+                        setTimeout(function () {
+                            try { btnApi.processing(false); } catch (err) { }
+                        }, 2000);
                     },
+
                     customize: function (win) {
                         // Center the title
                         $(win.document.body).find('h1').css({
@@ -288,12 +374,50 @@
                         }
                     },
                     action: function (e, dt, button, config) {
-                        if ($('.rowCheckbox:checked').length === 0) {
+                        var selected = dt.rows().nodes().to$().find('input.row-select:checked').length;
+                        var btnApi = dt.button(button);
+
+                        // Support both checkbox classes
+                        var selectedCount = selected || $('.rowCheckbox:checked').length;
+
+                        // --- No selection ---
+                        if (selectedCount === 0) {
                             showExportToast();
+                            try { btnApi.processing(false); } catch (err) { }
                             return;
                         }
+
+                        // --- Show spinner ---
+                        try { btnApi.processing(true); } catch (err) { }
+
+                        // --- Patch pdfMake download to stop spinner (only once) ---
+                        if (window.pdfMake && pdfMake.createPdf && !pdfMake._patchedForDT) {
+                            (function () {
+                                var origCreate = pdfMake.createPdf;
+                                pdfMake.createPdf = function (docDefinition) {
+                                    var pdfDoc = origCreate.call(pdfMake, docDefinition);
+                                    var origDownload = pdfDoc.download;
+                                    pdfDoc.download = function (filename, cb) {
+                                        origDownload.call(pdfDoc, filename, function () {
+                                            try { btnApi.processing(false); } catch (err) { }
+                                            if (typeof cb === 'function') cb();
+                                        });
+                                    };
+                                    return pdfDoc;
+                                };
+                                pdfMake._patchedForDT = true; // patch only once
+                            })();
+                        }
+
+                        // --- Call original PDF action ---
                         $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, button, config);
+
+                        // --- Fallback: stop spinner after 1.5s if something fails ---
+                        setTimeout(function () {
+                            try { btnApi.processing(false); } catch (err) { }
+                        }, 1500);
                     },
+
                     customize: function (doc) {
                         // Center the title
                         doc.content[0].alignment = 'center';
@@ -354,13 +478,43 @@
                             }
                         }
                     },
+                    //action: function (e, dt, button, config) {
+                    //    if ($('.rowCheckbox:checked').length === 0) {
+                    //        showExportToast();
+                    //        return;
+                    //    }
+                    //    $.fn.dataTable.ext.buttons.excelHtml5.action.call(this, e, dt, button, config);
+                    //}
                     action: function (e, dt, button, config) {
-                        if ($('.rowCheckbox:checked').length === 0) {
+                        var selected = dt.rows().nodes().to$().find('input.row-select:checked').length;
+                        var btnApi = dt.button(button);
+
+                        // Support both checkbox classes
+                        var selectedCount = selected || $('.rowCheckbox:checked').length;
+
+                        // --- No selection ---
+                        if (selectedCount === 0) {
                             showExportToast();
+                            try { btnApi.processing(false); } catch (err) { }
                             return;
                         }
-                        $.fn.dataTable.ext.buttons.excelHtml5.action.call(this, e, dt, button, config);
-                    }
+
+                        // --- Show spinner ---
+                        try { btnApi.processing(true); } catch (err) { }
+
+                        // --- Call original Excel action ---
+                        try {
+                            $.fn.dataTable.ext.buttons.excelHtml5.action.call(this, e, dt, button, config);
+                        } catch (err) {
+                            console.error('Excel export error:', err);
+                            setTimeout(function () { try { btnApi.processing(false); } catch (e) { } }, 300);
+                            throw err;
+                        }
+
+                        // --- Fallback: clear spinner after short timeout ---
+                        setTimeout(function () { try { btnApi.processing(false); } catch (err) { } }, 300);
+                    },
+
                 },
 
                 // CSV
@@ -383,13 +537,43 @@
                             }
                         }
                     },
+                    //action: function (e, dt, button, config) {
+                    //    if ($('.rowCheckbox:checked').length === 0) {
+                    //        showExportToast();
+                    //        return;
+                    //    }
+                    //    $.fn.dataTable.ext.buttons.csvHtml5.action.call(this, e, dt, button, config);
+                    //}
                     action: function (e, dt, button, config) {
-                        if ($('.rowCheckbox:checked').length === 0) {
+                        var selected = dt.rows().nodes().to$().find('input.row-select:checked').length;
+                        var btnApi = dt.button(button);
+
+                        // Support both checkbox classes
+                        var selectedCount = selected || $('.rowCheckbox:checked').length;
+
+                        // --- No selection ---
+                        if (selectedCount === 0) {
                             showExportToast();
+                            try { btnApi.processing(false); } catch (err) { }
                             return;
                         }
-                        $.fn.dataTable.ext.buttons.csvHtml5.action.call(this, e, dt, button, config);
-                    }
+
+                        // --- Show spinner ---
+                        try { btnApi.processing(true); } catch (err) { }
+
+                        // --- Call original CSV action ---
+                        try {
+                            $.fn.dataTable.ext.buttons.csvHtml5.action.call(this, e, dt, button, config);
+                        } catch (err) {
+                            console.error('CSV export error:', err);
+                            setTimeout(function () { try { btnApi.processing(false); } catch (e) { } }, 300);
+                            throw err;
+                        }
+
+                        // --- Fallback: stop spinner after short timeout ---
+                        setTimeout(function () { try { btnApi.processing(false); } catch (err) { } }, 300);
+                    },
+
                 },
 
                 'colvis'
@@ -567,12 +751,6 @@
 
 
 
-
-
-
-
-
-
         // View Modal Button
         $('#poTable').on('click', '.view-items', function () {
             var poCode = $(this).data('pocode');
@@ -625,21 +803,6 @@
                             columnDefs: [
                                 { className: 'text-center', targets: '_all' }
                             ],
-                            //footerCallback: function (row, data, start, end, display) {
-                            //    let api = this.api();
-
-                            //    // Sum final amount column (last column index = 5)
-                            //    let total = api
-                            //        .column(5, { page: 'current' })
-                            //        .data()
-                            //        .reduce((a, b) => {
-                            //            let val = parseFloat(String(b).replace(/[^\d.-]/g, '')) || 0;
-                            //            return a + val;
-                            //        }, 0);
-
-                            //    // Update footer cell
-                            //    $(api.column(5).footer()).html('₹' + total.toFixed(2));
-                            //}
                             footerCallback: function (row, data, start, end, display) {
                                 let api = this.api();
 

@@ -176,9 +176,34 @@
                                 </tr>
                             `);
                     });
+
+
+
+
                     $("#ftSubTotal").text("₹ " + subTotal.toFixed(2));
                     const shipping = Number($("#ftShipping").text().replace("₹", "").trim() || 0);
                     $("#ftGrand").text("₹ " + (subTotal + shipping).toFixed(2));
+
+                    // Initialize DataTable after loading items
+                    $('#grid').DataTable({
+                        paging: true,
+                        searching: false,
+                        info: true,
+                        ordering: false,
+                        lengthChange: false,
+                        pageLength: 10,
+                        language: {
+                            info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                            infoEmpty: "No entries available",
+                            lengthMenu: "Show _MENU_ entries",
+                            paginate: {
+                                previous: "<",
+                                next: ">"
+                            }
+                        },
+                        dom: '<"d-flex justify-content-between align-items-center mb-2"l><"table-responsive"t><"d-flex justify-content-between align-items-center mt-2"ip>'
+                    });
+
 
                     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
                     tooltipTriggerList.map(function (tooltipTriggerEl) {

@@ -40,9 +40,9 @@
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content">
             <!-- Header -->
-            <div class="modal-header bg-primary text-white position-relative">
-                <h5 class="modal-title text-white w-100 text-center" id="warehouseModalTitle">Add Warehouse</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            <div class="modal-header bg-primary  text-white position-relative">
+                <h5 class="modal-title mb-3 h3 text-white w-100 text-center" id="warehouseModalTitle">Add Warehouse</h5>
+                <button type="button" class="btn-close btn-close-white mb-3 " data-bs-dismiss="modal"></button>
             </div>
 
             <!-- Body -->
@@ -187,7 +187,7 @@
             <!-- Header -->
             <div class="modal-header bg-primary text-white position-relative">
                 <h5 class="modal-title text-white w-100 text-center">Warehouse Details</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal">Close</button>
             </div>
 
             <!-- Body -->
@@ -354,13 +354,29 @@
             var stateCode = $(this).val();
             console.log("Country: " + countryCode + ", State: " + stateCode);
 
-            $.getJSON('@Url.Action("GetCities", "Account")', { countryCode: countryCode, stateCode: stateCode }, function (data) {
-                console.log("City Data", data);
-                $('#CityId').empty().append('<option>Select City</option>');
-                $.each(data, function (i, city) {
-                    $('#CityId').append('<option value="' + city.Id + '">' + city.Name + '</option>');
-                });
-            });
+            $.getJSON('@Url.Action("GetCities", "Account")',
+    { countryCode: countryCode, stateCode: stateCode },
+    function (data) {
+        console.log("City Data (raw):", data);
+
+        // ✅ Check if data is a string — then parse manually
+        if (typeof data === "string") {
+            try {
+                data = JSON.parse(data);
+            } catch (e) {
+                console.error("Invalid JSON from server:", e);
+                return;
+            }
+        }
+
+        $('#CityId').empty().append('<option>Select City</option>');
+
+        $.each(data, function (i, city) {
+            $('#CityId').append('<option value="' + city.Id + '">' + city.Name + '</option>');
+        });
+    }
+);
+
         });
 
         // ================= Initialize DataTable =================
@@ -1073,7 +1089,7 @@ $.getJSON('@Url.Action("GetCountries", "Purchase")', function (countrieslst) {
 
 
                     $("#warehouseModalTitle").text("Update Warehouse");
-                    $("#warehouseModalSubmitBtn").html('<i class="bi bi-check-circle me-2 text-white"></i>Update');
+                    $("#warehouseModalSubmitBtn").html('<i class="bi bi-check-circle bg-primary me-2 text-white"></i>Update');
 
 
                     $.get("/Account/GetCountries", function (countries) {
@@ -1096,13 +1112,13 @@ $.getJSON('@Url.Action("GetCountries", "Purchase")', function (countrieslst) {
                             $("#StateId").val(d.StateCode);
 
 
-                            $.get("/Account/GetCities", { CountryCode: d.CountryCode, stateCode: d.StateCode }, function (cities) {
+                            $.get("/Account/GetCities", { CountryCode: d.CountryCode, StateCode: d.StateCode }, function (cities) {
                                 $("#CityId").empty().append('<option value="">-- Select City --</option>');
                                 $.each(cities, function (i, city) {
                                     $("#CityId").append('<option value="' + city.Id + '">' + city.Name + '</option>');
                                 });
-
-
+                                console.log("Cities Data", cities);
+                                console.log("Selected CityId", d.CityId);
                                 $("#CityId").val(d.CityId);
                             });
                         });

@@ -58,7 +58,7 @@
         let endDate = null;
 
         function cb(start, end) {
-            $('#Rejectedrange').val(start.format('YYYY-MM-DD') + ' - ' + end.format('YYYY-MM-DD'));
+            $('#Rejectedrange').val(start.format('DD/MM/YYYY') + ' - ' + end.format('DD/MM/YYYY'));
             startDate = start;
             endDate = end;
             table.draw();
@@ -67,13 +67,13 @@
         $('#Rejectedrange').daterangepicker({
             autoUpdateInput: false,
             locale: { cancelLabel: 'Clear' },
+            format: 'DD/MM/YYYY',
             ranges: {
                 'Today': [moment(), moment()],
-                'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
                 'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-                'This Month': [moment().startOf('month'), moment().endOf('month')],
-                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                'Last 1 Month': [moment().subtract(1, 'months').startOf('day'), moment()],
+                'Last 3 Months': [moment().subtract(3, 'months').startOf('day'), moment()],
+                'Last 1 Year': [moment().subtract(12, 'months').startOf('day'), moment()]
             }
         }, cb);
 
@@ -356,7 +356,15 @@
                     orderable: false,
                 },
                 { data: "GRNCode", title: "GRN Code" },
-                { data: "AddedDate", title: "GRN Date" },
+                {
+                    data: "AddedDate",
+                    title: "GRN Date",
+                    render: function (data, type, row) {
+                        if (!data) return "";
+                        return data.replace(/-/g, "/");
+                    },
+                    className: "text-center align-middle"
+                },
                 //{ data: "StatusName", title: "GRNstatus" },
                 {
                     data: "StatusName",
@@ -364,10 +372,10 @@
                     orderable: false,
                     searchable: false,
                     render: function (data, type, row) {
-                       
-                            return '<button type="button" class="btn btn-success btn-InStock square-pill d-inline-flex align-items-center px-3 shadow-InStock" data-bs-toggle="tooltip" title="In Stock"><i class="bi bi-box-seam fs-5"></i></button>';
-                       
-                      
+                        return `
+            <button type="button" class="btn btn-success btn-InStock square-pill d-inline-flex align-items-center px-2 py-1 shadow-InStock" data-bs-toggle="tooltip" title="In Stock">
+                <i class="bi bi-box-seam fs-6"></i>
+            </button>`;
                     }
                 }
             ],

@@ -118,6 +118,7 @@
     $(document).ready(function () {
 
         function loadPendingQuotations() {
+            
             $.ajax({
                 url: "/Purchase/AllPendingQuotsDataAMG",
                 type: "GET",
@@ -127,6 +128,7 @@
                     tblPending = $("#pendingTable").DataTable({
                         destroy: true,
                         data: data,
+                        ordering: false,
                         dom: '<"d-flex justify-content-between align-items-center mt-1 mb-2"Bf>rt<"d-flex justify-content-between mt-2"<"datatable-info"i><"datatable-pagination"p>>',
                         buttons: [
                             {
@@ -274,14 +276,24 @@
                                     columns: ':visible:not(:first-child):not(:last-child)',
                                     format: {
                                         body: function (data, row, column, node) {
+                                            // If column is the RecommendedQuotation column, remove HTML
+                                            if (column === 9) { // adjust index if needed
+                                                return $(data).text().trim() || '-';
+                                            }
+
+                                            // Handle checkbox numbering for first columns
                                             if (column === 1) {
                                                 return $('#pendingTable tbody input.row-check:checked')
                                                     .index($(node).closest('tr').find('.row-check')) + 1;
                                             }
-                                            return data;
+
+                                            return typeof data === 'string'
+                                                ? data.replace(/<[^>]*>/g, '') // strip any remaining HTML
+                                                : data;
                                         }
                                     }
                                 }
+
                             },
                             {
                                 extend: 'excelHtml5',
@@ -486,11 +498,10 @@
         locale: { cancelLabel: 'Clear' },
         ranges: {
             'Today': [moment(), moment()],
-            'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
             'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-            'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-            'This Month': [moment().startOf('month'), moment().endOf('month')],
-            'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+            'Last 1 Month': [moment().subtract(1, 'months').startOf('day'), moment()],
+            'Last 3 Months': [moment().subtract(3, 'months').startOf('day'), moment()],
+            'Last 1 Year': [moment().subtract(12, 'months').startOf('day'), moment()]
         }
     }, function (start, end) {
         $('#PendingDatepicker').val(start.format('DD-MM-YYYY') + ' - ' + end.format('DD-MM-YYYY'));
@@ -511,6 +522,44 @@
         $(this).val('');
         tblPending.draw();
     });
+
+
+
+    // ✅ Date range picker
+    //$('#dateRange').daterangepicker({
+    //    autoUpdateInput: false,
+    //    alwaysShowCalendars: false,
+    //    locale: {
+    //        cancelLabel: 'Clear',
+    //        format: 'DD-MM-YYYY',
+    //        applyLabel: 'Apply',
+    //        customRangeLabel: 'Custom Range'
+    //    },
+    //    ranges: {
+    //        'Today': [moment(), moment()],
+    //        'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+    //        'Last 1 Month': [moment().subtract(1, 'months').startOf('day'), moment()],
+    //        'Last 3 Months': [moment().subtract(3, 'months').startOf('day'), moment()],
+    //        'Last 1 Year': [moment().subtract(12, 'months').startOf('day'), moment()]
+    //    }
+    //}, function (start, end) {
+    //    startDate = start.toDate();
+    //    endDate = end.toDate();
+    //    $('#dateRange').val(start.format('DD-MM-YYYY') + ' - ' + end.format('DD-MM-YYYY'));
+    //    table.draw();
+    //    updateChart();
+    //});
+
+    //$('#dateRange').on('cancel.daterangepicker', function () {
+    //    $(this).val('Select Date Range');
+    //    startDate = null; endDate = null;
+    //    table.draw();
+    //    updateChart();
+    //});
+
+    //$('#dateRange').val('Select Date Range');
+
+
 
 
 
