@@ -1,7 +1,7 @@
 ﻿<div class="d-flex justify-content-between align-items-center mb-3">
 
     <div class="flex-grow-1 text-center">
-        <h4 class="mb-0 text-primary">Warehouse List</h4>
+        <h4 class="mb-0 h3 text-primary">Warehouse List</h4>
     </div>
 
     <button class="btn btn-success" id="btnAddWarehouse">
@@ -42,7 +42,7 @@
             <!-- Header -->
             <div class="modal-header bg-primary text-white position-relative">
                 <h5 class="modal-title mb-3 h3 text-white w-100 text-center" id="warehouseModalTitle">Add Warehouse</h5>
-                <button type="button" class="btn-close btn-close-white mb-3" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close btn-close-white mb-3 mb-3" data-bs-dismiss="modal"></button>
             </div>
 
             <!-- Body -->
@@ -168,9 +168,9 @@
 
             <!-- Footer -->
             <div class="modal-footer">
-                <button type="button" class="btn btn-outline-danger bg-danger text-white px-4" data-bs-dismiss="modal">
+                @*<button type="button" class="btn btn-outline-danger bg-danger text-white px-4" data-bs-dismiss="modal">
                     <i class="bi bi-x-circle me-2"></i>Close
-                </button>
+                </button>*@
                 <button type="submit" form="addWarehouseForm" class="btn btn-success px-4" id="warehouseModalSubmitBtn">
                     <i class="bi bi-check-circle me-2 text-white"></i>Save
                 </button>
@@ -185,8 +185,8 @@
         <div class="modal-content">
             <!-- Header -->
             <div class="modal-header bg-primary text-white position-relative">
-                <h5 class="modal-title text-white h3 w-100 text-center">Warehouse Details</h5>
-                <button type="button" class="btn-close h3" data-bs-dismiss="modal"></button>
+                <h5 class="modal-title text-white mb-3 h3 w-100 text-center">Warehouse Details</h5>
+                <button type="button" class="btn-close mb-3 btn-close-white h3" data-bs-dismiss="modal"></button>
             </div>
 
             <!-- Body -->
@@ -382,7 +382,7 @@
                 type: 'GET',
                 dataSrc: 'data'
             },
-            //Latest entries on top - Sort by AddedDate descending
+            //Latest entries on top 
             order: [[2, 'desc']],
             columns: [
                 {
@@ -522,6 +522,8 @@
                     orderable: false,
                     targets: [0, 13] // Checkbox and Action columns
                 },
+                { orderable: false, targets: "_all" },
+                { className: "text-center", targets: "_all" },
                 {
                     type: 'date',
                     targets: 7 // AddedDate column for proper sorting
@@ -796,11 +798,11 @@
             locale: { cancelLabel: 'Clear' },
             ranges: {
                 'Today': [moment(), moment()],
-                'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
                 'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-                'This Month': [moment().startOf('month'), moment().endOf('month')],
-                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                'Last 1 Month': [moment().subtract(1, 'months').startOf('day'), moment()],
+                'Last 3 Months': [moment().subtract(3, 'months').startOf('day'), moment()],
+                'Last 1 Year': [moment().subtract(12, 'months').startOf('day'), moment()]
+
             }
         });
 
@@ -941,8 +943,8 @@
             var id = $(this).data("id");
             const swalWithBootstrapButtons = Swal.mixin({
                 customClass: {
-                    confirmButton: "btn btn-success me-2",
-                    cancelButton: "btn btn-danger"
+                    confirmButton: "btn btn-danger me-2", 
+                    cancelButton: "btn btn-primary"
                 },
                 buttonsStyling: false
             });
@@ -954,7 +956,7 @@
                 showCancelButton: true,
                 confirmButtonText: "Yes, delete it!",
                 cancelButtonText: "No, cancel!",
-                reverseButtons: true,
+                reverseButtons: false,
                 timer: 10000,
                 showCloseButton: true
             }).then((result) => {
@@ -972,7 +974,7 @@
                                     showConfirmButton: false,
                                     timer: 3000
                                 });
-                                // ✅ Refresh table and maintain latest entries on top
+                                //  Refresh table and maintain latest entries on top
                                 table.ajax.reload(null, false);
                             } else {
                                 swalWithBootstrapButtons.fire({
