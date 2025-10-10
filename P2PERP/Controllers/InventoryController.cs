@@ -1816,10 +1816,7 @@ namespace P2PERP.Controllers
             }
         }
 
-        // Fix for CS0029: Cannot implicitly convert type 'void' to 'int'
-        // The method `AddItemOJ` in `BALInventory` has a return type of `void`.
-        // Update the code to remove the assignment to `result` since the method does not return a value.
-
+        // Adds or updates item details
         public async Task<ActionResult> AddItemOJ(InventoryOJ objn)
         {
             objn.StaffCode = Session["StaffCode"].ToString();
@@ -1892,6 +1889,7 @@ namespace P2PERP.Controllers
         }
 
 
+        // Main Category View
         public ActionResult CategorySSG()
         {
             return View();
@@ -1994,6 +1992,8 @@ namespace P2PERP.Controllers
             return Json(data, JsonRequestBehavior.AllowGet);
         }
 
+
+       
 
 
         #endregion Om and Sayali
