@@ -1,6 +1,6 @@
 ﻿<div class="d-flex justify-content-between align-items-center mb-3">
     <div class="flex-grow-1 text-center">
-        <h4 class="mb-0 text-primary">Bin List</h4>
+        <h4 class="mb-0 h3 text-primary">Bin List</h4>
     </div>
     <button class="btn btn-success" id="btnAddbin">
         <i class="bi bi-plus-circle"></i> Add Bin
@@ -37,7 +37,7 @@
         <div class="modal-content">
             <div class="modal-header bg-primary text-white position-relative">
                 <h5 class="modal-title text-white h3 mb-3 w-100 text-center" id="addBinModalLabel">Add New Bin</h5>
-                <button type="button" class="btn-close mb-3 btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close  h3 mb-3 btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
 
             <div class="modal-body">
@@ -59,7 +59,7 @@
                             <span class="input-group-text"><i class="ri-archive-drawer-line"></i></span>
                             <div class="form-floating form-floating-outline">
                                 <input type="text" class="form-control" id="addBinName" name="BinName" required>
-                                <label for="addBinName">Bin Name</label>
+                                <label for="addBinName">Bin Name <span class="text-danger">*</span></label>
                             </div>
                         </div>
                     </div>
@@ -72,7 +72,7 @@
                                 <select class="form-select" id="addItemCode" name="ItemCode" required>
                                     <option value="">-- Select Items --</option>
                                 </select>
-                                <label for="addItemCode">Item Name</label>
+                                <label for="addItemCode">Item Name <span class="text-danger">*</span></label>
                             </div>
                         </div>
                     </div>
@@ -83,7 +83,7 @@
                             <span class="input-group-text"><i class="ri-numbers-line"></i></span>
                             <div class="form-floating form-floating-outline">
                                 <input type="number" class="form-control" id="addMaxQuantity" name="MaxQuantity" min="1">
-                                <label for="addMaxQuantity">Max Quantity</label>
+                                <label for="addMaxQuantity">Max Quantity <span class="text-danger">*</span></label>
                             </div>
                         </div>
                     </div>
@@ -96,7 +96,7 @@
                                 <select class="form-select" id="addWarehouse" name="WarehouseId" required>
                                     <option value="">-- Select Warehouse --</option>
                                 </select>
-                                <label for="addWarehouse">Warehouse</label>
+                                <label for="addWarehouse">Warehouse <span class="text-danger">*</span></label>
                             </div>
                         </div>
                     </div>
@@ -109,7 +109,7 @@
                                 <select class="form-select" id="addSection" name="SectionId" required>
                                     <option value="">-- Select Section --</option>
                                 </select>
-                                <label for="addSection">Section</label>
+                                <label for="addSection">Section <span class="text-danger">*</span></label>
                             </div>
                         </div>
                     </div>
@@ -122,7 +122,7 @@
                                 <select class="form-select" id="addRack" name="RackId" required>
                                     <option value="">-- Select Rack --</option>
                                 </select>
-                                <label for="addRack">Rack</label>
+                                <label for="addRack">Rack <span class="text-danger">*</span></label>
                             </div>
                         </div>
                     </div>
@@ -135,7 +135,7 @@
                                 <select class="form-select" id="addRow" name="RowId" required>
                                     <option value="">-- Select Row --</option>
                                 </select>
-                                <label for="addRow">Row</label>
+                                <label for="addRow">Row <span class="text-danger">*</span></label>
                             </div>
                         </div>
                     </div>
@@ -154,9 +154,9 @@
             </div>
 
             <div class="modal-footer">
-                <button type="button" class="btn btn-outline-danger bg-danger text-white px-4" data-bs-dismiss="modal">
+                @*<button type="button" class="btn btn-outline-danger bg-danger text-white px-4" data-bs-dismiss="modal">
                     <i class="bi bi-x-circle me-2"></i>Close
-                </button>
+                </button>*@
                 <button type="submit" form="addBinForm" class="btn btn-success px-4">
                     <i class="bi bi-check-circle me-2 text-white"></i>Save
                 </button>
@@ -171,7 +171,7 @@
         <div class="modal-content">
             <div class="modal-header bg-primary text-white position-relative">
                 <h5 class="modal-title text-white h3 mb-3 w-100 text-center" id="editBinModalLabel">Update Bin</h5>
-                <button type="button" class="btn-close mb-3 btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close  h3 mb-3 btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
 
             <div class="modal-body">
@@ -195,7 +195,7 @@
                             <span class="input-group-text"><i class="ri-archive-drawer-line"></i></span>
                             <div class="form-floating form-floating-outline">
                                 <input type="text" class="form-control" id="editBinName" name="BinName" required>
-                                <label for="editBinName">Bin Name</label>
+                                <label for="editBinName">Bin Name <span class="text-danger">*</span></label>
                             </div>
                         </div>
                     </div>
@@ -208,7 +208,7 @@
                                 <select class="form-select" id="editItemCode" name="ItemCode" required>
                                     <option value="">-- Select Item --</option>
                                 </select>
-                                <label for="editItemCode">Item Name</label>
+                                <label for="editItemCode">Item Name <span class="text-danger">*</span></label>
                             </div>
                         </div>
                     </div>
@@ -219,7 +219,7 @@
                             <span class="input-group-text"><i class="ri-numbers-line"></i></span>
                             <div class="form-floating form-floating-outline">
                                 <input type="number" class="form-control" id="editMaxQuantity" name="MaxQuantity" min="1">
-                                <label for="editMaxQuantity">Max Quantity</label>
+                                <label for="editMaxQuantity">Max Quantity <span class="text-danger">*</span></label>
                             </div>
                         </div>
                     </div>
@@ -286,9 +286,9 @@
             </div>
 
             <div class="modal-footer">
-                <button type="button" class="btn btn-outline-danger bg-danger text-white px-4" data-bs-dismiss="modal">
+                @*<button type="button" class="btn btn-outline-danger bg-danger text-white px-4" data-bs-dismiss="modal">
                     <i class="bi bi-x-circle me-2"></i>Close
-                </button>
+                </button>*@
                 <button type="submit" form="editBinForm" class="btn btn-primary px-4">
                     <i class="bi bi-check-circle me-2 text-white"></i>Update
                 </button>
@@ -730,7 +730,8 @@
                 }
             ],
             columnDefs: [
-                { orderable: false, targets: "_all" }
+                { orderable: false, targets: "_all" },
+                { className: "text-center", targets: "_all" }
             ],
         });
 
@@ -749,11 +750,11 @@
             locale: { cancelLabel: 'Clear' },
             ranges: {
                 'Today': [moment(), moment()],
-                'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
                 'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-                'This Month': [moment().startOf('month'), moment().endOf('month')],
-                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                'Last 1 Month': [moment().subtract(1, 'months').startOf('day'), moment()],
+                'Last 3 Months': [moment().subtract(3, 'months').startOf('day'), moment()],
+                'Last 1 Year': [moment().subtract(12, 'months').startOf('day'), moment()]
+
             }
         });
 
