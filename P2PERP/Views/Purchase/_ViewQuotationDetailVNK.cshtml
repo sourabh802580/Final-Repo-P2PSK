@@ -153,38 +153,44 @@
                     $("#ftShipping").text("₹ " + Number(h.ShippingCharges || 0).toFixed(2));
                 });
 
-            //Get RQItems By Code
+           
+            // Get RQItems By Code
             $.getJSON('/Purchase/GetRQItemsByCodeVNK', { rqCode: rqCode })
                 .done(function (rows) {
+
+                    // ✅ Destroy existing DataTable before changing table content
+                    if ($.fn.DataTable.isDataTable('#grid')) {
+                        $('#grid').DataTable().clear().destroy();
+                    }
+
                     const $tb = $("#grid tbody").empty();
                     let subTotal = 0;
+
                     (rows || []).forEach(function (r, idx) {
                         const c = calcLine(r.Quantity, r.CostPerUnit, r.Discount, r.GST);
                         subTotal += c.lineTot;
                         $tb.append(`
-                                <tr>
-                                    <td class="text-center">${idx + 1}</td>
-                                    <td class="text-center">${r.ItemCode}</td>
-                                    <td>${r.ItemName || ""}</td>
-                                    <td class="text-center" title="${r.Description || ''}" data-bs-toggle="tooltip">${r.Description || ""}</td>
-                                    <td class="text-end">${Number(r.Quantity || 0)}</td>
-                                    <td class="text-center">${r.UOMName || ""}</td>
-                                    <td class="text-end">₹ ${Number(r.CostPerUnit || 0).toFixed(2)}</td>
-                                    <td class="text-end">${Number(r.Discount || 0).toFixed(2)}%</td>
-                                    <td class="text-end">${Number(r.GST || 0).toFixed(2)}%</td>
-                                    <td class="text-end">₹ ${c.lineTot.toFixed(2)}</td>
-                                </tr>
-                            `);
+                <tr>
+                    <td class="text-center">${idx + 1}</td>
+                    <td class="text-center">${r.ItemCode}</td>
+                    <td>${r.ItemName || ""}</td>
+                    <td class="text-center" title="${r.Description || ''}" data-bs-toggle="tooltip">${r.Description || ""}</td>
+                    <td class="text-end">${Number(r.Quantity || 0)}</td>
+                    <td class="text-center">${r.UOMName || ""}</td>
+                    <td class="text-end">₹ ${Number(r.CostPerUnit || 0).toFixed(2)}</td>
+                    <td class="text-end">${Number(r.Discount || 0).toFixed(2)}%</td>
+                    <td class="text-end">${Number(r.GST || 0).toFixed(2)}%</td>
+                    <td class="text-end">₹ ${c.lineTot.toFixed(2)}</td>
+                </tr>
+            `);
                     });
 
-
-
-
+                    // ✅ Update totals
                     $("#ftSubTotal").text("₹ " + subTotal.toFixed(2));
                     const shipping = Number($("#ftShipping").text().replace("₹", "").trim() || 0);
                     $("#ftGrand").text("₹ " + (subTotal + shipping).toFixed(2));
 
-                    // Initialize DataTable after loading items
+                    // ✅ Reinitialize DataTable AFTER adding rows
                     $('#grid').DataTable({
                         paging: true,
                         searching: false,
@@ -196,25 +202,27 @@
                             info: "Showing _START_ to _END_ of _TOTAL_ entries",
                             infoEmpty: "No entries available",
                             lengthMenu: "Show _MENU_ entries",
-                            paginate: {
-                                previous: "<",
-                                next: ">"
-                            }
+                            paginate: { previous: "<", next: ">" }
                         },
                         dom: '<"d-flex justify-content-between align-items-center mb-2"l><"table-responsive"t><"d-flex justify-content-between align-items-center mt-2"ip>'
                     });
 
-
+                    // Re-enable tooltips
                     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
                     tooltipTriggerList.map(function (tooltipTriggerEl) {
                         return new bootstrap.Tooltip(tooltipTriggerEl);
                     });
                 });
 
+
             $("#btnPrint").on("click", function () {
                 window.print();
             });
-        })();
+            })();
+
+
+
+
 
         //Modal Hide show
         $(document).on('hidden.bs.modal', '.modal', function () {

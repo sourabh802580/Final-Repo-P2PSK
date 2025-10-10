@@ -439,8 +439,16 @@ namespace P2PLibray.Purchase
                             Description = row["Description"].ToString(),
                             HasUnregisteredVendors = row.Table.Columns.Contains("HasUnregisteredVendors") && row["HasUnregisteredVendors"] != DBNull.Value
                                 ? Convert.ToInt32(row["HasUnregisteredVendors"])
+                                : 0,
+
+ AnyVendor = row.Table.Columns.Contains("HasRegisteredQuotation") && row["HasRegisteredQuotation"] != DBNull.Value
+                                ? Convert.ToInt32(row["HasRegisteredQuotation"])
                                 : 0
+
+
                         });
+
+
                     }
                 }
                 return items;
@@ -797,7 +805,8 @@ namespace P2PLibray.Purchase
                             Quantity = row["Quantity"] == DBNull.Value ? 0 : Convert.ToDecimal(row["Quantity"]),
                             CostPerUnit = row["CostPerUnit"] == DBNull.Value ? 0 : Convert.ToDecimal(row["CostPerUnit"]),
                             Discount = row["Discount"] == DBNull.Value ? 0 : Convert.ToDecimal(row["Discount"]),
-                            GST = row["GSTPct"] == DBNull.Value ? 0 : Convert.ToDecimal(row["GSTPct"])
+                            GST = row["GSTPct"] == DBNull.Value ? 0 : Convert.ToDecimal(row["GSTPct"]),
+                           // ShippingCharges= row["ShippingCharges"]== DBNull.Value ? 0 : Convert.ToDecimal(row["ShippingCharges"])
                         });
                     }
                 }
@@ -924,7 +933,10 @@ namespace P2PLibray.Purchase
                             Quantity = row.Table.Columns.Contains("Quantity") && row["Quantity"] != DBNull.Value ? Convert.ToDecimal(row["Quantity"]) : 0m,
                             CostPerUnit = row.Table.Columns.Contains("CostPerUnit") && row["CostPerUnit"] != DBNull.Value ? Convert.ToDecimal(row["CostPerUnit"]) : 0m,
                             Discount = row.Table.Columns.Contains("Discount") && row["Discount"] != DBNull.Value ? Convert.ToDecimal(row["Discount"]) : 0m,
-                            GSTPct = row.Table.Columns.Contains("GSTPct") && row["GSTPct"] != DBNull.Value ? Convert.ToDecimal(row["GSTPct"]) : 0m
+                            GSTPct = row.Table.Columns.Contains("GSTPct") && row["GSTPct"] != DBNull.Value ? Convert.ToDecimal(row["GSTPct"]) : 0m,
+                        ShippingCharges =row.Table.Columns.Contains("ShippingCharges") && row["ShippingCharges"] != DBNull.Value ? Convert.ToDecimal(row["ShippingCharges"]) : 0m
+
+
                         });
                     }
                 }
@@ -1131,6 +1143,9 @@ namespace P2PLibray.Purchase
                 return false;
             }
         }
+
+
+
         #endregion Vaibhavi
 
         #region Akash

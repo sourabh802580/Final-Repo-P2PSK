@@ -49,7 +49,7 @@
 
         #btnAdd {
             margin-top: 32px;
-            height:40px;
+            height:35px;
             width:80px;
         }
 
@@ -82,22 +82,23 @@
 <body>
     <div class="main-content">
         <div class="container my-4">
-            <div class="col-md-12 text-end mb-3">
-                <button type="button"
-                        class="btn btn-primary text-white"
-                        onclick="location.href='/Purchase/ShowAllRFQsVNK'">
-                    Back
-                </button>
-            </div>
+           
 
             <!-- Single main card -->
             <div class="card shadow-sm p-3">
 
                 <!-- Heading -->
-                <div class="text-center mb-3 mt-2">
-                    <h3 class="text-primary fw-bold">
+                <div class="position-relative mb-3 mt-2">
+                    <h3 class="text-primary fw-bold mb-0 text-center">
                         Register Quotations
                     </h3>
+                 
+                        <button type="button"
+                                class="btn btn-primary text-white position-absolute end-0 top-50 translate-middle-y"
+                                onclick="location.href='/Purchase/ShowAllRFQsVNK'">
+                            <i class="bi bi-arrow-left"></i>Back
+                        </button>
+                    
                 </div>
 
                 <!-- Card Body -->
@@ -171,9 +172,12 @@
                         <div class="col-md-2">
                             <label>GST %</label>
                             <input type="text" id="itemGst" class="form-control" readonly />
+                        </div>
+                        <div class="col-auto" style="margin-left: 1220px;">
                             <button id="btnAdd" type="button" class="btn btn-success btn-sm d-flex justify-content-center align-items-center">
-                                ADD
+                                <i class="bi bi-plus-circle me-2"></i> ADD
                             </button>
+
                         </div>
                         @*<div class="col-auto" style="margin-left: 1250px;">
                            

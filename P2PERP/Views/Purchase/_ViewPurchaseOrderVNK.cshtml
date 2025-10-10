@@ -182,6 +182,7 @@
 
             // Load PO Items
             $.get('/Purchase/GetPOItemsByCodeVNK', { POCode: POCode }, function (rows) {
+                           
                 const $tb = $("#poItemsTable tbody").empty();
                 if (!rows || rows.length === 0) {
                     $tb.append('<tr><td colspan="10" class="text-center text-muted">No items found</td></tr>');
@@ -190,6 +191,12 @@
 
                 let subtotal = 0;
                 rows.forEach(function (r, idx) {
+                    const shipping = Number(r.ShippingCharges || 0);
+
+                    $("#ftShipping").text("₹" + shipping.toFixed(2));
+
+                    console.log(shipping)
+                    console.log("rowdata",r)
                     const c = calcLine(r.Quantity, r.CostPerUnit, r.Discount, r.GSTPct);
                     subtotal += c.lineTotal;
                     $tb.append(`
@@ -204,13 +211,14 @@
                                         <td class="text-end">${Number(r.Discount || 0).toFixed(2)}%</td>
                                         <td class="text-end">${Number(r.GSTPct || 0).toFixed(2)}%</td>
                                         <td class="text-end">₹${c.lineTotal.toFixed(2)}</td>
+
                                     </tr>
                                 `);
                 });
 
                 $("#ftSubtotal").text("₹" + subtotal.toFixed(2));
-                const shipping = Number($("#ftShipping").text().replace("₹", "") || 0);
-                $("#ftGrandTotal").text("₹" + (subtotal + shipping).toFixed(2));
+                const shippingcharges = Number($("#ftShipping").text().replace("₹", "").trim()) || 0;
+                $("#ftGrandTotal").text("₹" + (subtotal + shippingcharges).toFixed(2));
 
                 if ($.fn.DataTable.isDataTable('#poItemsTable')) {
                     $('#poItemsTable').DataTable().clear().destroy();
@@ -226,6 +234,8 @@
                     info: true
                 });
             });
+
+           
 
             // Print
             $("#btnPrint").on("click", function () {
