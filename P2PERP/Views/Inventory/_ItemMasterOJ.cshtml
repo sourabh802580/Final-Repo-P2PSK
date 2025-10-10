@@ -23,15 +23,149 @@
         <div id="toastContainer" class="toast-container position-fixed top-0 end-0 p-3" style="z-index : 1100;"></div>
 
 
+        <!-- View Item Modal -->
+        <div class="modal fade" id="viewItemModal" data-bs-backdrop="true" tabindex="-1" aria-labelledby="viewItemModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-xl modal-dialog-scrollable">
+                <div class="modal-content border-0 shadow-lg">
+
+                    <!-- Header -->
+                    <div class="modal-header bg-gradient bg-primary text-white">
+                        <h5 class="modal-title w-100 text-center text-white mb-2 fw-bold" id="viewItemModalLabel">View Item Details</h5>
+
+                        <button type="button" class="btn-close btn-close-white mb-2" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+
+                    <!-- Body -->
+                    <div class="modal-body bg-light">
+                        <form id="viewItemForm" class="p-3">
+
+                            <!-- Basic Info -->
+                            <div class="card shadow-sm border-0 mb-4">
+                                <div class="card-header bg-primary bg-opacity-75 text-white mb-2 text-center fw-semibold">
+                                    Item Master
+                                </div>
+                                <div class="card-body">
+                                    <div class="row g-3">
+
+                                        <div class="col-md-4">
+                                            <label class="form-label fw-semibold text-secondary">Item Code</label>
+                                            <input type="text" id="v_itemCode" class="form-control form-control-sm bg-white" readonly>
+                                        </div>
+
+                                        <div class="col-md-4">
+                                            <label class="form-label fw-semibold text-secondary">Item Name</label>
+                                            <input type="text" id="v_itemName" class="form-control form-control-sm bg-white" readonly>
+                                        </div>
+
+                                        <div class="col-md-4">
+                                            <label class="form-label fw-semibold text-secondary">Item Category</label>
+                                            <input type="text" id="v_itemCategory" class="form-control form-control-sm bg-white" readonly>
+                                        </div>
+
+                                        <div class="col-md-4">
+                                            <label class="form-label fw-semibold text-secondary">Cost Per Unit</label>
+                                            <input type="text" id="v_costPerUnit" class="form-control form-control-sm bg-white" readonly>
+                                        </div>
+
+                                        <div class="col-md-4">
+                                            <label class="form-label fw-semibold text-secondary">Reorder Quantity</label>
+                                            <input type="text" id="v_reorderQuantity" class="form-control form-control-sm bg-white" readonly>
+                                        </div>
+
+                                        <div class="col-md-4">
+                                            <label class="form-label fw-semibold text-secondary">Min Quantity</label>
+                                            <input type="text" id="v_minQuantity" class="form-control form-control-sm bg-white" readonly>
+                                        </div>
+
+                                        <div class="col-md-4">
+                                            <label class="form-label fw-semibold text-secondary">UOM</label>
+                                            <input type="text" id="v_uom" class="form-control form-control-sm bg-white" readonly>
+                                        </div>
+
+                                        <div class="col-md-4">
+                                            <label class="form-label fw-semibold text-secondary">HSN Code</label>
+                                            <input type="text" id="v_hsnCode" class="form-control form-control-sm bg-white" readonly>
+                                        </div>
+
+                                        <div class="col-md-4">
+                                            <label class="form-label fw-semibold text-secondary">Item Make</label>
+                                            <input type="text" id="v_itemMake" class="form-control form-control-sm bg-white" readonly>
+                                        </div>
+
+                                        <div class="col-md-4">
+                                            <label class="form-label fw-semibold text-secondary">Expiry Days</label>
+                                            <input type="text" id="v_ExpiryDays" class="form-control form-control-sm bg-white" readonly>
+                                        </div>
+
+                                        <div class="col-md-4">
+                                            <label class="form-label fw-semibold text-secondary">Quality Check</label>
+                                            <input type="text" id="v_qualityCheck" class="form-control form-control-sm bg-white" readonly>
+                                        </div>
+
+                                        <div class="col-md-4">
+                                            <label class="form-label fw-semibold text-secondary">Item Status</label>
+                                            <input type="text" id="v_itemStatus" class="form-control form-control-sm bg-white" readonly>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-semibold text-secondary">Description</label>
+                                            <textarea id="v_description" class="form-control form-control-sm bg-white" rows="3" readonly></textarea>
+                                        </div>
+
+                                    </div>
+
+
+
+                                    <!-- Inspection Plan Section -->
+                                    <div id="v_inspectionfrm" style="display:none;">
+
+                                       
+
+                                        <div class="table-responsive">
+                                            <table id="v_paralistTable" class="table table-hover table-bordered align-middle">
+                                                <thead class="table-success text-center">
+                                                    <tr>
+                                                        <th>Sr.No</th>
+                                                        <th>Quality Parameters</th>
+                                                        <th>Quantity</th>
+                                                        <th>UOM</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="v_paralist"></tbody>
+                                            </table>
+                                        </div>
+
+
+                                    </div>
+                                </div>
+
+
+                            </div>
+
+                        </form>
+                    </div>
+
+                
+                  
+
+                </div>
+            </div>
+        </div>
+
+
+
+
+
+
         <!-- Modal -->
         <div class="modal fade" data-bs-backdrop="true" id="itemModal" tabindex="-1" aria-labelledby="itemModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-xl modal-dialog-scrollable">
                 <!-- XL size for full form -->
                 <div class="modal-content">
                     <div class="modal-header bg-primary ">
-                        <h5 class="modal-title w-100 text-center fw-bolder text-white " id="itemModalLabel">Create New Item</h5>
+                        <h5 class="modal-title w-100 text-center fw-bolder text-white mb-2 " id="itemModalLabel">Create New Item</h5>
 
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        <button type="button" class="btn-close btn-close-white mb-2" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
 
                     <div class="modal-body container mt-5 px-8  ">
@@ -49,51 +183,51 @@
 
                                 <!-- Item Name -->
                                 <div class="col-md-6">
-                                    <label for="itemName" class="form-label">Item Name</label>
+                                    <label for="itemName" class="form-label">Item Name <span class="ic" style="color:red;">*</span></label>
                                     <input type="text" id="itemName" name="ItemName" class="form-control" placeholder="Enter item name" required />
                                 </div>
 
                                 <!-- Cost Per Unit -->
                                 <div class="col-md-6">
-                                    <label for="costPerUnit" class="form-label">Cost Per Unit</label>
+                                    <label for="costPerUnit" class="form-label">Cost Per Unit <span class="ic" style="color:red;">*</span></label>
                                     <input type="number" step="0.01" id="costPerUnit" name="UnitRates" class="form-control" placeholder="Enter cost per unit" required />
                                 </div>
 
                                 <!-- Min Quantity -->
                                 <div class="col-md-6">
-                                    <label for="minQuantity" class="form-label">Min Quantity</label>
+                                    <label for="minQuantity" class="form-label">Min Quantity <span class="ic" style="color:red;">*</span></label>
                                     <input type="number" id="minQuantity" name="MinQuantity" class="form-control" placeholder="Enter minimum quantity" required />
                                 </div>
 
                                 <!-- Item Category -->
                                 <div class="col-md-6">
-                                    <label for="itemCategory" class="form-label">Item Category</label>
+                                    <label for="itemCategory" class="form-label">Item Category <span class="ic" style="color:red;">*</span></label>
                                     <select id="itemCategory" name="ItemCategoryId" class="form-select" required>
-                                        <option value="">Select Category</option>
+                                        <option value="">--Select Category--</option>
                                     </select>
                                 </div>
 
                                 <!-- HSN Code -->
                                 <div class="col-md-6">
-                                    <label for="hsnCode" class="form-label">HSN Code</label>
+                                    <label for="hsnCode" class="form-label">HSN Code <span class="ic" style="color:red;">*</span></label>
                                     <input type="text" id="hsnCode" name="HSNCode" class="form-control" placeholder="Enter HSN code" readonly />
                                 </div>
 
                                 <!-- Reorder Quantity -->
                                 <div class="col-md-6">
-                                    <label for="reorderQuantity" class="form-label">Reorder Quantity</label>
+                                    <label for="reorderQuantity" class="form-label">Reorder Quantity <span style="color:red;">*</span></label>
                                     <input type="number" id="reorderQuantity" name="RecorderQuantity" class="form-control" placeholder="Enter reorder quantity" required />
                                 </div>
 
                                 <!-- Description -->
                                 <div class="col-md-12">
-                                    <label for="description" class="form-label">Description</label>
+                                    <label for="description" class="form-label">Description <span class="ic" style="color:red;">*</span></label>
                                     <textarea id="description" name="Description" class="form-control" rows="3" placeholder="Enter item description" required></textarea>
                                 </div>
 
                                 <!-- Item Status -->
                                 <div class="col-md-6">
-                                    <label for="itemStatus" class="form-label">Item Status</label>
+                                    <label for="itemStatus" class="form-label">Item Status <span style="color:red;">*</span></label>
                                     <select id="itemStatus" name="ItemStatusId" class="form-select" required>
                                         <option value="">Select Status</option>
                                     </select>
@@ -103,23 +237,23 @@
 
                                 <!-- Item Make -->
                                 <div class="col-md-6">
-                                    <label for="itemMake" class="form-label">Item Make</label>
+                                    <label for="itemMake" class="form-label">Item Make <span class="ic" style="color:red;">*</span></label>
                                     <select id="itemMake" name="ItemMakeId" class="form-select" required>
-                                        <option value="">Select Make</option>
+                                        <option value="">--Select Make--</option>
                                     </select>
                                 </div>
 
                                 <!-- UOM -->
                                 <div class="col-md-6">
-                                    <label for="uom" class="form-label">UOM</label>
+                                    <label for="uom" class="form-label">UOM <span class="ic" style="color:red;">*</span></label>
                                     <select id="uom" name="UOMId" class="form-select" required>
-                                        <option value="">Select UOM</option>
+                                        <option value="">--Select UOM--</option>
                                     </select>
                                 </div>
 
                                 <!-- Expiry Days -->
                                 <div class="col-md-6">
-                                    <label for="EXD" class="form-label">ExpireDays</label>
+                                    <label for="EXD" class="form-label">ExpireDays <span style="color:red;">*</span></label>
                                     <input type="text" id="ExpiryDays" name="ExpiryDays" class="form-control" required />
                                 </div>
 
@@ -127,16 +261,17 @@
                                 <div class="col-md-6">
                                     <label for="qualityCheck" class="form-label">Quality Check</label>
                                     <select id="qualityCheck" name="ISQualityBit" class="form-select">
-                                        <option value="">Select</option>
+                                        <option value="">--Select--</option>
                                         <option value="1">Yes</option>
                                         <option value="0">No</option>
                                     </select>
                                 </div>
                             </div>
+                            <hr />
 
                             <!-- Inspection Form -->
                             <div class="container mt-5 " id="inspectionfrm" style="display:none;">
-                                <h5 class="w-100 text-center fw-bolder bg-primary text-white" id="inspec">Inspection Plan</h5>
+                                <h3 class="w-100 text-center fw-bolder  text-primary" id="inspec">Inspection Plan</h3>
                                 <div class="row g-3">
                                     <input type="hidden" id="itemqualityid" name="ItemQualityId" value="" />
 
@@ -160,21 +295,21 @@
                                     <div class="col-md-6">
                                         <label for="inspetype" class="form-label">Inspection Type</label>
                                         <select id="inspetype" name="InspectionId" class="form-select">
-                                            <option value="">Select</option>
+                                            <option value="">--Select--</option>
                                         </select>
                                     </div>
 
                                     <div class="col-md-6">
                                         <label for="quantiti" class="form-label">Quantitative Parameters</label>
                                         <select id="quantiti" name="QualityParametersId" class="form-select">
-                                            <option value="">Select</option>
+                                            <option value="">--Select--</option>
                                         </select>
                                     </div>
 
                                     <div class="col-md-6">
                                         <label for="quality" class="form-label">Qualitative Parameters</label>
                                         <select id="quality" name="QuantityParametersId" class="form-select">
-                                            <option value="">Select</option>
+                                            <option value="">--Select--</option>
                                         </select>
                                     </div>
 
@@ -186,7 +321,7 @@
                                     <div class="col-md-6">
                                         <label for="uompara" class="form-label">UOM</label>
                                         <select id="uompara" name="PUOMId" class="form-select">
-                                            <option value="">Select UOM</option>
+                                            <option value="">--Select UOM--</option>
                                         </select>
                                     </div>
                                 </div>
@@ -201,7 +336,7 @@
                                             <tr>
                                                 <th>Sr.No</th>
                                                 <th>Quality Parameters</th>
-                                                <th>Quantity</th>
+                                                <th>Quality</th>
                                                 <th>UOM</th>
                                                 <th>Action</th>
                                             </tr>
@@ -303,8 +438,110 @@
 <script>
     $(document).ready(function () {
 
+
+
+
+
+
+
+        $(document).on("click", ".btnview", function () {
+            var id = $(this).data("id");
+            var itemCode = $(this).data("code");
+
+            $("#viewItemModal").modal("show");
+
+            // Reset previous content
+            $("#viewItemForm")[0].reset();
+            $("#v_inspectionfrm").hide();
+
+            $.ajax({
+                url: '/Inventory/GetitemsidOJ',
+                type: 'GET',
+                data: { id: id },
+                success: function (data) {
+                    if (data.success) {
+                        // Fill form fields
+                        $("#v_itemCode").val(data.itemcode);
+                        $("#v_itemName").val(data.name);
+                        $("#v_description").val(data.descri);
+                        $("#v_costPerUnit").val(data.unitR);
+                        $("#v_reorderQuantity").val(data.recQ);
+                        $("#v_minQuantity").val(data.minQ);
+                        $("#v_itemMake").val(data.itemby);
+                        $("#v_ExpiryDays").val(data.exp);
+                        $("#v_qualityCheck").val(data.isqua == 1 ? "Yes" : "No");
+                        $("#v_hsnCode").val(data.hsn);
+                        $("#v_itemCategory").val(data.category);
+                        $("#v_uom").val(data.uom);
+                        $("#v_itemStatus").val(data.status);
+
+                        if (data.isqua == 1) {
+                            $("#v_inspectionfrm").show();
+
+                            // Initialize / Reinitialize DataTable
+                            if ($.fn.DataTable.isDataTable('#v_paralistTable')) {
+                                $('#v_paralistTable').DataTable().clear().destroy();
+                            }
+
+                            var planTable = $('#v_paralistTable').DataTable({
+                                columns: [
+                                    { data: 'srno', title: 'Sr.No' },
+                                    { data: 'parametersname', title: 'Quality Parameters' },
+                                    { data: 'pquality', title: 'Quantity' },
+                                    { data: 'puomname', title: 'UOM' }
+                                ],
+                                columnDefs: [
+                                    {
+                                        targets: 0,
+                                        title: `<input type="checkbox" id="select-all">`,
+                                        orderable: false
+                                    },
+                                    { targets: "_all", className: "text-center" }
+
+                                ],
+                                paging: true,
+                                searching: true,
+                                ordering: false,
+                                info: true,
+                                autoWidth: false,
+                                lengthChange: false,
+                                dom: '<"d-flex justify-content-end mb-3"f>rt<"d-flex justify-content-between mt-2"<"text-center"i><"text-end"p>>'
+                            });
+
+                            // Fetch inspection plan data
+                            $.ajax({
+                                url: '/Inventory/GetInspeplanOJ',
+                                type: 'GET',
+                                data: { itemCode: itemCode },
+                                success: function (plan) {
+                                    var tableData = [];
+                                    if (plan.success && plan.data.length > 0) {
+                                        $(plan.data).each(function (i, inspe) {
+                                            tableData.push({
+                                                srno: i + 1,
+                                                parametersname: inspe.parametersname,
+                                                pquality: inspe.pquality,
+                                                puomname: inspe.puomname
+                                            });
+                                        });
+                                    }
+                                    planTable.clear().rows.add(tableData).draw();
+                                }
+                            });
+                        }
+                    } else {
+                        alert(data.message);
+                    }
+                }
+            });
+        });
+
+
+
+
         // get list of item
         $(document).ready(function () {
+
             dom: '<"d-flex justify-content-between align-items-center mb-3"<"dt-left"B><"dt-search"f>>rt<"bottom d-flex justify-content-between align-items-center"ip>'
 
             let table = $('#table').DataTable({
@@ -373,10 +610,19 @@
                     {
                         data: null,
                         render: function (data, type, row) {
-                            return `<button class="btn btn-primary btnedit"
+                            return `<div class="d-flex "><button class="btn btn-secondary me-2 btnedit"
                         data-id="${row.ItemIdOJ}" data-code="${row.ItemCode}"
                         data-bs-toggle="tooltip" data-bs-placement="top"
-                        title="View Item"><i class="bi bi-eye-fill text-white"></i></button>`;
+                        title="Edit Item"><i class="bi bi-pencil-square"></i></button> 
+                        
+
+                         <button class="btn btn-info btnview"
+                         data-id="${row.ItemIdOJ}" 
+                         data-code="${row.ItemCode}"
+                         data-bs-toggle="tooltip" 
+                         data-bs-placement="top"
+                         title="View Item">
+                         <i class="bi bi-eye-fill text-white"></i></button></div>`                        
                         }
                     }
                 ],
@@ -557,33 +803,34 @@
             drops: "down",
             locale: { cancelLabel: 'Clear' },
             ranges: {
-                'Today': [moment(), moment()],
-                'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-                'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-                'This Month': [moment().startOf('month'), moment().endOf('month')],
-                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                'Today': [moment().startOf('day'), moment().endOf('day')],
+                'Last 7 Days': [moment().subtract(6, 'days').startOf('day'), moment().endOf('day')],
+                'Last 1 Month': [moment().subtract(1, 'month').startOf('day'), moment().endOf('day')],
+                'Last 3 Months': [moment().subtract(3, 'months').startOf('day'), moment().endOf('day')],
+                'Last 1 Year': [moment().subtract(1, 'year').startOf('day'), moment().endOf('day')]
             }
         }, function (start, end) {
             $('#itemdatefilter').val(start.format('YYYY-MM-DD') + ' - ' + end.format('YYYY-MM-DD'));
 
-            // Remove old filter
+            // ✅ Remove old filters
             $.fn.dataTable.ext.search = $.fn.dataTable.ext.search.filter(f => f.name !== 'dateFilter');
 
-            var dateFilter = function (settings, data, dataIndex) {
-                var dateStr = data[5]; // your Date column index
+            // ✅ Create new filter
+            var dateFilter = function (settings, data) {
+                var dateStr = data[5]; // column index of your date
                 if (!dateStr || dateStr === "--") return false;
 
-                // Extract plain text if wrapped in span
-                var html = document.createElement('div');
-                html.innerHTML = dateStr;
-                var textDate = html.textContent || html.innerText;
+                // Clean HTML if needed
+                var div = document.createElement('div');
+                div.innerHTML = dateStr;
+                var cleanDate = div.textContent || div.innerText;
 
-                // Match format used in render ("DD/MM/YYYY")
-                var rowDate = moment(textDate, "DD/MM/YYYY");
+                // Parse in same format used in DataTable
+                var rowDate = moment(cleanDate, "DD/MM/YYYY");
                 if (!rowDate.isValid()) return false;
 
-                return rowDate.isBetween(start, end, 'day', '[]'); // inclusive
+                // Inclusive range check
+                return rowDate.isSameOrAfter(start, 'day') && rowDate.isSameOrBefore(end, 'day');
             };
             dateFilter.name = 'dateFilter';
             $.fn.dataTable.ext.search.push(dateFilter);
@@ -591,19 +838,13 @@
             $('#table').DataTable().draw();
         });
 
-        // Clear filter on cancel
+        // ✅ Clear filter on cancel
         $('#itemdatefilter').on('cancel.daterangepicker', function () {
             $(this).val('');
             $.fn.dataTable.ext.search = $.fn.dataTable.ext.search.filter(f => f.name !== 'dateFilter');
             $('#table').DataTable().draw();
         });
 
-        // Extra clear button if you have one
-        $('#clearFilter').on('click', function () {
-            $('#itemdatefilter').val('');
-            $.fn.dataTable.ext.search = $.fn.dataTable.ext.search.filter(f => f.name !== 'dateFilter');
-            $('#table').DataTable().draw();
-        });
 
 
         // When header checkbox is clicked
@@ -785,6 +1026,8 @@
             console.log(insp)
             //quantitive
             if (insp == 53) {
+                $('#quantiti').prop('disabled', false);
+                $('#quality').prop('disabled', true).empty().append('<option value="">Select</option>');
                 $.ajax({
                     url: '/Inventory/GetQuanOJ',
                     type: 'GET',
@@ -795,11 +1038,15 @@
                         $(plan).each(function (i, p) {
                             $('#quantiti').append(`<option value="${p.QuantitativeId}">${p.QuantitativeName}</option>`)
                         })
+
                     }
                 })
 
             }
             else if (insp == 54) {
+                $('#quality').prop('disabled', false);
+                $('#quantiti').prop('disabled', true).empty().append('<option value="">Select</option>');
+
                 $.ajax({
                     url: '/Inventory/GetQualityOJ',
                     type: 'GET',
@@ -811,8 +1058,12 @@
                         $(qual).each(function (i, q) {
                             $('#quality').append(`<option value="${q.Qualitative}">${q.QualitativeName}</option>`)
                         })
+                      
+
                     }
+
                 })
+
             }
         })
 
@@ -827,22 +1078,10 @@
 
 
 
+
         $("#createitem").on("click", function () {
-            // Enable all inputs and selects
-            $("#itemForm input, #itemForm textarea").prop("disabled", false).prop("readonly", false);
-            $("#itemForm select, #itemForm input[type='checkbox'], #itemForm input[type='radio']")
-                .prop("disabled", false);
 
-            // Apply specific rules
-            $("#itemCode").prop("disabled", true); // should stay disabled
-            $("#plancode").prop("readonly", true);
-            $("#hsnCode").prop("readonly", true);
-
-            $("#inspectionfrm label, #inspectionfrm input, #inspectionfrm select, #inspectionfrm button").show();
-            $("#pdescription").show();
-            $("#subitem").show();
-
-            $("#paralist .btndelete").show();
+            $("#itemName , #description , #itemMake , #hsnCode ,#itemCategory ,#uom ").prop("disabled", false);
 
             // Overlay behavior
             $('#itemModal').off('show.bs.modal').on('show.bs.modal', function () {
@@ -924,6 +1163,11 @@
 
             // Show the modal
             $("#itemModal").modal("show");
+            if ($("#itemModalLabel").text().trim() === "Update Item Plan") {
+                $(".ic").hide();
+            } else {
+                $(".ic").show();
+            }
         });
 
 
@@ -1023,14 +1267,28 @@
         });
         // button for updating item form
         $(document).on("click", ".btnedit", function () {
+            $("#viewItemModal").modal('hide');
+
+
+            $("#subitem").text("Update Item");
             var id = $(this).data("id");
             var itemCode = $(this).data("code");
-
+            console.log("editid",id)
             $("#itemModal").modal("show");
             $("#itemForm").show();
-            $("#itemModalLabel").text("View Item Plan");
+            $("#itemModalLabel").text("Update Item Plan");
             $("#inspec").hide();
             $("#itemIdOJ").val(id);
+
+           
+            setTimeout(function () {
+                if ($("#itemModalLabel").text().trim() === "Update Item Plan") {
+                    $(".ic").hide();
+                } else {
+                    $(".ic").show();
+                }
+            }, 100);
+      
 
             // Get item details
             $.ajax({
@@ -1040,7 +1298,7 @@
                 success: function (data) {
                     if (data.success) {
                         // Fill form fields and make read-only
-                        $("#itemIdOJ").val(data.id);
+                        $("#itemId").val(data.id);
                         $("#itemCode").val(data.itemcode);
                         $("#itemName").val(data.name);
                         $("#description").val(data.descri);
@@ -1058,14 +1316,9 @@
                         if (data.isqua == 1) $("#inspectionfrm").show();
                         else $("#inspectionfrm").hide();
 
-                        $("#itemForm input, #itemForm textarea").prop("disabled", true);
-                        $("#itemForm select, #itemForm input[type='checkbox'], #itemForm input[type='radio']").prop("disabled", true);
+                        $("#itemName , #description , #itemMake , #hsnCode ,#itemCategory ,#uom ").prop("disabled", true);
 
-                        $("#inspectionfrm label, #inspectionfrm input, #inspectionfrm select, #inspectionfrm button")
-                            .not("#paralistTable, #paralistTable *")
-                            .hide();
-                        $("#pdescription").hide();
-                        $("#subitem").hide();
+                      
                     } else {
                         alert(data.message);
                     }
@@ -1075,6 +1328,14 @@
             // Wait until modal is fully visible to initialize DataTable
             $('#itemModal').one('shown.bs.modal', function () {
                 // Destroy previous table if exists
+
+                if ($("#itemModalLabel").text().trim() === "Update Item Plan") {
+                    $(".ic").hide();
+                } else {
+                    $(".ic").show();
+                }
+
+
                 if ($.fn.DataTable.isDataTable('#paralistTable')) {
                     $('#paralistTable').DataTable().clear().destroy();
                 }
@@ -1088,9 +1349,18 @@
                         { data: 'puomname', title: 'UOM' },
                         { data: 'action', title: 'Action', orderable: false }
                     ],
+                    columnDefs: [
+                        {
+                            targets: 0,
+                            title: `<input type="checkbox" id="select-all">`,
+                            orderable: false
+                        },
+                        { targets: "_all", className: "text-center" }
+
+                    ],
                     paging: true,
                     searching: true,
-                    ordering: true,
+                    ordering: false,
                     info: true,        // show info text
                     autoWidth: false,
                     lengthChange: false, // hide "Show entries"
@@ -1102,45 +1372,52 @@
                         // Bottom row: info center, pagination right
                         '<"d-flex justify-content-between mt-2"<"text-center"i><"text-end"p>>'
                 });
-                planTable.column(4).visible(false); // 0-based index, so 4 = Action column
+                //   planTable.column(4).visible(false); // 0-based index, so 4 = Action column
 
 
                 // Load inspection plan via AJAX
-                $.ajax({
-                    url: '/Inventory/GetInspeplanOJ',
-                    type: 'GET',
-                    data: { itemCode: itemCode },
-                    success: function (plan) {
-                        var tableData = [];
-                        if (plan.success && plan.data.length > 0) {
-                            $(plan.data).each(function (i, inspe) {
-                                tableData.push({
-                                    srno: i + 1,
-                                    parametersname: inspe.parametersname,
-                                    pquality: inspe.pquality,
-                                    puomname: inspe.puomname,
-                                    action: "" // read-only view
-                                });
-                            });
-                        }
+                    $.ajax({
+                        url: '/Inventory/GetInspeplanOJ',
+                        type: 'GET',
+                        data: { itemCode: itemCode },
+                        success: function (plan) {
+                            console.log(plan.data)
+                            var tableData = [];
+                            if (plan.success && plan.data.length > 0) {
+                                $(plan.data).each(function (i, inspe) {
+                                    $("#plancode").val(inspe.plancode);
+                                    tableData.push({
+                                        srno: i + 1,
+                                        parametersname: inspe.parametersname,
+                                        pquality: inspe.pquality,
+                                        puomname: inspe.puomname,
+                                        action: `<button type="button" class="btn btn-danger btndelete" data-id="${inspe.itemquality}">
+                                        <i class="bi bi-trash3"></i>
+                                    </button>`
 
-                        planTable.clear().rows.add(tableData).draw();
-                        planTable.columns.adjust().draw(); // ensures search bar displays correctly
-                    }
+                                    });
+                                });
+                            }
+
+                            planTable.clear().rows.add(tableData).draw();
+                            planTable.columns.adjust().draw(); // ensures search bar displays correctly
+                        }
+                    });
                 });
             });
-        });
 
-        // button for delteting parameters
-        $(document).on("click", ".btndelete", function () {
-            const id = $(this).data("id");  // ItemQualityId
-            const row = $(this).closest("tr");
-            const planCode = $("#plancode").val();
-
-            Swal.fire({
-                title: "Are you sure?",
-                text: "This will delete the inspection plan!",
-                icon: "warning",
+            // button for delteting parameters
+            $(document).on("click", ".btndelete", function () {
+            
+                const id = $(this).data("id");  // ItemQualityId
+                const row = $(this).closest("tr");
+                const planCode = $("#plancode").val();
+                // alert("id", id)
+               console.log(id)
+                Swal.fire({
+                    title: "Are you sure?",
+                    text: "This will delete the inspection plan!",
+                    icon: "warning",
                 showCancelButton: true,
                 confirmButtonColor: "#d33",
                 cancelButtonColor: "#3085d6",
@@ -1255,15 +1532,12 @@
 
 
     function loadParameterList(planCode) {
-
         // Destroy existing DataTable if exists
         if ($.fn.dataTable.isDataTable('#paralistTable')) {
             $('#paralistTable').DataTable().clear().destroy();
         }
 
         $.ajax({
-            dom: '<"d-flex justify-content-between align-items-center mb-3"<"dt-left"B><"dt-search"f>>rt<"bottom d-flex justify-content-between align-items-center"ip>',
-
             url: '/Inventory/ShowPlanOJ',
             type: 'GET',
             data: { planCode: planCode },
@@ -1286,21 +1560,26 @@
 
                 $('#paralistTable').DataTable({
                     data: tableData,
+                    ordering:false,
                     columns: [
                         { data: 'srno', title: 'Sr.No' },
                         { data: 'QualityParametersName', title: 'Quality Parameters' },
                         { data: 'PQuality', title: 'Quantity' },
                         { data: 'PUOMName', title: 'UOM' },
-                        { data: 'Action', title: 'Action', orderable: false },
-
+                        { data: 'Action', title: 'Action', orderable: false }
                     ],
-
                     columnDefs: [
+                        {
+                            targets: 0,
+                            title: `<input type="checkbox" id="select-all">`,
+                            orderable: false
+                        },
                         { targets: "_all", className: "text-center" }
+
                     ],
                     paging: true,
                     searching: true,
-                    ordering: true,
+                    ordering: false,
                     info: true,        // show info text
                     autoWidth: false,
                     lengthChange: false, // hide "Show entries"
