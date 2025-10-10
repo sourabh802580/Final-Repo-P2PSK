@@ -13,7 +13,7 @@
             <h5 class="mb-0 fw-bold text-white">GRN Task List</h5>
         </div>
         <button type="button"
-                class="btn btn-light btn-sm ms-2"
+                class="btn btn-primary btn-sm ms-2"
                 onclick="location.href='/Quality/IndexRG'">
             <i class="bi bi-arrow-left"></i> Back
         </button>
@@ -30,7 +30,7 @@
     </div>
 
     <!-- Task Grid -->
-    <h5 class="fw-semibold mb-3">New Task</h5>
+   
     <div class="table-responsive">
         <table id="newTaskTable" class="table table-striped table-hover table-bordered align-middle text-center mb-0">
             <thead class="table-dark">
@@ -365,6 +365,13 @@
                                         cell.bold = true;
                                         cell.alignment = 'center';
                                     });
+                                    for (var i = 1; i < tableNode.body.length; i++) {
+                                        tableNode.body[i].forEach(function (cell) {
+                                            if (cell.text) {
+                                                cell.alignment = 'center'; // Center all rows
+                                            }
+                                        });
+                                    }
                                     tableNode.layout = {
                                         paddingLeft: () => 30, paddingLeft: () => 6,
 

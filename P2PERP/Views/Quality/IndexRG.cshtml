@@ -21,8 +21,8 @@
         <div class="card shadow-lg rounded-3 border-0">
 
             <!-- Card Header -->
-            <div class="card-header text-primary text-center">
-                <h3 class="mb-0 text-primary fw-bolder text-white ">Check Quality</h3>
+            <div class="card-header white-header text-center">
+                <h3 class="mb-0  fw-bolder  ">Check Quality</h3>
             </div>
 
             <!-- Card Body -->
@@ -109,7 +109,16 @@
 
     </div> <!-- End Container -->
 
+    <style>
+       
+        .white-header {
+            background: white !important;
+        }
 
+            .white-header h3 {
+                color: var(--bs-primary) !important;
+            }
+    </style>
 
 
 
@@ -369,7 +378,7 @@
                         return;
                     }
                     $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, button, config);
-                    dt.processing(false); // ✅ force remove buffering spinner
+                    dt.processing(false); //  force remove buffering spinner
                 },
                 exportOptions: {
                     rows: function (idx, data, node) {
@@ -419,7 +428,16 @@
                         cell.color = 'white';
                         cell.bold = true;
                         cell.alignment = 'center';
+                        
                     });
+
+                    for (var i = 1; i < tableNode.body.length; i++) {
+                        tableNode.body[i].forEach(function (cell) {
+                            if (cell.text) {
+                                cell.alignment = 'center'; // Center all rows
+                            }
+                        });
+                    }
                     tableNode.layout = {
                         paddingLeft: () => 30, paddingLeft: () => 6,
 
@@ -706,16 +724,16 @@
     function initDatePicker(table) {
         $('#grnlistdatepicker').daterangepicker({
             autoUpdateInput: false,
+            alwaysShowCalendars: false,
             opens: "center",
             drops: "down",
             locale: { cancelLabel: 'Clear' },
             ranges: {
                 'Today': [moment(), moment()],
-                'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
                 'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-                'This Month': [moment().startOf('month'), moment().endOf('month')],
-                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                'Last 1 Month': [moment().subtract(1, 'month'), moment()],
+                'Last 3 Months': [moment().subtract(3, 'month'), moment()],
+                'Last 1 Year': [moment().subtract(1, 'year'), moment()]
             }
         }, function (start, end) {
             $('#grnlistdatepicker').val(start.format('DD-MM-YYYY') + ' - ' + end.format('DD-MM-YYYY'));
