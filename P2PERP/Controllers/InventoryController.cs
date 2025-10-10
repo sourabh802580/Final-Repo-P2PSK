@@ -1474,6 +1474,7 @@ namespace P2PERP.Controllers
                         ItemId = itemId,
                         ItemCode = row["ItemCode"]?.ToString(),
                         Description = row["Description"]?.ToString(),
+                        ReorderQuantity = row["ReorderQuantity"]?.ToString(),
                         UOMName = row["UOMName"]?.ToString()
                     };
                 }

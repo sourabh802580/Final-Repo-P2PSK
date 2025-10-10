@@ -46,7 +46,7 @@
             <!-- 🔢 Quantity -->
             <div class="col-md-6">
                 <label for="quantity" class="form-label fw-semibold">Quantity</label>
-                <input type="number" class="form-control" id="quantity" name="Quantity" min="1" required>
+                <input type="number" class="form-control" id="quantity" name="Quantity" min="1" placeholder=" order quntity upto  "  required>
             </div>
 
             <!-- 📝 Description -->
@@ -108,7 +108,11 @@
             $.get('/Inventory/GetItemDetailsMHB', { itemId: itemId }, function (item) {
                 $('#itemCode').val(item.ItemCode);
                 $('#uom').val(item.UOMName);
-                $('#description').val(item.Description);
+                $('#description').val(item.Description);             
+                $('#quantity').val(''); // clear previous value if any
+                $('#quantity')
+                    .attr('placeholder', 'Order quantity upto ' + item.ReorderQuantity) // ✅ set placeholder text
+                    .attr('max', item.ReorderQuantity); // optional: set max for validation
             });
         });
 
