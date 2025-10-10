@@ -2,8 +2,8 @@
     ViewBag.Title = "Completed Tasks";
 }
 <style>
-    button{
-        display:none;
+    button {
+        display: none;
     }
 </style>
 <input type="hidden" value="@ViewBag.GRN" name="GRNCode" id="GRNCode" />
@@ -13,57 +13,58 @@
 
 <!-- 🔹 Single Card Wrapper -->
 <div class="card shadow-lg rounded-3 border-0">
-    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-        <h5 class="mb-0 fw-bold d-flex justify-content-center ms-auto">Completed Tasks</h5>
+    <div class="card-header bg-primary text-white d-flex align-items-center position-relative">
+        <!-- Centered heading -->
+        <h5 class="mb-0 fw-bold text-white position-absolute top-50 start-50 translate-middle text-center">
+            Completed Tasks
+        </h5>
+
+        <!-- Back button on the right -->
         <button type="button"
-                class="btn btn-light btn-sm"
-                onclick="closePartial()">
-            <!-- ✅ Call JS to go back -->
+                class="btn btn-primary btn-sm ms-auto"
+                onclick="location.href='/Quality/IndexRG'">
             <i class="bi bi-arrow-left"></i> Back
         </button>
     </div>
-
-    <div class="card-body">
-
-        <!-- GRN Info -->
-        <div class="row g-3 align-items-center mb-4">
-            <div class="col-md-2">
-                <label for="grnno" class="col-form-label fw-semibold">GRN No:</label>
-            </div>
-            <div class="col-md-4">
-                <input type="text" id="grnno" value="@ViewBag.GRN"
-                       name="GRNCode" class="form-control" readonly />
-            </div>
-        </div>
-
-        <!-- Table -->
-        <div class="table-responsive">
-            <table id="completedTaskTable"
-                   class="table table-striped table-hover table-bordered align-middle text-center mb-0">
-                <thead class="table-dark">
-                    <tr>
-                        <th><input type="checkbox" id="selectAllCompleted" /></th>
-                        <th>Sr.No</th>
-                        <th>Item Code</th>
-                        <th>Item Name</th>
-                        <th>Item Type</th>
-                        <th>Qty</th>
-                        <th>Vendor Name</th>
-                        <th>Assigned Date</th>
-                        <th>Inspection Date</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
-        </div>
-
-    </div>
 </div>
 
+
+<div class="card-body">
+
+    <!-- GRN Info -->
+    <div class="d-flex align-items-center mb-3 mt-4">
+        <label for="grnno" class="fw-semibold me-2 mb-0">GRN No:</label>
+        <input type="text" id="grnno" value="@ViewBag.GRN" name="GRNCode" class="form-control w-auto" readonly />
+    </div>
+
+    <!-- Table -->
+    <div class="table-responsive">
+        <table id="completedTaskTable"
+               class="table table-striped table-hover table-bordered align-middle text-center mb-0">
+            <thead class="table-dark">
+                <tr>
+                    <th><input type="checkbox" id="selectAllCompleted" /></th>
+                    <th>Sr.No</th>
+                    <th>Item Code</th>
+                    <th>Item Name</th>
+                    <th>Item Type</th>
+                    <th>Qty</th>
+                    <th>Vendor Name</th>
+                    <th>Assigned Date</th>
+                    <th>Inspection Date</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+</div>
+
+
 <script>
-    // ✅ Toast function
-    // ✅ Toast function
+    
+    //  Toast function
     function showToast(message, type = 'error') {
         // Map to Bootstrap contextual colors
         let icon = '';
@@ -89,7 +90,7 @@
 
         const toastId = `toast-${Date.now()}`;
 
-        // ✅ Toast HTML with white text for all
+        //  Toast HTML with white text for all
         const toastHTML = `
 <div id="${toastId}" class="toast align-items-center bg-${type} border-0 mb-2 shadow-lg"
          role="alert" aria-live="assertive" aria-atomic="true"
@@ -110,11 +111,11 @@
         const $toast = $(toastHTML);
         $('#toastContainer').prepend($toast); // newestOnTop
 
-        // ✅ Initialize bootstrap toast
+        //  Initialize bootstrap toast
         const toast = new bootstrap.Toast($toast[0], { delay: 3000 });
         toast.show();
 
-        // ✅ Animate progress bar
+        //  Animate progress bar
         $toast.find('.progress-bar')
             .css({
                 width: "100%",
@@ -128,7 +129,7 @@
 
 
 
-        // ✅ Auto-remove
+        //  Auto-remove
         $toast.on('hidden.bs.toast', function () {
             $(this).remove();
         });
@@ -201,10 +202,10 @@
                             let statusText = (data || '').toLowerCase().trim(); // normalize to lowercase
 
                             switch (statusText) {
-                                case 'confirmed':        // ✅ lowercase
+                                case 'confirmed':        //  lowercase
                                     badgeClass = 'bg-success';
                                     break;
-                                case 'non-confirmed':    // ✅ lowercase
+                                case 'non-confirmed':    //  lowercase
                                     badgeClass = 'bg-danger';
                                     break;
                                 default:
@@ -253,7 +254,7 @@
                                                     ? data.replace(/<[^>]*>/g, '').trim()
                                                     : data;
 
-                                                // ✅ For SR.NO column (first visible after checkbox)
+                                                //  For SR.NO column (first visible after checkbox)
                                                 if (column === 1) {
                                                     counter++;
                                                     return counter;
@@ -317,7 +318,7 @@
                                         return;
                                     }
                                     $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, button, config);
-                                    dt.processing(false); // ✅ force remove buffering spinner
+                                    dt.processing(false); //  force remove buffering spinner
                                 },
                                 exportOptions: {
                                     rows: function (idx, data, node) {
@@ -368,6 +369,13 @@
                                         cell.bold = true;
                                         cell.alignment = 'center';
                                     });
+                                    for (var i = 1; i < tableNode.body.length; i++) {
+                                        tableNode.body[i].forEach(function (cell) {
+                                            if (cell.text) {
+                                                cell.alignment = 'center'; // Center all rows
+                                            }
+                                        });
+                                    }
                                     tableNode.layout = {
                                         paddingLeft: () => 30, paddingLeft: () => 6,
 
@@ -393,7 +401,7 @@
                                         return;
                                     }
                                     $.fn.dataTable.ext.buttons.excelHtml5.action.call(this, e, dt, button, config);
-                                    dt.processing(false); // ✅ force remove buffering spinner
+                                    dt.processing(false); //  force remove buffering spinner
                                 },
                                 exportOptions: {
                                     rows: function (idx, data, node) {
@@ -491,7 +499,7 @@
                                     window.__srnoCounter = 0; // reset counter after export
 
                                     $.fn.dataTable.ext.buttons.csvHtml5.action.call(this, e, dt, button, config);
-                                    dt.processing(false); // ✅ force remove buffering spinner
+                                    dt.processing(false); //  force remove buffering spinner
                                 },
                                 exportOptions: {
                                     rows: function (idx, data, node) {
@@ -543,7 +551,7 @@
                 responsive: true,
                 paging: true,
                 searching: true,
-                ordering: true
+                ordering: false
             });
 
             // ✅ Master checkbox (select all in completedTask)
@@ -554,13 +562,24 @@
 
 
             // 🔹 Initialize tooltips for export buttons
-            $('#exportContainer [data-bs-toggle="tooltip"]').tooltip({
-                template: '<div class="tooltip" role="tooltip"><div class="tooltip-inner bg-dark text-white"></div></div>'
-            });
-
-            table.on('buttons-action.dt', function () {
-                $('#exportContainer [data-bs-toggle="tooltip"]').tooltip({
-                    template: '<div class="tooltip" role="tooltip"><div class="tooltip-inner bg-dark text-white"></div></div>'
+            
+            setTimeout(() => {
+                $('[data-bs-toggle="tooltip"]').tooltip({
+                    template: `
+            <div class="tooltip" role="tooltip">
+                <div class="tooltip-inner bg-dark text-white px-2 py-1 rounded"></div>
+            </div>
+        `
+                });
+            }, 500);
+            
+            table.on('draw.dt buttons-action.dt', function () {
+                $('[data-bs-toggle="tooltip"]').tooltip({
+                    template: `
+            <div class="tooltip" role="tooltip">
+                <div class="tooltip-inner bg-dark text-white px-2 py-1 rounded"></div>
+            </div>
+        `
                 });
             });
         }

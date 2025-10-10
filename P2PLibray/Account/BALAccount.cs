@@ -665,7 +665,6 @@ namespace P2PLibray.Account
                     acc.Add(new Account
                     {
                         IdCode = dr.IsDBNull(dr.GetOrdinal("GRNCode")) ? string.Empty : dr.GetString(dr.GetOrdinal("GRNCode")),
-                        Status = dr.IsDBNull(dr.GetOrdinal("StatusName")) ? string.Empty : dr.GetString(dr.GetOrdinal("StatusName")),
                         AddedBy = dr.IsDBNull(dr.GetOrdinal("EmployeeName")) ? string.Empty : dr.GetString(dr.GetOrdinal("EmployeeName")),
                         AddedDate = dr.IsDBNull(dr.GetOrdinal("AddedDate")) ? DateTime.MinValue : dr.GetDateTime(dr.GetOrdinal("AddedDate"))
                     });
@@ -702,7 +701,6 @@ namespace P2PLibray.Account
                     grnDetails.InvoiceCode = dr["InvoiceNo"].ToString();
                     grnDetails.CompanyAddress = dr["CompanyAddress"].ToString();
                     grnDetails.BillingAddress = dr["BillingAddress"].ToString();
-                    grnDetails.StatusName = dr["StatusName"].ToString();
                     grnDetails.TotalAmount = dr["TotalAmount"] != DBNull.Value ? Convert.ToDecimal(dr["TotalAmount"]) : 0;
                     grnDetails.ShippingCharges = dr["ShippingCharges"] != DBNull.Value ? Convert.ToDecimal(dr["ShippingCharges"]) : 0;
                 }

@@ -145,6 +145,7 @@ document.addEventListener('DOMContentLoaded', function () {
             new DataTable('#prItemsTable', {
                 data: props.Items,
                 destroy: true,
+                ordering: false,
                 columns: [
                     {
                         data: null,
@@ -233,6 +234,7 @@ document.addEventListener('DOMContentLoaded', function () {
             new DataTable('#rfqItemsTable', {
                 data: props.Items,
                 destroy: true,
+                ordering: false,
                 columns: [
                     {
                         data: null,
@@ -290,6 +292,7 @@ document.addEventListener('DOMContentLoaded', function () {
         new DataTable('#rqTable', {
             data: props.Items,
             destroy: true,
+            ordering: false,
             columns: [
                 {
                     data: null,
@@ -401,6 +404,7 @@ document.addEventListener('DOMContentLoaded', function () {
             new DataTable('#poItemsTable', {
                 data: props.Items,
                 destroy: true,
+                ordering: false,
                 columns: [
                     {
                         data: null,
@@ -470,9 +474,6 @@ document.addEventListener('DOMContentLoaded', function () {
                         <strong>Vendor:</strong> ${safe(props.VendorName)}
                     </div>
                     <div class="col-sm-6">
-                        <strong>Status:</strong> ${safe(props.StatusName)}
-                    </div>
-                    <div class="col-sm-6">
                         <strong>Company Address:</strong> ${safe(props.CompanyAddress)}
                     </div>
                     <div class="col-sm-6 mb-3">
@@ -513,6 +514,7 @@ document.addEventListener('DOMContentLoaded', function () {
             new DataTable('#grnItemsTable', {
                 data: props.Items,
                 destroy: true,
+                ordering: false,
                 columns: [
                     {
                         data: null,
@@ -619,6 +621,7 @@ document.addEventListener('DOMContentLoaded', function () {
             new DataTable('#grItemsTable', {
                 data: props.Items,
                 destroy: true,
+                ordering: false,
                 columns: [
                     {
                         data: null,
@@ -679,6 +682,7 @@ document.addEventListener('DOMContentLoaded', function () {
             let table = new DataTable('#qcItemsTable', {
                 data: props.Items,
                 destroy: true,
+                ordering: false,
                 columns: [
                     {
                         data: null,

@@ -33,7 +33,7 @@
         </div>
 
         <div class="mb-3">
-            <label class="form-label">Tax Rate (HSN Code) <span class="text-danger">*</span></label>
+            <label class="form-label">HSN Code <span class="text-danger">*</span></label>
             <select id="cmbbxtaxrate" name="TaxRateId" class="form-control" style="cursor:pointer;" required>
                 <option value="0">--select HSNCode--</option>
             </select>
@@ -70,17 +70,19 @@ $(function () {
             $ddl.empty().append('<option value="0">--select HSNCode--</option>');
 
             $.each(data, function (i, item) {
+                // ✅ Show only first 4 digits, tooltip has full code
                 var hsnFull = item.HSNCode ? item.HSNCode.toString() : "";
                 var hsnShort = hsnFull.substring(0, 4);
                 $ddl.append('<option value="' + item.TaxRateId + '" title="' + hsnFull + '">' + hsnShort + '</option>');
             });
 
+            // ✅ Pre-select value if editing
             var selectedId = '@Model.TaxRateId';
             if (selectedId && selectedId !== "0") $ddl.val(selectedId);
         }
     });
 
-    // --- Save /Update Category ---
+    // --- Save / Update Category ---
     $("#categoryForm").off("submit").on("submit", function (e) {
         e.preventDefault();
 

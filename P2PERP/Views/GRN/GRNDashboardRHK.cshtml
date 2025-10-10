@@ -45,7 +45,7 @@
         }
 
         .chart-header {
-            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+/*            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);*/
             color: white !important;
             border-radius: 12px 12px 0 0 !important;
             padding: 1rem 1.5rem;
@@ -229,8 +229,9 @@
 
         <!-- IMPROVED CHARTS SECTION -->
         <div class="charts-container">
-            <div class="card chart-card">
-                <div class="chart-header d-flex justify-content-between align-items-center">
+
+            <div class="card chart-card shadow-sm">
+                <div class="card-header chart-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0"><i class="bi bi-pie-chart me-2"></i>Quality Check Status Distribution</h5>
                   
                 </div>
@@ -239,7 +240,7 @@
                 </div>
             </div>
 
-            <div class="card chart-card">
+            <div class="card chart-card shadow-sm">
                 <div class="card-header chart-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0"><i class="bi bi-graph-up me-2"></i>GRN Trends Over Time</h5>
                     <span class="badge bg-light text-dark">Date Range: <span id="selectedRangeBadge">This Year</span></span>
@@ -255,8 +256,8 @@
 
         <!-- RECENT GRNs TABLE SECTION -->
         <div class="card mt-4 shadow-sm">
-            <div class="card-header py-3">
-                <h5 class="mb-0"><i class="bi bi-clock-history me-2 text-primary"></i>Recent GRNs</h5>
+            <div class="card-header chart-header py-3">
+                <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Recent GRNs</h5>
             </div>
 
             <div class="card-body">
@@ -264,7 +265,7 @@
                     <!-- TABLE HEADER WITH FILTERS AND EXPORT BUTTONS -->
                     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
                         <!-- Date Range Filter -->
-                        <div class="input-group" style="height: 40px; max-width: 280px;">
+                        <div class="input-group mt-4" style="height: 40px; max-width: 280px;">
                             <span class="input-group-text bg-primary text-white" style="height: 100%;">
                                 <i class="bi bi-calendar-date"></i>
                             </span>
@@ -287,7 +288,7 @@
                     </div>
 
                     <!-- RECENT GRNs DATA TABLE -->
-                    <table id="reqTable" class="table table-hover align-middle" style="width:100%">
+                    <table id="reqTable" class="table table-bordered table-striped table-hover align-middle" style="width:100%">
                         <thead class="table-dark">
                             <tr>
                                 <th><input type="checkbox" id="selectAll1"></th>
@@ -335,10 +336,10 @@
 
                 <div class="modal-header bg-primary text-white position-relative">
                     <div class="w-100 text-center">
-                        <h5 class="modal-title text-white fw-bold mb-0" id="itemsModalLabel">Details</h5>
+                        <h5 class="modal-title text-white fw-bold mb-2" id="itemsModalLabel">Details</h5>
                     </div>
 
-                    <button type="button" class="btn-close btn-close-white position-absolute end-0 me-3" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close btn-close-white position-absolute end-0 me-3 mb-2" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
 
                 <div class="modal-body" id="modalContent">
@@ -401,11 +402,10 @@
                 },
                 ranges: {
                     'Today': [moment(), moment()],
-                    'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
                     'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-                    'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-                    'This Month': [moment().startOf('month'), moment().endOf('month')],
-                    'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                    'Last 1 Month': [moment().subtract(1, 'months').startOf('day'), moment()],
+                    'Last 3 Months': [moment().subtract(3, 'months').startOf('day'), moment()],
+                    'Last 1 Year': [moment().subtract(12, 'months').startOf('day'), moment()]
                 }
             });
 
@@ -491,12 +491,10 @@
                 },
                 ranges: {
                     'Today': [moment(), moment()],
-                    'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
                     'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-                    'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-                    'This Month': [moment().startOf('month'), moment().endOf('month')],
-                    'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
-                    'This Year': [moment().startOf('year'), moment().endOf('year')]
+                    'Last 1 Month': [moment().subtract(1, 'months').startOf('day'), moment()],
+                    'Last 3 Months': [moment().subtract(3, 'months').startOf('day'), moment()],
+                    'Last 1 Year': [moment().subtract(12, 'months').startOf('day'), moment()]
 
                 },
                 alwaysShowCalendars: true,
@@ -548,7 +546,7 @@
             $("#QCAssignedCount").html('<span class="spinner-border spinner-border-sm"></span>');
             $("#UpcomingItemCount").html('<span class="spinner-border spinner-border-sm"></span>');
 
-            // Load each KPI with date parameters
+            // Load each KPI with date parameters 
             $.getJSON("/GRN/GetTotalGRNRHK", { startDate: startDate, endDate: endDate }, function (data) {
                 $("#TotalGRNCount").text(data.count || 0);
             }).fail(function () {
@@ -580,15 +578,17 @@
 
         // LOAD STATUS DATA FOR PIE CHART
         function loadStatusData(startDate, endDate) {
-            // Fetch approved and rejected counts, then calculate pending count
             $.getJSON("/GRN/GetApproveCountRHK", { startDate: startDate, endDate: endDate }, function (res1) {
                 $.getJSON("/GRN/GetRejectedGRNCountRHK", { startDate: startDate, endDate: endDate }, function (res2) {
-                    const approvedCount = res1.count || 0;
-                    const rejectedCount = res2.count || 0;
-                    const qcAssignedCount = parseInt($("#QCAssignedCount").text()) || 0;
-                    const pendingCount = qcAssignedCount - approvedCount - rejectedCount;
+                    $.getJSON("/GRN/GetPendingCountRHK", { startDate: startDate, endDate: endDate }, function (res3) {
+                        const approvedCount = res1.count || 0;
+                        const rejectedCount = res2.count || 0;
+                        const pendingCount = res3.count || 0;
 
-                    createStatusChart(approvedCount, rejectedCount, Math.max(0, pendingCount));
+                        createStatusChart(approvedCount, rejectedCount, pendingCount);
+                    }).fail(function () {
+                        createStatusChart(0, 0, 0);
+                    });
                 }).fail(function () {
                     createStatusChart(0, 0, 0);
                 });
@@ -647,6 +647,8 @@
                                     openModalWithPartial("/GRN/GetApprovedItemsPartialRHK", "Approved Items");
                                 } else if (this.name === "Non-Confirmed") {
                                     openModalWithPartial("/GRN/GetRejectedItemsPartialRHK", "Rejected Items");
+                                } else if (this.name === "Pending") {
+                                    openModalWithPartial("/GRN/GetPendingItemsPartialRHK", "Pending Items");
                                 } else {
                                     openModalWithPartial("/GRN/GetQCListPartialRHK", "QC Assigned Items");
                                 }

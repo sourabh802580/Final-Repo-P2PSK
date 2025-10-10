@@ -19,6 +19,14 @@ namespace P2PERP.Controllers
         // GET: InventoryP2P
         public ActionResult Index()
         {
+            var RoleId = Convert.ToInt32(Session["RoleId"]);
+
+            switch (RoleId)
+            {
+                case 2: return View();
+                case 3: return RedirectToAction("ReceiveMaterialDRB");
+                case 4: return RedirectToAction("ShowStocklevelMHB");
+            }
             return View();
         }
 
@@ -155,7 +163,7 @@ namespace P2PERP.Controllers
                     InventoryDRB ReceiveMaterial = new InventoryDRB
                     {
                         GRNCode = dr["GRNCode"].ToString(),
-                        AddedDate = Convert.ToDateTime(dr["AddedDate"]).ToString("yyyy-MM-dd"),
+                        AddedDate = Convert.ToDateTime(dr["AddedDate"]).ToString("dd/MM/yyyy"),
                         StatusName = dr["StatusName"].ToString(),
                     };
 
@@ -300,12 +308,12 @@ namespace P2PERP.Controllers
 
         // Gets the list of Bins for a given Row
         [HttpGet]
-        public async Task<JsonResult> GetBinDRB(string Rowcode)
+        public async Task<JsonResult> GetBinDRB(string RowCode, string GRNItemCode)
         {
-            List<InventoryBinDRB> grnItemsList = await bal.GetBinDRB(Rowcode);
-
-            return Json(grnItemsList, JsonRequestBehavior.AllowGet);
+            List<InventoryBinDRB> bins = await bal.GetBinDRB(RowCode, GRNItemCode);
+            return Json(bins, JsonRequestBehavior.AllowGet);
         }
+
 
         // Gets the Issue In-House items based on Status Id
         [HttpGet]
@@ -507,16 +515,14 @@ namespace P2PERP.Controllers
         /// <summary>
         /// Retrieves detailed list of items for a specific requirement
         /// </summary>
-        /// <param name="id">Stock Requirement ID</param>
-        public async Task<ActionResult> ViewReqMasterListRHK(int id)
+       
+        public async Task<ActionResult> ViewReqMasterListRHK()
         {
             try
             {
-                // Debug logging
-                Console.WriteLine($"ViewReqMasterList called with id: {id}");
-
+               
                 // Get detailed requirement data from business layer
-                DataSet ds = await bal.ViewReqMasterRHK(id);
+                DataSet ds = await bal.ViewReqMasterRHK();
 
                 Console.WriteLine($"DataSet tables count: {ds?.Tables?.Count}");
                 if (ds != null && ds.Tables.Count > 0)
@@ -537,8 +543,10 @@ namespace P2PERP.Controllers
                             ItemName = r["ItemName"].ToString(),
                             Description = r["Description"].ToString(),
                             RequiredQuantity = r["RequiredQuantity"].ToString(),
-                            RequiredDate = Convert.ToDateTime(r["RequiredDate"]).ToString("yyyy-MM-dd"),
-                            RequestType = r["RequestType"].ToString()
+                            RequiredDate = Convert.ToDateTime(r["RequiredDate"]),
+                            RequestType = r["RequestType"].ToString(),
+                            AddedBy = r["FullName"].ToString(),
+                            AddedDate = Convert.ToDateTime(r["AddedDate"])
                         });
                     }
                 }
@@ -1350,36 +1358,36 @@ namespace P2PERP.Controllers
         #endregion
 
         #region Mayur
+        // Loads the stock level view for MHB location.
         public ActionResult ShowStocklevelMHB()
+
         {
             return View();
         }
 
+        // Fetches stock planning data for MHB and returns JSON.
         public async Task<ActionResult> StockMHB()
         {
             var data = await bal.StockplanningMHB();
-
             return Json(data, JsonRequestBehavior.AllowGet);
         }
 
-
+        // Loads item-specific stock form partial view for MHB.
         public async Task<ActionResult> stockformMHB(string itemId)
         {
-            var model = await bal.GetItemByIdMHB(itemId); // or whatever method you use
-            return PartialView("_StockFormMHB", model); // Return partial, not full view
+            var model = await bal.GetItemByIdMHB(itemId);
+            return PartialView("_StockFormMHB", model);
         }
 
-
-
+        // Submits a purchase request (PR) for MHB items.
         [HttpPost]
-        public async Task<ActionResult> SubmitPRMHB(P2PLibray.Inventory.Inventory model)
+        public async Task<ActionResult> SubmitPRMHB(P2PLibray.Inventory.InventoryMHB model)
         {
+            //model.StaffCode = "STF020";
             model.StaffCode = Session["StaffCode"].ToString();
 
             if (ModelState.IsValid)
             {
-
-
                 bool result = await bal.SavePRRequestMHB(model);
                 if (result)
                 {
@@ -1390,52 +1398,54 @@ namespace P2PERP.Controllers
                 ModelState.AddModelError("", "Failed to save PR.");
             }
 
-
             return View("stockformMHB", model);
         }
+
+        // Loads the Item Stock Refill (ISR) view for MHB.
         public ActionResult ISRStockMHB()
         {
             return View();
         }
+
+        // Fetches item stock refill data for MHB and returns JSON.
         public async Task<JsonResult> ISRStock2MHB()
         {
-            List<Inventory> lst = new List<Inventory>();
+            List<InventoryMHB> lst = new List<InventoryMHB>();
             DataSet ds = await bal.ItemStockRefillMHB();
-            // Check if dataset has at least one table and rows
+
             if (ds != null && ds.Tables.Count > 0 && ds.Tables[0].Rows.Count > 0)
             {
                 foreach (DataRow row in ds.Tables[0].Rows)
                 {
-                    Inventory SHR = new Inventory();
-
-                    SHR.ItemName = row["ItemName"].ToString();
-                    SHR.ItemCode = row["ItemCode"].ToString();
-                    SHR.ISRQuantity = row["Quantity"].ToString();
-                    SHR.Description = row["Description"].ToString();
-                    // SHR.RequiredDate = row["RequiredDate"] == DBNull.Value
-                    //? DateTime.MinValue
-                    //: Convert.ToDateTime(row["RequiredDate"]);
-                    SHR.RequiredDates = row["RequiredDate"].ToString();
-                    SHR.UOMName = row["UOMName"].ToString();
-                    SHR.RequestType = row["RequestType"].ToString();
-                    SHR.StatusName = row["StatusName"].ToString();
+                    InventoryMHB SHR = new InventoryMHB
+                    {
+                        ItemName = row["ItemName"].ToString(),
+                        ItemCode = row["ItemCode"].ToString(),
+                        ISRQuantity = row["Quantity"].ToString(),
+                        Description = row["Description"].ToString(),
+                        RequiredDates = row["RequiredDate"].ToString(),
+                        UOMName = row["UOMName"].ToString(),
+                        RequestType = row["RequestType"].ToString(),
+                        StatusName = row["StatusName"].ToString()
+                    };
                     lst.Add(SHR);
                 }
             }
+
             return Json(new { Data = lst }, JsonRequestBehavior.AllowGet);
         }
 
+        // Loads the Just-In-Time (JIT) stock view for MHB.
         public ActionResult JITStockMHB()
         {
             return View();
         }
 
+        // Returns the list of all items for dropdown binding.
         [HttpGet]
         public async Task<JsonResult> GetItemListMHB()
         {
-
             DataSet ds = await bal.ItemlistMHB();
-
             var items = new List<object>();
 
             if (ds != null && ds.Tables.Count > 0)
@@ -1453,18 +1463,16 @@ namespace P2PERP.Controllers
             return Json(items, JsonRequestBehavior.AllowGet);
         }
 
+        // Returns detailed information about a selected item.
         [HttpGet]
         public async Task<JsonResult> GetItemDetailsMHB(int itemId)
         {
-
             DataSet ds = await bal.ItemlistMHB();
-
             object result = new { };
 
             if (ds != null && ds.Tables.Count > 0)
             {
                 var table = ds.Tables[0];
-                // Find row with matching ItemId
                 DataRow[] found = table.Select($"ItemId = {itemId}");
                 if (found.Length > 0)
                 {
@@ -1474,6 +1482,7 @@ namespace P2PERP.Controllers
                         ItemId = itemId,
                         ItemCode = row["ItemCode"]?.ToString(),
                         Description = row["Description"]?.ToString(),
+                        ReorderQuantity = row["ReorderQuantity"]?.ToString(),
                         UOMName = row["UOMName"]?.ToString()
                     };
                 }
@@ -1482,45 +1491,42 @@ namespace P2PERP.Controllers
             return Json(result, JsonRequestBehavior.AllowGet);
         }
 
-
+        // Saves a Just-In-Time request to the database.
         [HttpPost]
-        public async Task<JsonResult> SaveJustInTimeMHB(Inventory model)
+        public async Task<JsonResult> SaveJustInTimeMHB(InventoryMHB model)
         {
+            //model.StaffCode = "STF020";
             model.StaffCode = Session["StaffCode"].ToString();
             bool result = await bal.SaveJITMHB(model);
             return Json(new { success = result });
         }
 
-
+        // Loads the MRP new planning view for MHB.
         public ActionResult NewplanMHB()
         {
             return View();
         }
 
-
-
+        // Submits a new MRP plan for approval.
         [HttpPost]
-        public async Task<JsonResult> SubmitPlanForApprovalMHB(Inventory model)
+        public async Task<JsonResult> SubmitPlanForApprovalMHB(InventoryMHB model)
         {
             model.StaffCode = Session["StaffCode"].ToString();
-            bool result = await bal.SaveMRPMHB(model);  // Call new save method
-
+            bool result = await bal.SaveMRPMHB(model);
             return Json(new { success = result });
         }
 
-
+        // Loads the manager approval dashboard view.
         public ActionResult ManagerApprovalMHB()
         {
             return View();
         }
 
-
+        // Fetches all MRP plan headers for manager approval.
         [HttpGet]
         public async Task<JsonResult> FetchPlanDetailsMHB()
         {
-
             DataSet ds = await bal.fetchplandetailsMHB();
-
             var items = new List<object>();
 
             if (ds != null && ds.Tables.Count > 0)
@@ -1529,7 +1535,6 @@ namespace P2PERP.Controllers
                 {
                     items.Add(new
                     {
-
                         PlanName = row["PlanName"].ToString(),
                         MaterialReqPlanningCode = row["MaterialReqPlanningCode"].ToString(),
                         AddedDate = row["AddedDate"].ToString(),
@@ -1541,19 +1546,18 @@ namespace P2PERP.Controllers
             return Json(items, JsonRequestBehavior.AllowGet);
         }
 
-
+        // Loads the partial view for manager actions on a plan.
         public ActionResult viewActionForplanlMHB(string MRPcode)
         {
             ViewBag.MRPcode = MRPcode;
             return PartialView("_viewActionForplanlMHB");
         }
 
+        // Displays full plan details for manager approval.
         public async Task<ActionResult> showplanforApprovalMHB(string MRPcode)
         {
-
             DataSet ds = await bal.showplanMHB(MRPcode);
-
-            Inventory data = new Inventory();
+            InventoryMHB data = new InventoryMHB();
 
             if (ds.Tables[0].Rows.Count > 0)
             {
@@ -1567,7 +1571,7 @@ namespace P2PERP.Controllers
 
             foreach (DataRow row in ds.Tables[1].Rows)
             {
-                data.ItemList.Add(new Inventory
+                data.ItemList.Add(new InventoryMHB
                 {
                     ItemName = row["ItemName"].ToString(),
                     ItemCode = row["ItemCode"].ToString(),
@@ -1581,34 +1585,32 @@ namespace P2PERP.Controllers
             return Json(data, JsonRequestBehavior.AllowGet);
         }
 
-
+        // Approves a submitted MRP plan.
         [HttpPost]
-        public async Task<ActionResult> ApprovePlanMHB(string MRPCode, Inventory model)
+        public async Task<ActionResult> ApprovePlanMHB(string MRPCode, InventoryMHB model)
         {
-
             model.StaffCode = Session["StaffCode"].ToString();
             bool result = await bal.UpdateMRPPlanStatusMHB(MRPCode, true, null, model);
             return Json(result);
         }
 
+        // Rejects a submitted MRP plan with a reason.
         [HttpPost]
-        public async Task<ActionResult> RejectPlanMHB(string MRPCode, string Reason, Inventory model)
+        public async Task<ActionResult> RejectPlanMHB(string MRPCode, string Reason, InventoryMHB model)
         {
             model.StaffCode = Session["StaffCode"].ToString();
             bool result = await bal.UpdateMRPPlanStatusMHB(MRPCode, false, Reason, model);
             return Json(result);
         }
 
-
+        // Saves the changes made to an existing MRP plan.
         [HttpPost]
-
-        public async Task<JsonResult> SaveEditedPlanMHB(Inventory model)
+        public async Task<JsonResult> SaveEditedPlanMHB(InventoryMHB model)
         {
             if (ModelState.IsValid)
             {
                 model.StaffCode = Session["StaffCode"].ToString();
-
-                bool result = await bal.saveEditedPlanMHB(model); // ✅ await the async method
+                bool result = await bal.saveEditedPlanMHB(model);
 
                 if (result)
                 {
@@ -1621,11 +1623,10 @@ namespace P2PERP.Controllers
 
             return Json(new { success = false, message = "Invalid model state." }, JsonRequestBehavior.AllowGet);
         }
-
         #endregion
 
         #region Sayali and Om
-     
+
 
 
         public ActionResult ItemMasterOJ()
@@ -1815,10 +1816,7 @@ namespace P2PERP.Controllers
             }
         }
 
-        // Fix for CS0029: Cannot implicitly convert type 'void' to 'int'
-        // The method `AddItemOJ` in `BALInventory` has a return type of `void`.
-        // Update the code to remove the assignment to `result` since the method does not return a value.
-
+        // Adds or updates item details
         public async Task<ActionResult> AddItemOJ(InventoryOJ objn)
         {
             objn.StaffCode = Session["StaffCode"].ToString();
@@ -1891,6 +1889,7 @@ namespace P2PERP.Controllers
         }
 
 
+        // Main Category View
         public ActionResult CategorySSG()
         {
             return View();
@@ -1993,6 +1992,8 @@ namespace P2PERP.Controllers
             return Json(data, JsonRequestBehavior.AllowGet);
         }
 
+
+       
 
 
         #endregion Om and Sayali

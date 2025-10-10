@@ -6,8 +6,8 @@
 }
 
 
-<div class="container mt-4">
-    <h2 class="text-center text-primary mb-4 fw-bold"> Just In Time - Stock Request</h2>
+<div class="container mt-4  container-fluid ">
+
 
     <!-- ✅ Alert Messages -->
     <div id="alertSuccess" class="alert alert-success d-none" role="alert">
@@ -18,7 +18,8 @@
     </div>
 
     <!-- 📋 Form -->
-    <form id="stockForm" class="bg-light p-4 rounded shadow-sm">
+    <form id="stockForm" class="bg-white p-4 rounded shadow-sm">
+        <h2 class="text-center text-primary mb-4 fw-bold"> Just In Time - Stock Request</h2>
         <div class="row g-3">
 
             <!-- 🔽 Item Name Dropdown -->
@@ -45,7 +46,7 @@
             <!-- 🔢 Quantity -->
             <div class="col-md-6">
                 <label for="quantity" class="form-label fw-semibold">Quantity</label>
-                <input type="number" class="form-control" id="quantity" name="Quantity" min="1" required>
+                <input type="number" class="form-control" id="quantity" name="Quantity" min="1" placeholder=" order quntity upto  "  required>
             </div>
 
             <!-- 📝 Description -->
@@ -80,10 +81,10 @@
         background-color: #f9f9f9;
     }
 
-    #stockForm {
+    /*    #stockForm {
         max-width: 1200px;
         margin: 0 auto;
-    }
+    }*/
 </style>
 
 
@@ -107,7 +108,11 @@
             $.get('/Inventory/GetItemDetailsMHB', { itemId: itemId }, function (item) {
                 $('#itemCode').val(item.ItemCode);
                 $('#uom').val(item.UOMName);
-                $('#description').val(item.Description);
+                $('#description').val(item.Description);             
+                $('#quantity').val(''); // clear previous value if any
+                $('#quantity')
+                    .attr('placeholder', 'Order quantity upto ' + item.ReorderQuantity) // ✅ set placeholder text
+                    .attr('max', item.ReorderQuantity); // optional: set max for validation
             });
         });
 
@@ -138,7 +143,7 @@
                     const formData = {
                         ItemCode: $('#itemCode').val(),
                         Quantity: $('#quantity').val(),
-                        RequiredDate: $('#requiredDate').val()
+                        RequiredDate: $('#RequiredDate').val()
                     };
 
                     $.ajax({
@@ -176,7 +181,7 @@
                 }
             });
         });
-    
+
     });
 </script>
 

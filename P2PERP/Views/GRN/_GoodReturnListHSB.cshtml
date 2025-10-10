@@ -69,7 +69,7 @@
         let endDate = null;
 
         function cb(start, end) {
-            $('#returnGoodsRange').val(start.format('YYYY-MM-DD') + ' - ' + end.format('YYYY-MM-DD'));
+            $('#returnGoodsRange').val(start.format('DD/MM/YYYY') + ' - ' + end.format('DD/MM/YYYY'));
             startDate = start;
             endDate = end;
             if ($.fn.DataTable.isDataTable('#ReturnGoods')) {
@@ -91,18 +91,17 @@
             locale: { cancelLabel: 'Clear' },// keep input empty at first
             ranges: {
                 'Today': [moment(), moment()],
-                'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
                 'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-                'This Month': [moment().startOf('month'), moment().endOf('month')],
-                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                'Last 1 Month': [moment().subtract(1, 'months').startOf('day'), moment()],
+                'Last 3 Months': [moment().subtract(3, 'months').startOf('day'), moment()],
+                'Last 1 Year': [moment().subtract(12, 'months').startOf('day'), moment()]
             }
         }, cb);
 
         // Custom Filter
         $.fn.dataTable.ext.search.push(function (settings, data) {
             if (settings.nTable.id !== 'ReturnGoods') return true;
-            const addedDate = moment(data[3], ["YYYY-MM-DD", "YYYY-MM-DD HH:mm:ss"]); // index 3 = "GR Date"
+            const addedDate = moment(data[3], ["DD/MM/YYYY", "DD/MM/YYYY HH:mm:ss"]); // index 3 = "GR Date"
             if (!startDate || !endDate) return true; // ✅ no filter on first load
             if (!addedDate.isValid()) return true;
             return addedDate.isSameOrAfter(startDate, 'day') && addedDate.isSameOrBefore(endDate, 'day');
@@ -128,7 +127,15 @@
                     }
                 },
                 { data: "GoodReturnCode", title: "GR Code" },
-                { data: "AddedDate", title: "GR Date" },
+                {
+                    data: "AddedDate",
+                    title: "GR Date",
+                    render: function (data, type, row) {
+                        // Check if date is valid
+                        if (!data) return "";
+                        return moment(data).format("DD/MM/YYYY"); // Change to your desired format
+                    }
+                },
                 { data: "GRNCode", title: "GRN Code" },
                 {
                     data: "ReasonOfRejection",
@@ -144,7 +151,7 @@
                         let statusText = data || 'Unknown';
                         let statusLower = statusText.trim().toLowerCase();
 
-                        let bgColor = '#6c757d'; // default gray
+                        let bgColor = '#198754'; // default gray
 
 
                         if (statusLower == 'assign') bgColor = '#0d6efd';       // blue (primary)
@@ -188,6 +195,7 @@
             columnDefs: [
                 { targets: "_all", className: "text-center" } // center all columns
             ],
+            ordering: false,
             buttons: [
 
                 {

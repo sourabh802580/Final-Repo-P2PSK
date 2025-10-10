@@ -2,6 +2,7 @@
 using P2PLibray.Account;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Drawing;
 using System.Linq;
 using System.Net;
@@ -11,6 +12,7 @@ using System.Security.Principal;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Configuration;
+using System.Web.Helpers;
 using System.Web.Mvc;
 using System.Web.Security;
 
@@ -85,12 +87,15 @@ namespace P2PERP.Controllers
         }
 
         /// <summary>
-        /// Verifies whether the provided email exists and sends a reset code.
+        /// Handles a user's request to reset their password.
+        /// Verifies if the provided email exists in the system, 
+        /// and if valid, stores relevant session information for the password reset process.
         /// </summary>
-        /// <param name="acc">The account object containing the email address.</param>
+        /// <param name="acc">An <see cref="Account"/> object containing the user's email address.</param>
         /// <returns>
-        /// A JSON result indicating success or failure. 
-        /// On success, a verification code is sent to the user’s email.
+        /// Returns a JSON result:
+        /// - If the email is valid: { success = true } and stores the staff code and email in session for further steps.
+        /// - If the email is invalid: { success = false, message = "Invalid Email" }.
         /// </returns>
         [HttpPost]
         public async Task<ActionResult> ForgotPassword(Account acc)
@@ -103,9 +108,24 @@ namespace P2PERP.Controllers
             }
 
             Session["StaffCodeForForgotPassword"] = str;
+            Session["ForgetPasswordEmail"] = acc.EmailAddress;
 
-            int send = sendForgotPasswordCode(acc.EmailAddress);
             return Json(new { success = true });
+        }
+
+        /// <summary>
+        /// Checks whether the current user session contains a valid StaffCode.
+        /// </summary>
+        /// <returns>
+        /// Returns a JSON object with:
+        /// - success = true, if Session["StaffCode"] exists.
+        /// - success = false, if Session["StaffCode"] is null.
+        /// </returns>
+        [HttpGet]
+        public JsonResult CheckSession()
+        {
+            bool isValid = Session["StaffCode"] != null;
+            return Json(new { success = isValid }, JsonRequestBehavior.AllowGet);
         }
 
         /// <summary>
@@ -204,59 +224,60 @@ namespace P2PERP.Controllers
         }
 
         /// <summary>
-        /// Creates a random 4-digit verification code and stores it in session.
+        /// Sends an email with optional CC, BCC, and attachments to the specified recipients.
         /// </summary>
-        /// <returns>The generated 4-digit code as a string.</returns>
-        public string CreateCode()
+        /// <param name="email">The Email object containing recipients, subject, body, and attachments.</param>
+        /// <returns>
+        /// A JSON result indicating the outcome:
+        /// - success = true, message = "Email sent successfully." if the email was sent successfully.
+        /// - success = false, message = error details if sending failed.
+        /// </returns>
+        [HttpPost]
+        public JsonResult SendEmail(Email email)
         {
-            Random random = new Random();
-            int number = random.Next(0, 10000);
-            string fourDigitString = number.ToString("D4");
-            Session["VerificationCode"] = fourDigitString;
-            return fourDigitString;
-        }
-
-        /// <summary>
-        /// Sends a forgot password verification code to the given email address.
-        /// </summary>
-        /// <param name="mail">The recipient email address.</param>
-        /// <returns>1 if the email was sent successfully; otherwise 0.</returns>
-        public int sendForgotPasswordCode(string mail)
-        {
-            int sent = 0;
-            string Email = WebConfigurationManager.AppSettings["MainEmail"];
-            string AppPassword = WebConfigurationManager.AppSettings["AppPassword"];
-            string Body = "The Code For Your <b>" + mail + "</b> is <p style='text-align: center;font-size: xx-large;'><b>" + CreateCode() + "</b></p>";
             try
             {
-                // Set up the SMTP client
-                SmtpClient smtpClient = new SmtpClient("smtp.gmail.com")
+                var smtpClient = new System.Net.Mail.SmtpClient("smtp.gmail.com")
                 {
                     Port = 587,
-                    Credentials = new NetworkCredential(Email, AppPassword),
+                    Credentials = new System.Net.NetworkCredential(
+                        System.Web.Configuration.WebConfigurationManager.AppSettings["MainEmail"],
+                        System.Web.Configuration.WebConfigurationManager.AppSettings["AppPassword"]
+                    ),
                     EnableSsl = true,
                 };
 
-                // Create the email message
-                MailMessage mailMessage = new MailMessage
+                var mail = new System.Net.Mail.MailMessage
                 {
-                    From = new MailAddress(Email),
-                    Subject = "Reset Password Code",
-                    IsBodyHtml = true,
-                    Body = Body
+                    From = new System.Net.Mail.MailAddress(System.Web.Configuration.WebConfigurationManager.AppSettings["MainEmail"]),
+                    Subject = email.Subject,
+                    Body = email.Body,
+                    IsBodyHtml = email.IsBodyHtml
                 };
 
-                mailMessage.To.Clear();
-                mailMessage.To.Add(mail);
+                // Add recipients
+                email.ToEmails?.ForEach(x => mail.To.Add(x));
+                email.CcEmails?.ForEach(x => mail.CC.Add(x));
+                email.BccEmails?.ForEach(x => mail.Bcc.Add(x));
 
-                smtpClient.Send(mailMessage);
-                sent = 1;
+                // Add attachments (if any)
+                if (email.AttachmentPaths != null)
+                {
+                    foreach (var path in email.AttachmentPaths)
+                    {
+                        if (System.IO.File.Exists(path))
+                            mail.Attachments.Add(new System.Net.Mail.Attachment(path));
+                    }
+                }
+
+                smtpClient.Send(mail);
+
+                return Json(new { success = true, message = "Email sent successfully." });
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to send email: {ex.Message}");
+                return Json(new { success = false, message = ex.Message });
             }
-            return sent;
         }
 
         /// <summary>
@@ -438,7 +459,7 @@ namespace P2PERP.Controllers
                     return Json(city, JsonRequestBehavior.AllowGet);
                 }
 
-                return Json(body, JsonRequestBehavior.AllowGet);
+                return Json(cities, JsonRequestBehavior.AllowGet);
             }
         }
 
@@ -490,8 +511,7 @@ namespace P2PERP.Controllers
                             {
                                 id = pr.IdCode,
                                 title = $"Purchase Requisition Is Added By {pr.AddedBy}",
-                                start = pr.AddedDate.ToString("yyyy/MM/ddThh:MM:ss"),
-                                //className = pr.Status == "Approved" ? "bg-success" : (pr.Status == "Pending" ? "bg-warning" : "bg-danger"),
+                                start = pr.AddedDate.ToString("yyyy/MM/ddTHH:mm:ss"),
                                 color = "#007bff",
 
                                 extendedProps = new
@@ -524,7 +544,6 @@ namespace P2PERP.Controllers
                                 title = $"Request For Quotation Is Added By {pr.AddedBy}",
                                 start = pr.AddedDate.ToString("yyyy-MM-dd"),
                                 end = ((pr.EndDate.Date.AddDays(1) - pr.AddedDate.Date).TotalDays > 7 ? pr.AddedDate.Date.AddDays(7) : pr.EndDate.Date.AddDays(-2)).ToString("yyyy-MM-dd"),
-                                //className = pr.Status == "Requested" ? "bg-success" : "bg-warning",
                                 color = "#17a2b8",
 
                                 extendedProps = new
@@ -569,10 +588,7 @@ namespace P2PERP.Controllers
                             {
                                 id = $"RQ-{pr.AddedDate:yyyyMMdd}",
                                 title = $"{pr.Count} Quotations are Registerd By {pr.AddedBy}",
-                                start = pr.AddedDate.ToString("yyyy-MM-ddThh:MM:ss"),
-                                //color = "#f8f9fa",
-                                //textColor = "#212529",
-                                //borderColor = "#212529",
+                                start = pr.AddedDate.ToString("yyyy-MM-ddTHH:mm:ss"),
                                 color = "#6f42c1",
 
                                 extendedProps = new
@@ -595,9 +611,7 @@ namespace P2PERP.Controllers
                             {
                                 id = po.IdCode,
                                 title = $"Purchase Order Is Added By {po.AddedBy}",
-                                start = po.AddedDate.ToString("yyyy-MM-ddThh:MM:ss"),
-                                //className = po.Status == "Approved" ? "bg-success" :
-                                //            (po.Status == "Pending" ? "bg-warning" : "bg-danger"),
+                                start = po.AddedDate.ToString("yyyy-MM-ddTHH:mm:ss"),
                                 color = "#fd7e14",
 
                                 extendedProps = new
@@ -647,8 +661,7 @@ namespace P2PERP.Controllers
                             {
                                 id = grn.IdCode,
                                 title = $"GRN Is Added By {grn.AddedBy}",
-                                start = grn.AddedDate.ToString("yyyy-MM-ddThh:MM:ss"),
-                                //className = grn.Status == "Completed" ? "bg-success" : "bg-warning",
+                                start = grn.AddedDate.ToString("yyyy-MM-ddTHH:mm:ss"),
                                 color = "#28a745",
 
                                 extendedProps = new
@@ -683,8 +696,7 @@ namespace P2PERP.Controllers
                             {
                                 id = gr.IdCode,
                                 title = $"Goods Return Entry Is Added By {gr.AddedBy}",
-                                start = gr.AddedDate.ToString("yyyy-MM-ddThh:MM:ss"),
-                                //className = gr.Status == "Assign" ? "bg-warning" : "bg-success",
+                                start = gr.AddedDate.ToString("yyyy-MM-ddTHH:mm:ss"),
                                 color = "ffc107",
 
                                 extendedProps = new
@@ -735,8 +747,7 @@ namespace P2PERP.Controllers
                             {
                                 id = $"QC-{qc.AddedDate:yyyyMMdd}",
                                 title = $"{qc.Count} Items Has {(qc.Status == "Confirmed" ? "Passed" : "Failed")} Quality Check",
-                                start = qc.AddedDate.ToString("yyyy-MM-ddThh:mm:ss"),
-                                //className = qc.Status == "Non-Confirmed" ? "bg-danger" : "bg-success",
+                                start = qc.AddedDate.ToString("yyyy-MM-ddTHH:mm:ss"),
                                 color = "#dc3545",
 
                                 extendedProps = new

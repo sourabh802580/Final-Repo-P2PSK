@@ -9,16 +9,15 @@
                     <i class="bi bi-calendar-event"></i>
                 </span>
                 <input type="text" id="tblConfirm" class="form-control" readonly placeholder="Select Date Range" />
-
             </div>
         </div>
 
-        <!-- 🔹 Centered Heading -->
+        <!--  Centered Heading -->
         <div class="col-md-6 text-center">
             <h4 class="mb-0 text-primary">Confirm Item List</h4>
         </div>
 
-        <!-- 🔹 Empty right column (optional) -->
+        <!--  Empty right column (optional) -->
         <div class="col-md-3"></div>
     </div>
 
@@ -31,7 +30,7 @@
                     <th>GRN Code</th>
                     <th>Vendor Name</th>
                     <th>Add Date</th>
-                    <th>Quality Check Date</th>
+                    @*<th>Quality Check Date</th>*@
                     <th>Action</th>
                 </tr>
             </thead>
@@ -40,17 +39,17 @@
 </div>
 
 <!-- Modal for View Item -->
-<div class="modal fade" id="viewItemModal" tabindex="-1" aria-labelledby="viewItemModalLabel" aria-hidden="true" data-bs-backdrop="false">
-    <div class="modal-dialog modal-lg">
+<div class="modal fade" id="viewItemModal" tabindex="-1" aria-labelledby="viewItemModalLabel" aria-hidden="true" data-bs-backdrop="True">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
 
             <!-- 🔹 Centered Header with Background -->
-            <div class="modal-header bg-primary text-white justify-content-center">
-                <h5 class="modal-title text-white fw-bold" id="viewItemModalLabel">Confirm Item Details</h5>
-                <button type="button" class="btn-close btn-close-white position-absolute end-0 me-3" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-header bg-primary text-white justify-content-center py-3">
+                <h5 class="modal-title text-white fw-bold text-center w-100" id="viewItemModalLabel">Confirm Item Details</h5>
+                <button type="button" class="btn-close btn-close-white position-absolute end-0 me-2 mt-1 mb-2" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
 
-            <!-- 🔹 GRN Code Box -->
+            <!--  GRN Code Box -->
             <div class="px-4 py-3 ">
                 <div class="border rounded bg-light p-2 d-inline-block">
                     <strong>GRN Code:</strong>
@@ -72,7 +71,7 @@
                             <th>Sr No</th>
                             <th>Item Code</th>
                             <th>Item Name</th>
-                            <th>Item Added Date</th>
+                          
                             <th>Quality Check Date</th>
                         </tr>
                     </thead>
@@ -86,9 +85,6 @@
         </div>
     </div>
 </div>
-
-
-
 
 <style>
     div.dataTables_wrapper div.dataTables_paginate {
@@ -117,14 +113,14 @@
         text-align: center;
     }
 
-    /* ✅ Confirm Item Table ke liye */
+    /*  Confirm Item Table ke liye */
     #confirmItemTable th,
     #confirmItemTable td {
         vertical-align: middle !important;
         text-align: center;
     }
 
-    /* ✅ Modal ke andar ka table ke liye */
+    /*  Modal ke andar ka table ke liye */
     #itemDetailsTable th,
     #itemDetailsTable td {
         vertical-align: middle !important;
@@ -140,12 +136,126 @@
         font-family: 'Arial', sans-serif;
         font-size: 13px;
     }
-</style>
+    /* Smaller checkbox styling for all tables */
+    .small-checkbox {
+        width: 10px !important;
+        height: 10px !important;
+        transform: scale(0.85);
+        margin: 0 auto;
+        display: block;
+    }
 
+    /* Ensure proper alignment */
+    #confirmItemTable th:first-child,
+    #confirmItemTable td:first-child,
+    #itemDetailsTable th:first-child,
+    #itemDetailsTable td:first-child {
+        width: 30px !important;
+        text-align: center !important;
+    }
+
+    /* Modal positioning - ADDED */
+    .modal-dialog-centered {
+        display: flex;
+        align-items: center;
+        min-height: calc(100% - 1rem);
+    }
+    /* Smaller checkbox styling for all tables */
+    .small-checkbox {
+        width: 16px !important;
+        height: 16px !important;
+        transform: scale(0.7);
+        margin: 0 auto;
+        display: block;
+        cursor: pointer;
+    }
+
+    /* Ensure proper alignment */
+    #confirmItemTable th:first-child,
+    #confirmItemTable td:first-child,
+    #itemDetailsTable th:first-child,
+    #itemDetailsTable td:first-child {
+        width: 20px !important;
+        text-align: center !important;
+        padding: 8px 4px !important;
+    }
+
+    /* Select All checkbox specific styling */
+    #selectAllConfirm,
+    #selectAllModalItemsConfirm {
+        width: 16px !important;
+        height: 16px !important;
+        transform: scale(0.7);
+        margin: 0 auto;
+        display: block;
+        cursor: pointer;
+    }
+
+    /* Table cell padding adjustment for checkboxes */
+    #confirmItemTable td:first-child,
+    #itemDetailsTable td:first-child {
+        padding: 8px 4px !important;
+    }
+
+    /* Modal positioning - ADDED */
+    .modal-dialog-centered {
+        display: flex;
+        align-items: center;
+        min-height: calc(100% - 1rem);
+    }
+
+    /* DataTables styling */
+    div.dataTables_wrapper div.dataTables_paginate {
+        text-align: right;
+    }
+
+    div.dataTables_filter input {
+        width: auto;
+        display: inline-block;
+    }
+
+    div.dt-buttons {
+        margin-bottom: 0 !important;
+    }
+
+    #toast-container {
+        z-index: 99999 !important;
+    }
+
+    #itemDetailsTable th,
+    #itemDetailsTable td {
+        vertical-align: middle;
+        text-align: center;
+    }
+
+    /* Confirm Item Table ke liye */
+    #confirmItemTable th,
+    #confirmItemTable td {
+        vertical-align: middle !important;
+        text-align: center;
+    }
+
+    /* Modal ke andar ka table ke liye */
+    #itemDetailsTable th,
+    #itemDetailsTable td {
+        vertical-align: middle !important;
+        text-align: center;
+    }
+
+    div.dataTables_wrapper div.dataTables_paginate {
+        text-align: right !important;
+    }
+
+    .tooltip-inner {
+        font-weight: 600 !important;
+        font-family: 'Arial', sans-serif;
+        font-size: 13px;
+    }
+</style>
 
 <script>
     $(document).ready(function () {
-        // ✅ Toastr Configuration
+        //  Toastr Configuration
         toastr.options = {
             "closeButton": true,
             "progressBar": true,
@@ -153,50 +263,68 @@
             "timeOut": "3000"
         };
 
-        // ✅ Initialize Date Range Picker
+        //  ✅ Initialize Date Range Picker with the format you provided
         $('#tblConfirm').daterangepicker({
             autoUpdateInput: false,
-            opens: "center",
-            drops: "down",
-            locale: { cancelLabel: 'Clear' },
+            alwaysShowCalendars: false,
+            locale: {
+                cancelLabel: 'Clear',
+                format: 'DD-MM-YYYY',
+                applyLabel: 'Apply',
+                customRangeLabel: 'Custom Range'
+            },
             ranges: {
                 'Today': [moment(), moment()],
-                'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
                 'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-                'This Month': [moment().startOf('month'), moment().endOf('month')],
-                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                'Last 1 Month': [moment().subtract(1, 'months').startOf('day'), moment()],
+                'Last 3 Months': [moment().subtract(3, 'months').startOf('day'), moment()],
+                'Last 1 Year': [moment().subtract(12, 'months').startOf('day'), moment()]
             }
+        }, function (start, end) {
+            // Set the date range in the input field
+            $('#tblConfirm').val(start.format('DD-MM-YYYY') + ' - ' + end.format('DD-MM-YYYY'));
+
+            // Store the dates in data attributes for filtering
+            $('#tblConfirm').data('start', start);
+            $('#tblConfirm').data('end', end);
+
+            // Trigger table redraw
+            $('#confirmItemTable').DataTable().draw();
         });
 
-        // ✅ Custom filter for Add Date column
+        // Handle cancel event
+        $('#tblConfirm').on('cancel.daterangepicker', function () {
+            $(this).val('Select Date Range');
+            $(this).removeData('start').removeData('end');
+            $('#confirmItemTable').DataTable().draw();
+        });
+
+        // Set initial placeholder value
+        $('#tblConfirm').val('Select Date Range');
+
+        //  Custom filter for Add Date column - UPDATED for DD-MM-YYYY format
         $.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
             if (settings.nTable.id !== 'confirmItemTable') return true;
 
             const start = $('#tblConfirm').data('start');
             const end = $('#tblConfirm').data('end');
-            const addDateStr = data[4];
+            const addDateStr = data[4]; // Add Date column
 
-            if (!addDateStr) return false;
-
-            const addDate = moment(addDateStr, 'YYYY-MM-DD');
+            // If no date range selected, show all rows
             if (!start || !end) return true;
 
+            // If no date in the row, exclude it
+            if (!addDateStr || addDateStr.trim() === '') return false;
+
+            // Try multiple common date formats with priority to DD-MM-YYYY
+            const addDate = moment(addDateStr, ['DD-MM-YYYY', 'YYYY-MM-DD', 'MM/DD/YYYY', 'DD/MM/YYYY', 'YYYY/MM/DD'], true);
+
+            if (!addDate.isValid()) {
+                console.warn('Invalid date format in table:', addDateStr);
+                return false;
+            }
+
             return addDate.isSameOrAfter(start) && addDate.isSameOrBefore(end);
-        });
-
-        // ✅ Handle Date Range Apply & Cancel
-        $('#tblConfirm').on('apply.daterangepicker', function (ev, picker) {
-            $(this).val(picker.startDate.format('YYYY-MM-DD') + ' - ' + picker.endDate.format('YYYY-MM-DD'));
-            $(this).data('start', picker.startDate);
-            $(this).data('end', picker.endDate);
-            $('#confirmItemTable').DataTable().draw();
-        });
-
-        $('#tblConfirm').on('cancel.daterangepicker', function () {
-            $(this).val('');
-            $(this).removeData('start').removeData('end');
-            $('#confirmItemTable').DataTable().draw();
         });
 
         // ✅ Initialize Main DataTable
@@ -221,7 +349,7 @@
                     searchable: false,
                     className: "dt-center",
                     render: function (data, type, row) {
-                        return `<input type="checkbox" class="row-checkbox" data-id="${row.GRNCode}">`;
+                        return `<input type="checkbox" class="row-checkbox small-checkbox" data-id="${row.GRNCode}">`;
                     }
                 },
                 {
@@ -234,10 +362,10 @@
                         return meta.row + 1;
                     }
                 },
-                { data: "GRNCode" },
-                { data: "VenderName" },
-                { data: "AddDate" },
-                { data: "QualityCheckDate" },
+                { data: "GRNCode", orderable: false },
+                { data: "VenderName", orderable: false },
+                { data: "AddDate", orderable: false },
+              
                 {
                     data: null,
                     title: 'Action',
@@ -252,14 +380,13 @@
                             data-bs-placement="top"
                             title="View Item Details"
                         >
-                            <i class="bi bi-eye"></i>
+                            <i class="bi bi-eye-fill"></i>
                         </button>`;
                     }
                 }
             ],
             buttons: [
                 // PRINT
-                // PRINT - Main Table
                 {
                     extend: 'print',
                     text: '<i class="bi bi-printer-fill text-dark fs-5"></i>',
@@ -337,7 +464,7 @@
                         // Add title and metadata
                         $body.prepend(`
             <h3>Confirm Item List</h3>
-            <p>Generated on: ${moment().format("YYYY-MM-DD")}</p>
+            <p>Generated on: ${moment().format("DD-MM-YYYY")}</p>
         `);
 
                         // Set body styling
@@ -388,23 +515,33 @@
                         $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, button, config);
                     },
                     customize: function (doc) {
+                        // Set page margins
                         doc.pageMargins = [40, 60, 40, 40];
+
+                        // Title styling - centered
                         doc.styles.title = {
                             fontSize: 16,
                             bold: true,
                             alignment: 'center',
                             margin: [0, 0, 0, 10]
                         };
+
+                        // Add generation date - centered
                         doc.content.splice(1, 0, {
-                            text: `Generated on: ${moment().format("YYYY-MM-DD")}`,
+                            text: `Generated on: ${moment().format("DD-MM-YYYY")}`,
                             alignment: 'center',
                             margin: [0, 0, 0, 10],
                             fontSize: 10,
                             italics: true
                         });
+
+                        // Find and style the table
                         const table = doc.content.find(n => n.table);
                         if (table) {
+                            // Set all columns to equal width
                             table.table.widths = Array(table.table.body[0].length).fill('*');
+
+                            // Table layout settings
                             table.layout = {
                                 hLineWidth: () => 0.5,
                                 vLineWidth: () => 0.5,
@@ -414,24 +551,41 @@
                                 paddingLeft: () => 5,
                                 paddingRight: () => 5
                             };
+
+                            // Style header row
                             table.table.body[0].forEach(cell => {
                                 cell.fillColor = '#343a40';
                                 cell.color = 'white';
                                 cell.alignment = 'center';
                                 cell.fontSize = 11;
+                                cell.bold = true;
                             });
 
-                            // Fix serial numbers in PDF
+                            // Style all data rows - CENTER ALIGNMENT
                             table.table.body.forEach((row, rowIndex) => {
                                 if (rowIndex > 0) { // Skip header row
-                                    row[0].text = rowIndex; // Sequential serial numbers
+                                    // Fix serial numbers in PDF
+                                    row[0].text = rowIndex;
+
+                                    // Center align all cells in data rows
+                                    row.forEach(cell => {
+                                        cell.alignment = 'center';
+                                    });
                                 }
                             });
+
+                            // Ensure table is centered on page
+                            table.alignment = 'center';
                         }
+
+                        // Set default styles for all text to be centered
+                        doc.defaultStyle = {
+                            alignment: 'center'
+                        };
                     }
                 },
 
-                // EXCEL - Waisa format rakhenge
+                // EXCEL
                 {
                     extend: 'excel',
                     text: '<i class="bi bi-file-earmark-excel text-success fs-5"></i>',
@@ -452,7 +606,7 @@
                     }
                 },
 
-                // CSV - Waisa format rakhenge
+                // CSV
                 {
                     extend: 'csv',
                     text: '<i class="bi bi-filetype-csv text-success fs-5"></i>',
@@ -475,7 +629,7 @@
             ]
         });
 
-        // ✅ Select All Main Table
+        //  Select All Main Table
         $('#selectAllConfirm').on('click', function () {
             const isChecked = $(this).is(':checked');
             $('.row-checkbox').prop('checked', isChecked);
@@ -487,7 +641,7 @@
             $('#selectAllConfirm').prop('checked', all === checked);
         });
 
-        // ✅ Modal View Item Logic
+        //  Modal View Item Logic
         $('#confirmItemTable').on('click', '.open-view-modal', function () {
             const grnCode = $(this).data('grn');
             $('#modalGRNCode').text(grnCode);
@@ -511,11 +665,11 @@
                         response.data.forEach((item, i) => {
                             tbody.append(`
                                 <tr>
-                                    <td class="dt-center"><input type="checkbox" class="modal-confirm-checkbox" value="${item.ItemCode}" /></td>
+                                    <td class="dt-center"><input type="checkbox" class="modal-confirm-checkbox small-checkbox" value="${item.ItemCode}" /></td>
                                     <td class="dt-center">${i + 1}</td>
                                     <td>${item.ItemCode}</td>
                                     <td>${item.ItemName}</td>
-                                    <td>${item.ItemAddedDate}</td>
+                                   
                                     <td>${item.QualityCheckDate}</td>
                                 </tr>
                             `);
@@ -531,7 +685,6 @@
                             dom: "tr<'row mt-2'<'col-md-6'i><'col-md-6 text-end'p>><'row mt-2'<'col-sm-12'B>>",
                             buttons: [
                                 // PRINT
-                                // PRINT - Modal Table
                                 {
                                     extend: 'print',
                                     text: '<i class="bi bi-printer-fill text-dark fs-6"></i>',
@@ -605,7 +758,7 @@
                                         $body.prepend(`
             <h3>Confirm Item Details</h3>
             <p>GRN Code: <strong>${$('#modalGRNCode').text()}</strong></p>
-            <p>Generated on: ${moment().format("YYYY-MM-DD")}</p>
+            <p>Generated on: ${moment().format("DD-MM-YYYY")}</p>
         `);
 
                                         // Set body styling
@@ -621,7 +774,7 @@
                                         });
                                     }
                                 },
-                                // PDF
+                                // PDF - Modal Table
                                 {
                                     extend: 'pdfHtml5',
                                     text: '<i class="bi bi-file-earmark-pdf text-danger fs-6"></i>',
@@ -654,20 +807,33 @@
                                         $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, button, config);
                                     },
                                     customize: function (doc) {
-                                        doc.pageMargins = [40, 60, 40, 40];
+                                        doc.pageMargins = [40, 80, 40, 40];
+
+                                        // Title styling - centered
                                         doc.styles.title = {
                                             fontSize: 16,
                                             bold: true,
                                             alignment: 'center',
                                             margin: [0, 0, 0, 10]
                                         };
-                                        doc.content.splice(1, 0, {
-                                            text: `Generated on: ${moment().format("YYYY-MM-DD")}`,
-                                            alignment: 'center',
-                                            margin: [0, 0, 0, 10],
-                                            fontSize: 10,
-                                            italics: true
-                                        });
+
+                                        // Add GRN Code and generation date - centered
+                                        doc.content.splice(1, 0,
+                                            {
+                                                text: `GRN Code: ${$('#modalGRNCode').text()}`,
+                                                alignment: 'center',
+                                                margin: [0, 0, 0, 5],
+                                                fontSize: 12,
+                                                bold: true
+                                            },
+                                            {
+                                                text: `Generated on: ${moment().format("DD-MM-YYYY")}`,
+                                                alignment: 'center',
+                                                margin: [0, 0, 0, 10],
+                                                fontSize: 10,
+                                                italics: true
+                                            }
+                                        );
 
                                         const table = doc.content.find(n => n.table);
                                         if (table) {
@@ -681,24 +847,42 @@
                                                 paddingLeft: () => 5,
                                                 paddingRight: () => 5
                                             };
+
+                                            // Style header row
                                             table.table.body[0].forEach(cell => {
                                                 cell.fillColor = '#343a40';
                                                 cell.color = 'white';
                                                 cell.alignment = 'center';
                                                 cell.fontSize = 11;
+                                                cell.bold = true;
                                             });
 
-                                            // Fix serial numbers in modal PDF
+                                            // Style all data rows - CENTER ALIGNMENT
                                             table.table.body.forEach((row, rowIndex) => {
                                                 if (rowIndex > 0) {
+                                                    // Fix serial numbers
                                                     row[0].text = rowIndex;
+
+                                                    // Center align all cells in data rows
+                                                    row.forEach(cell => {
+                                                        cell.alignment = 'center';
+                                                    });
                                                 }
                                             });
+
+                                            // Ensure table is centered on page
+                                            table.alignment = 'center';
                                         }
+
+                                        // Set default styles for all text to be centered
+                                        doc.defaultStyle = {
+                                            alignment: 'center'
+                                        };
                                     }
+
                                 },
 
-                                // EXCEL - Waisa format rakhenge
+                // EXCEL
                                 {
                                     extend: 'excelHtml5',
                                     text: '<i class="bi bi-file-earmark-excel text-success fs-6"></i>',
@@ -719,7 +903,7 @@
                                     }
                                 },
 
-                                // CSV - Waisa format rakhenge
+                                // CSV
                                 {
                                     extend: 'csvHtml5',
                                     text: '<i class="bi bi-filetype-csv text-success fs-6"></i>',
@@ -766,6 +950,19 @@
 
             // Show modal
             new bootstrap.Modal(document.getElementById('viewItemModal')).show();
+        });
+
+        // Debug function to check date formats
+        table.on('draw', function () {
+            console.log('Table redrawn with date filter');
+            const start = $('#tblConfirm').data('start');
+            const end = $('#tblConfirm').data('end');
+            if (start && end) {
+                console.log('Active date filter:', {
+                    start: start.format('DD-MM-YYYY'),
+                    end: end.format('DD-MM-YYYY')
+                });
+            }
         });
     });
 </script>
