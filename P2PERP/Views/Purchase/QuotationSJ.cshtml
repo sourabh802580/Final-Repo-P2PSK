@@ -1463,7 +1463,9 @@
                                 <td></td>
                                 <td>${item.PRCode ?? ""}</td>
                                 <td>${item.RFQCode ?? ""}</td>
-                                <td>${moment(item.RequiredDate).format('D/M/YYYY')}</td>
+                               <td>${moment(item.RequiredDate, 'DD-MM-YYYY hh:mm:ss A').isValid()
+                                ? moment(item.RequiredDate, 'DD-MM-YYYY hh:mm:ss A').format('DD/MM/YYYY')
+                                : ''}</td>
                                 <td>
                                     <span data-bs-toggle="tooltip" data-bs-placement="top" title="${desc}">
                                         ${desc}

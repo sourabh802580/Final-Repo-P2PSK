@@ -512,6 +512,10 @@ namespace P2PERP.Controllers
             return Json(data, JsonRequestBehavior.AllowGet);
         }
 
+        public ActionResult ApprovedPOsPartialVNK()
+        {
+            return PartialView("_ApprovedPOsPartialVNK"); // returns the partial view
+        }
 
         //nur
 
@@ -1446,9 +1450,18 @@ namespace P2PERP.Controllers
         /// <returns>View for creating purchase order</returns>
         /// </summary>
 
-        public ActionResult CreatePOOK(string quotationID)
+
+        //string quotationID
+        public ActionResult CreatePOOK()
         {
-            Session["quotationID"] = quotationID;
+            HttpCookie cookie = Request.Cookies["SelectedQuotationID"];
+            string quotationId = null;
+
+            if (cookie != null)
+            {
+                quotationId = cookie.Value;
+            }
+            Session["quotationID"] = quotationId;
             return View();
         }
 
@@ -1833,7 +1846,7 @@ namespace P2PERP.Controllers
                     AddDataCell(table, item.Quantity.ToString(), normalFont, Element.ALIGN_CENTER);
                     AddDataCell(table, $"\u20B9{item.CostPerUnit:N2}", normalFont, Element.ALIGN_RIGHT);
                     AddDataCell(table, item.Discount, normalFont, Element.ALIGN_RIGHT);
-                    AddDataCell(table, $"\u20B9{item.GST:N2}", normalFont, Element.ALIGN_RIGHT);
+                    AddDataCell(table, item.GST, normalFont, Element.ALIGN_RIGHT);
                     AddDataCell(table, $"\u20B9{item.Amount:N2}", normalFont, Element.ALIGN_RIGHT);
                 }
 
@@ -1897,6 +1910,161 @@ namespace P2PERP.Controllers
             };
             table.AddCell(cell);
         }
+
+        //Just in time Item list to create the PO
+        [HttpGet]
+        public ActionResult JustInTimeItemListOK()
+        {
+            return View();
+
+        }
+        public async Task<JsonResult> FetchJustInTimeItemListOK()
+        {
+            DataSet ds = new DataSet();
+            ds = await bal.FetchAllJITItemsOK();
+
+            //List<string> itm = new List<string>();
+            //itm.Add("ITM001");
+            //ds =await bal.FetchSelectedJITItemDetailstOK(itm);
+            List<Purchase> lstItem = new List<Purchase>();
+            try
+            {
+                for (int i = 0; i < ds.Tables[0].Rows.Count; i++)
+                {
+                    Purchase p = new Purchase();
+                    p.SRNO = Convert.ToInt32(ds.Tables[0].Rows[i]["SRNO"].ToString());
+                    p.ItemName = ds.Tables[0].Rows[i]["ItemName"].ToString();
+                    p.ItemCode = ds.Tables[0].Rows[i]["ItemCode"].ToString();
+                    p.Quantity = Convert.ToInt32(ds.Tables[0].Rows[i]["Quantity"].ToString());
+                    p.AddedBy = ds.Tables[0].Rows[i]["FullName"].ToString();
+                    p.AddedDate = Convert.ToDateTime(ds.Tables[0].Rows[i]["AddedDate"].ToString());
+                    p.RequiredDate = Convert.ToDateTime(ds.Tables[0].Rows[i]["RequiredDate"].ToString());
+                    lstItem.Add(p);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("Error in TermsConditions loop: " + ex.Message);
+            }
+            return Json(new { data = lstItem }, JsonRequestBehavior.AllowGet);
+
+        }
+        public async Task<JsonResult> FetchJITItemPODetailsOk(List<string> items)
+        {
+            DataSet ds = await bal.FetchSelectedJITItemDetailstOK(items);
+            // 1️⃣ Quotation Header
+            List<Purchase> lstHeader = new List<Purchase>();
+            try
+            {
+                for (int i = 0; i < ds.Tables[0].Rows.Count; i++)
+                {
+                    Purchase header = new Purchase();
+
+                    //header.QuotationID = ds.Tables[0].Rows[i]["QuotationNo"].ToString();
+                    // header.QuotationDate = Convert.ToDateTime(ds.Tables[0].Rows[i]["QuotationDate"]);
+                    // header.QuotationDateString = header.QuotationDate.ToString("yyyy-MM-dd");
+                    //header.ApprovedBy = ds.Tables[0].Rows[i]["ApprovedBy"].ToString();
+                    // header.ApprovedDate = Convert.ToDateTime(ds.Tables[0].Rows[i]["ApprovedDate"]);
+                    // header.OriginalApprovedDate = header.ApprovedDate.ToString("yyyy-MM-dd");
+                    header.VendorName = ds.Tables[0].Rows[i]["VenderName"].ToString();
+                    header.CompanyName = ds.Tables[0].Rows[i]["CompanyName"].ToString();
+                    header.CompanyAddress = ds.Tables[0].Rows[i]["CompanyAddress"].ToString();
+                    header.MobileNo = Convert.ToInt64(ds.Tables[0].Rows[i]["VendorContactNo"].ToString());
+                    header.Email = ds.Tables[0].Rows[i]["VendorEmail"].ToString();
+                    header.AccountNumber = Convert.ToInt64(ds.Tables[0].Rows[i]["VendorAccountNo"].ToString());
+                    header.IFSCCode = ds.Tables[0].Rows[i]["IFSCCode"].ToString();
+                    header.SwiftCode = ds.Tables[0].Rows[i]["SwiftCode"].ToString();
+                    header.DeliveryAddress = ds.Tables[0].Rows[i]["DeliveryAddress"].ToString();
+                    header.ShippingCharges = Convert.ToDecimal(ds.Tables[0].Rows[i]["TransportationCharges"].ToString());
+                    //header.TotalAmount = Convert.ToDecimal(ds.Tables[0].Rows[i]["TotalAmount"]);
+                    header.SubAmount = Convert.ToDecimal(ds.Tables[0].Rows[i]["Amount"]);
+
+                    lstHeader.Add(header);
+                }
+            }
+            catch (Exception exx)
+            {
+                System.Diagnostics.Debug.WriteLine("Error in PO Details loop: " + exx.Message);
+            }
+
+            // 2️⃣ Accountant Staff
+            List<Purchase> lstStaff = new List<Purchase>();
+            try
+            {
+                for (int i = 0; i < ds.Tables[1].Rows.Count; i++)
+                {
+                    var staff = new Purchase
+                    {
+                        StaffCode = ds.Tables[1].Rows[i]["StaffCode"].ToString(),
+                        AccountEmail = ds.Tables[1].Rows[i]["EmailAddress"].ToString()
+                    };
+                    lstStaff.Add(staff);
+                }
+            }
+            catch (Exception exstaff)
+            {
+                System.Diagnostics.Debug.WriteLine("Error in Accountent Fetch loop: " + exstaff.Message);
+            }
+
+            // 3️⃣ Terms & Conditions
+            List<Purchase> lstTerms = new List<Purchase>();
+            try
+            {
+                for (int i = 0; i < ds.Tables[2].Rows.Count; i++)
+                {
+                    var term = new Purchase
+                    {
+                        TermConditionId = Convert.ToInt32(ds.Tables[2].Rows[i]["TermConditionId"]),
+                        TermConditionName = ds.Tables[2].Rows[i]["TermConditionName"].ToString()
+                    };
+                    lstTerms.Add(term);
+                }
+            }
+            catch (Exception exterm)
+            {
+                System.Diagnostics.Debug.WriteLine("Error in TermsConditions loop: " + exterm.Message);
+            }
+
+            // 4️⃣ RFQ / Items
+            List<Purchase> lstRFQItems = new List<Purchase>();
+            try
+            {
+                for (int i = 0; i < ds.Tables[3].Rows.Count; i++)
+                {
+                    var item = new Purchase
+                    {
+                        SRNO = Convert.ToInt32(ds.Tables[3].Rows[i]["SRNO"]),
+                        //RegisterQuotationItemCode = ds.Tables[3].Rows[i]["RegisterQuotationItemCode"].ToString(),
+                        ItemCode = ds.Tables[3].Rows[i]["ItemCode"].ToString(),
+                        ItemName = ds.Tables[3].Rows[i]["ItemName"].ToString(),
+                        Description = ds.Tables[3].Rows[i]["Description"].ToString(),
+                        Quantity = Convert.ToInt32(ds.Tables[3].Rows[i]["Quantity"]),
+                        UOM = ds.Tables[3].Rows[i]["UOMName"].ToString(),
+                        CostPerUnit = Convert.ToDecimal(ds.Tables[3].Rows[i]["CostPerUnit"]),
+                        Discount = ds.Tables[3].Rows[i]["Discount"].ToString(),
+                        GST = ds.Tables[3].Rows[i]["GST"].ToString(),
+                        Amount = Convert.ToDecimal(ds.Tables[3].Rows[i]["Amount"])
+                    };
+                    lstRFQItems.Add(item);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("Error in TermsConditions loop: " + ex.Message);
+                //throw ex;
+            }
+            // Combine into one JSON object
+            var jsonData = new
+            {
+                QuotationHeader = lstHeader,
+                AccountantStaff = lstStaff,
+                TermsConditions = lstTerms,
+                Items = lstRFQItems
+            };
+
+            return Json(jsonData, JsonRequestBehavior.AllowGet);
+        }
         #endregion
 
         #region prathamesh
@@ -1909,7 +2077,7 @@ namespace P2PERP.Controllers
             {
                 case 5: return RedirectToAction("CreatePRADDItemPSM");
                 case 6: return RedirectToAction("QuotationSJ");
-                case 7: return RedirectToAction("RegisterQuotationVNK");
+                case 7: return RedirectToAction("ShowAllRFQsVNK");
                 case 8: return view();
                 case 9: return RedirectToAction("SelectedQuotationListShowOK");
             }
@@ -2391,7 +2559,7 @@ namespace P2PERP.Controllers
                         SrNo = dr["SrNo"].ToString(),
                         PRCode = dr["PRCode"].ToString(),
                         RFQCode = dr["RFQCode"]?.ToString(),
-                        RequiredDate = dr["ExpectedDate"]?.ToString(),
+                        RequiredDate = dr["ExpectedDate"].ToString(),
                         Description = dr["Description"]?.ToString(),
                         Status = dr["StatusName"]?.ToString()
                     });
