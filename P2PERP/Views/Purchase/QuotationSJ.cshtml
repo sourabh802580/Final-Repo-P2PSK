@@ -4,7 +4,7 @@
 }
 <style>
     .dtpicker {
-        max-width: 215px !important;
+        max-width: 220px !important;
     }
 
         /* Remove focus border from input */
@@ -36,6 +36,13 @@
         text-align: center;
     }
 
+    .modal-header {
+        align-items: center; /* vertically centers children */
+        padding-top: 0.5rem; /* optional: fine-tune top space */
+        padding-bottom: 0.5rem;
+    }
+
+
 
 </style>
 
@@ -61,9 +68,14 @@
                             <span class="input-group-text bg-primary text-white">
                                 <i class="bi bi-calendar-event"></i>
                             </span>
-                            <input type="text" id="dateRange" class="form-control dtpicker" placeholder="Select Date Range" />
+                            <input type="text"
+                                   id="dateRange"
+                                   class="form-control dtpicker"
+                                   placeholder="Select Date Range"
+                                   readonly />
                         </div>
                     </div>
+
                 </div>
 
                 <div class="table-responsive">
@@ -96,7 +108,7 @@
                             <span class="input-group-text bg-primary text-white">
                                 <i class="bi bi-calendar-event"></i>
                             </span>
-                            <input type="text" id="rfqDateRange" class="form-control dtpicker" placeholder="Select Date Range" />
+                            <input type="text" id="rfqDateRange" class="form-control dtpicker" placeholder="Select Date Range" readonly />
                         </div>
                     </div>
                 </div>
@@ -183,10 +195,13 @@
         <div class="modal-content">
 
             <!-- Modal Header -->
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title mb-0 text-white text-center flex-grow-1" id="rfqDetailsTitle">Purchase Requisition</h5>
+            <div class="modal-header bg-primary text-white align-items-center">
+                <h5 class="modal-title mb-0 text-white text-center flex-grow-1" id="rfqDetailsTitle">
+                    Purchase Requisition
+                </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
+
 
             <div class="modal-body">
                 <form id="rfqForm" method="post" action="/RFQ/CreateRFQ">
@@ -290,7 +305,7 @@
 
             <!-- Modal Header -->
             <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title mb-0 text-white text-center flex-grow-1" id="rfqDetailsTitle">RFQ Details</h5>
+                <h5 class="modal-title mb-0 text-white text-center flex-grow-1" id="rfqDetailsTitle1">RFQ Details</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
 
@@ -371,7 +386,6 @@
 
             <!-- Modal Footer -->
             <div class="modal-footer">
-                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
                 <button id="btnSendRFQ" class="btn btn-success btn-sm">Send To Vendor</button>
             </div>
 
@@ -1808,13 +1822,11 @@
                     // Format RequiredDate if it exists
                     if (header.RequiredDate) {
                         let ts = header.RequiredDate.toString();
-                        let timestamp = ts.includes("/Date")
-                            ? parseInt(ts.replace(/[^0-9]/g, ''))
-                            : Date.parse(ts);
+                      
 
-                        if (!isNaN(timestamp)) {
-                            $("#rfqRequiredDate").val(moment(timestamp).format("D/M/YYYY"));
-                        }
+                       
+                        $("#rfqRequiredDate").val(ts);
+                     
                     }
 
                     $("#rfqCreatedBy").val(header.CreatedBy || "");
@@ -1875,7 +1887,7 @@
                         ]
                     });
 
-                    $("#rfqDetailsTitle").text("RFQ Details – " + (header.RFQCode || ""));
+                    $("#rfqDetailsTitle1").text("RFQ Details – " + (header.RFQCode || header.rfqCode || ""));
 
                     if (actionType === "send") {
                         $("#btnSendRFQ").show();

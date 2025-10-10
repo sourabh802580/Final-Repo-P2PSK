@@ -35,12 +35,12 @@
                 <input type="text" class="form-control" id="Inf" name="InspectionFrequency" value="@ViewBag.Inf" readonly />
             </div>
             <div class="col-md-6">
-                <label class="form-label">Item Tested Failed</label>
+                <label class="form-label">Item Tested Failed <span class="text-danger">*</span></label>
                 <input type="text" class="form-control" id="itf" name="ItFailed" placeholder="Enter failed qty" />
             </div>
 
             <div class="col-12">
-                <label class="form-label">Reason Of Rejection</label>
+                <label class="form-label">Reason Of Rejection <span class="text-danger">*</span></label>
                 <textarea class="form-control" id="ROr" name="ReasonOfRejection" rows="2" placeholder="Enter reason"></textarea>
             </div>
         </div>
@@ -50,9 +50,8 @@
         <input type="hidden" value="@ViewBag.QCCode" id="QCCode" />
     </div>
 
-    <div class="card-footer text-end">
+    <div class="card-footer text-end mt-3">
         <button type="button" class="btn btn-primary me-2" onclick="finalnc()">Initiate NC</button>
-       
     </div>
 
 </div>
@@ -66,10 +65,24 @@
     $('#itf').on('input', function () {
         this.value = this.value.replace(/[^0-9]/g, ''); // only digits
 
-        const maxVal = parseInt($('#sqc').val(), 10) || 9999;
-        if (parseInt(this.value, 10) > maxVal) {
-            Swal.fire("⚠️ Limit Exceeded", "Item Tested Failed cannot be greater than " + maxVal, "warning");
+        const maxVal = parseInt($('#sqc').val(), 10) ||0;
+        
+        const currentVal = parseInt(this.value, 10) || 0;
+
+        // Remove old message if any
+        $('#itfError').remove();
+
+        // Check if limit exceeded
+        if (currentVal > maxVal) {
+            // Reset value
             this.value = maxVal;
+
+            // Add red error message below input
+            $(this).after(
+                `<small id="itfError" class="text-danger fw-semibold">
+                ⚠️ Value cannot be greater than ${maxVal}
+            </small>`
+            );
         }
     });
 

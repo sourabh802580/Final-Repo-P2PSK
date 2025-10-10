@@ -21,7 +21,7 @@
 
         <!-- Back button on the right -->
         <button type="button"
-                class="btn btn-light btn-sm ms-auto"
+                class="btn btn-primary btn-sm ms-auto"
                 onclick="location.href='/Quality/IndexRG'">
             <i class="bi bi-arrow-left"></i> Back
         </button>
@@ -63,8 +63,8 @@
 
 
 <script>
-    // ✅ Toast function
-    // ✅ Toast function
+    
+    //  Toast function
     function showToast(message, type = 'error') {
         // Map to Bootstrap contextual colors
         let icon = '';
@@ -90,7 +90,7 @@
 
         const toastId = `toast-${Date.now()}`;
 
-        // ✅ Toast HTML with white text for all
+        //  Toast HTML with white text for all
         const toastHTML = `
 <div id="${toastId}" class="toast align-items-center bg-${type} border-0 mb-2 shadow-lg"
          role="alert" aria-live="assertive" aria-atomic="true"
@@ -111,11 +111,11 @@
         const $toast = $(toastHTML);
         $('#toastContainer').prepend($toast); // newestOnTop
 
-        // ✅ Initialize bootstrap toast
+        //  Initialize bootstrap toast
         const toast = new bootstrap.Toast($toast[0], { delay: 3000 });
         toast.show();
 
-        // ✅ Animate progress bar
+        //  Animate progress bar
         $toast.find('.progress-bar')
             .css({
                 width: "100%",
@@ -129,7 +129,7 @@
 
 
 
-        // ✅ Auto-remove
+        //  Auto-remove
         $toast.on('hidden.bs.toast', function () {
             $(this).remove();
         });
@@ -202,10 +202,10 @@
                             let statusText = (data || '').toLowerCase().trim(); // normalize to lowercase
 
                             switch (statusText) {
-                                case 'confirmed':        // ✅ lowercase
+                                case 'confirmed':        //  lowercase
                                     badgeClass = 'bg-success';
                                     break;
-                                case 'non-confirmed':    // ✅ lowercase
+                                case 'non-confirmed':    //  lowercase
                                     badgeClass = 'bg-danger';
                                     break;
                                 default:
@@ -254,7 +254,7 @@
                                                     ? data.replace(/<[^>]*>/g, '').trim()
                                                     : data;
 
-                                                // ✅ For SR.NO column (first visible after checkbox)
+                                                //  For SR.NO column (first visible after checkbox)
                                                 if (column === 1) {
                                                     counter++;
                                                     return counter;
@@ -318,7 +318,7 @@
                                         return;
                                     }
                                     $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, button, config);
-                                    dt.processing(false); // ✅ force remove buffering spinner
+                                    dt.processing(false); //  force remove buffering spinner
                                 },
                                 exportOptions: {
                                     rows: function (idx, data, node) {
@@ -369,6 +369,13 @@
                                         cell.bold = true;
                                         cell.alignment = 'center';
                                     });
+                                    for (var i = 1; i < tableNode.body.length; i++) {
+                                        tableNode.body[i].forEach(function (cell) {
+                                            if (cell.text) {
+                                                cell.alignment = 'center'; // Center all rows
+                                            }
+                                        });
+                                    }
                                     tableNode.layout = {
                                         paddingLeft: () => 30, paddingLeft: () => 6,
 
@@ -394,7 +401,7 @@
                                         return;
                                     }
                                     $.fn.dataTable.ext.buttons.excelHtml5.action.call(this, e, dt, button, config);
-                                    dt.processing(false); // ✅ force remove buffering spinner
+                                    dt.processing(false); //  force remove buffering spinner
                                 },
                                 exportOptions: {
                                     rows: function (idx, data, node) {
@@ -492,7 +499,7 @@
                                     window.__srnoCounter = 0; // reset counter after export
 
                                     $.fn.dataTable.ext.buttons.csvHtml5.action.call(this, e, dt, button, config);
-                                    dt.processing(false); // ✅ force remove buffering spinner
+                                    dt.processing(false); //  force remove buffering spinner
                                 },
                                 exportOptions: {
                                     rows: function (idx, data, node) {
@@ -555,13 +562,24 @@
 
 
             // 🔹 Initialize tooltips for export buttons
-            $('#exportContainer [data-bs-toggle="tooltip"]').tooltip({
-                template: '<div class="tooltip" role="tooltip"><div class="tooltip-inner bg-dark text-white"></div></div>'
-            });
-
-            table.on('buttons-action.dt', function () {
-                $('#exportContainer [data-bs-toggle="tooltip"]').tooltip({
-                    template: '<div class="tooltip" role="tooltip"><div class="tooltip-inner bg-dark text-white"></div></div>'
+            
+            setTimeout(() => {
+                $('[data-bs-toggle="tooltip"]').tooltip({
+                    template: `
+            <div class="tooltip" role="tooltip">
+                <div class="tooltip-inner bg-dark text-white px-2 py-1 rounded"></div>
+            </div>
+        `
+                });
+            }, 500);
+            
+            table.on('draw.dt buttons-action.dt', function () {
+                $('[data-bs-toggle="tooltip"]').tooltip({
+                    template: `
+            <div class="tooltip" role="tooltip">
+                <div class="tooltip-inner bg-dark text-white px-2 py-1 rounded"></div>
+            </div>
+        `
                 });
             });
         }

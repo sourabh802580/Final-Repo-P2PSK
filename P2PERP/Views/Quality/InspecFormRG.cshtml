@@ -11,14 +11,7 @@
     <title>@ViewBag.Title</title>
 
     <style>
-/*        #ncModal::before {
-            content: '';
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.6);
-            z-index: 1045;
-            display: none;
-        }*/
+
 
         #ncModal.show::before {
             display: block;
@@ -75,17 +68,18 @@
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">Quantity</label>
-                        <input type="text" class="form-control" value="@ViewBag.Quantity" readonly>
+                        <input type="text"id="txtQuantity" class="form-control" value="@ViewBag.Quantity" readonly>
                     </div>
 
                     <!-- Frequency & Sample -->
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold">Inspection Frequency</label>
+                        <label class="form-label fw-semibold">Inspection Frequency<span class="text-danger">*</span></label>
                         <input type="number" id="txtinspfreq" class="form-control" placeholder="Enter Inspection Frequency" />
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold">Sample Quality Checked</label>
+                        <label class="form-label fw-semibold">Sample Quality Checked <span class="text-danger">*</span></label>
                         <input type="number" id="txtSamplequalitycheck" class="form-control" placeholder="Enter Sample Quality" />
+                        <span id="sampleError" class="text-danger small mt-1 d-none">Sample checked cannot be greater than Quantity.</span>
                     </div>
 
                     <!-- Parameter Table -->
@@ -149,6 +143,61 @@
         // Load parameter list
         $(document).ready(function () {
             var id = $('#itemcode').val();
+
+         /*   validations*/
+
+            $('#txtSamplequalitycheck').on('input', function () {
+                const $this = $(this);
+                const sampleChecked = parseFloat($this.val()) || 0;
+                const quantity = parseFloat($('#txtQuantity').val()) || 0;
+
+                if (sampleChecked > quantity) {
+                    // Reset to max allowed value
+                    $this.val(quantity);
+
+                    // Show red message
+                    $('#sampleError')
+                        .text(`⚠️ Sample checked cannot be greater than Quantity (${quantity}).`)
+                        .removeClass('d-none');
+
+                    // Highlight input in red
+                    $this.addClass('is-invalid');
+                } else {
+                    // Hide message when valid
+                    $('#sampleError').addClass('d-none');
+                    $this.removeClass('is-invalid');
+                }
+            });
+
+
+            // 🔹 Inspection Frequency Validation
+            $('#txtinspfreq').on('input', function () {
+                const $this = $(this);
+                let freq = parseFloat($this.val()) || 0;
+                const quantity = parseFloat($('#txtQuantity').val()) || 0;
+
+                // Prevent negative value
+                if (freq < 0) {
+                    $this.val(0);
+                    Swal.fire("⚠️ Invalid Input", "Inspection frequency cannot be negative.", "warning");
+                    freq = 0;
+                }
+
+                /* Prevent exceeding quantity*/
+                if (freq > quantity) {
+                    $this.val(quantity);
+                    if ($('#freqError').length === 0) {
+                        $this.after('<span id="freqError" class="text-danger small mt-1 d-block">⚠️ Inspection frequency cannot be greater than Quantity (' + quantity + ').</span>');
+                    } else {
+                        $('#freqError').text(`⚠️ Inspection frequency cannot be greater than Quantity (${quantity}).`).removeClass('d-none');
+                    }
+                    $this.addClass('is-invalid');
+                } else {
+                    $('#freqError').addClass('d-none');
+                    $this.removeClass('is-invalid');
+                }
+            });
+
 
             $.ajax({
                 url: '/Quality/ParameterTableRG',
@@ -219,7 +268,7 @@
                             new bootstrap.Tab($('#completed-task-tab')).show();
                             $("#completedTaskContent").load(`/Quality/CompletedTaskListRG?id=${grnCode}`);
                         }
-                        
+
                     }, 1500);
                 },
                 error: function () {
@@ -228,46 +277,7 @@
             });
         }
 
-        // Initiate NC
-        //function InitiateNc() {
-        //    console.log("Btn Active");
-        //    debugger
-        //    var GRIcode = $('#GRNItemCode').val();
-        //    var sqc = $('#txtSamplequalitycheck').val();
-        //    var Inf = $('#txtinspfreq').val();
-        //    var itemcode = $('#itemcode').val();
 
-        //    if (!sqc || !Inf) {
-        //        Swal.fire("⚠️ Missing Data", "Please enter Inspection Frequency and Sample Quality Checked before initiating NC.", "warning");
-        //        return;
-        //    }
-
-        //    $.ajax({
-        //        url: '/Quality/NonconfirmRG',
-        //        type: 'GET',
-        //        dataType: 'html',
-        //        data: { GRIcode: GRIcode, sqc: sqc, Inf: Inf, itemcode: itemcode },
-        //        success: function (resp) {
-        //            $('#ncModalBody').html(resp);
-
-        //            var ncModalEl = $('#ncModal');
-        //            var ncModal = new bootstrap.Modal(ncModalEl);
-        //            ncModal.show();
-
-        //            // ✅ Show custom backdrop automatically
-        //            $(ncModalEl).addClass("show");
-
-        //            $('#ncModal').on('hidden.bs.modal', function () {
-        //                $(this).removeClass("show");
-        //            });
-
-        //            initGrnTable();
-        //        },
-        //        error: function () {
-        //            Swal.fire("❌ Error", "Failed to load Non-confirmation form.", "error");
-        //        }
-        //    });
-        //}
         function InitiateNc() {
             const GRIcode = $('#GRNItemCode').val();
             const sqc = $('#txtSamplequalitycheck').val();

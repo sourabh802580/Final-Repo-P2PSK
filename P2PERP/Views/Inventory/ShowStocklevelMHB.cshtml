@@ -40,11 +40,11 @@
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
             <!-- 🟢 Modal Header -->
-            <div class="modal-header bg-primary">
-                <h5 class="modal-title text-white w-100 text-center m-0" id="raiseOrderLabel">
+            <div class="modal-header bg-primary ">
+                <h5 class="modal-title text-white w-100 text-center mb-3" id="raiseOrderLabel">
                     Raise Order
                 </h5>
-                <button type="button" class="btn-close btn-close-white position-absolute end-0 me-3" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close btn-close-white position-absolute end-0 me-3 mb-3" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
 
             <!-- 🟢 Modal Body -->
@@ -250,21 +250,21 @@
                                 return $(node).find('.row-select').prop('checked');
                             }
                         },
+                    
                         customize: function (win) {
-                            $(win.document.body).prepend(
-                                `<div style="text-align:center; font-size:12px; margin-bottom:10px;">
-                        Generated on: ${new Date().toLocaleString()}
-                    </div>`
-                            );
-                            $(win.document.body).find('table')
-                                .addClass('table table-bordered table-striped')
-                                .css('font-size', '14px');
-                            $(win.document.body).find('thead')
-                                .css('background-color', '#0d6efd')
-                                .css('color', 'white');
-                            $(win.document.body).find('table tbody tr').each(function (i) {
-                                $(this).find('td:first').text(i + 1);
-                            });
+                            $(win.document.body).find('h1').remove();
+                            const today = new Date().toLocaleDateString('en-GB');
+                            $(win.document.body).prepend(`
+                                  <div style="text-align:center; margin-bottom:10px;">
+                                      <h2 style="margin:0;">Stock Level</h2>
+                                      <div style="font-size:12px;">Generated on: ${today}</div>
+                                  </div>
+                              `);
+                            const $table = $(win.document.body).find('table');
+                            $table.addClass('table table-bordered table-striped').css({ 'font-size': '14px', 'width': '100%', 'border-collapse': 'collapse', 'margin-top': '20px' });
+                            $table.find('thead th').css({ 'background-color': '#00000', 'color': '#fff', 'text-align': 'center' });
+                            $table.find('tbody td').css('text-align', 'center');
+                            $table.find('tbody tr').each(function (i) { $(this).find('td:first').text(i + 1); });
                         }
                     },
                     // ✅ PDF
