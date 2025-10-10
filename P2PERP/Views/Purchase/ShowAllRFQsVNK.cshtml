@@ -115,9 +115,9 @@
             <div class="card shadow-sm rounded">
 
                 <div class="text-center mb-3 mt-2">
-                    <h2 class="text-primary fw-bold">
+                    <h3 class="text-primary fw-bold">
                         Register Quotations
-                    </h2>
+                    </h3>
                 </div>
 
                 @*date picker*@
@@ -157,7 +157,7 @@
         <div class="modal-dialog modal-xl modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header bg-primary text-white justify-content-center">
-                    <h5 class="modal-title fw-bold text-white mb-0">Quotation List</h5>
+                    <h5 class="modal-title fw-bold text-white mb-4">Quotation List</h5>
                     <button type="button" class="btn-close btn-close-white position-absolute end-0 me-3" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body" id="rfqModalContent"></div>
@@ -208,11 +208,10 @@
                         locale: { cancelLabel: 'Clear' },
                         ranges: {
                             'Today': [moment(), moment()],
-                            'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
                             'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-                            'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-                            'This Month': [moment().startOf('month'), moment().endOf('month')],
-                            'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                            'Last 1 Month': [moment().subtract(1, 'month'), moment()],
+                            'Last 3 Months': [moment().subtract(3, 'month'), moment()],
+                            'Last 1 Year': [moment().subtract(1, 'year'), moment()]
                         }
                     }, function (start, end) {
                         $('#RFQDatepicker').val(start.format('YYYY-MM-DD') + ' - ' + end.format('YYYY-MM-DD'));
@@ -453,6 +452,7 @@
                     $('#tblRFQ_filter input').addClass("form-control").attr("placeholder", "Search...").css("height", "40px");
                 },
                 processing: true,
+                ordering: false,
                 ajax: { url: '/Purchase/AllRFQVNK', type: 'GET', dataSrc: d => d },
                 columns: [
                     { data: null, orderable: false, className: "text-center", render: (d, t, r) => `<input type="checkbox" class="row-select" value="${r.RFQCode}" />` },

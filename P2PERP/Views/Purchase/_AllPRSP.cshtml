@@ -41,8 +41,7 @@
             <!-- Modal Header -->
             <div class="modal-header bg-primary text-white d-flex justify-content-center position-relative p-0">
                 <h4 class="modal-title m-0 text-white fw-bold flex-grow-1 text-center py-3">Purchase Requisition Details</h4>
-                <button type="button" class="btn-close btn-close-white position-absolute end-0 top-0 m-0 p-3 h-100"
-                        data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn btn-close btn-close-white position-absolute top-0 end-0 m-3 fs-4" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
 
             <!-- Modal Body -->
@@ -122,8 +121,7 @@
         <div class="modal-content">
             <div class="modal-header bg-primary text-white d-flex justify-content-center position-relative p-0">
                 <h4 class="modal-title m-0 text-white flex-grow-1 fw-bold text-center py-3">Update Purchase Requisition</h4>
-                <button type="button" class="btn-close btn-close-white position-absolute end-0 top-0 m-0 p-3 h-100"
-                        data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn btn-close btn-close-white position-absolute top-0 end-0 m-3 fs-4" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <!-- Combined Card -->
@@ -344,6 +342,9 @@
                 }
 
             ],
+            columnDefs: [
+                { className: "text-center", targets: "_all" }
+            ],
             ordering: false,
             dom: '<"d-flex justify-content-between align-items-center mb-2"Bf>rt<"d-flex justify-content-between align-items-center mt-2"ip>',
             buttons: [
@@ -557,11 +558,10 @@
             },
             ranges: {
                 'Today': [moment(), moment()],
-                'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
                 'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-                'This Month': [moment().startOf('month'), moment().endOf('month')],
-                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                'Last 1 Month': [moment().subtract(1, 'months').startOf('day'), moment()],
+                'Last 3 Months': [moment().subtract(3, 'months').startOf('day'), moment()],
+                'Last 1 Year': [moment().subtract(12, 'months').startOf('day'), moment()]
             }
         });
 
@@ -706,7 +706,19 @@
                 },
                 { data: "ItemCode", title: "ITEM CODE" },
                 { data: "ItemName", title: "ITEM NAME" },
-                { data: "Description", title: "DESCRIPTION" },
+                {
+                    data: "Description", title: "DESCRIPTION",
+                    createdCell: function (td, cellData) {
+                        if (cellData) {
+                            // truncate text if too long
+                            let shortText = cellData.length > 25 ? cellData.substring(0, 25) + "..." : cellData;
+                            $(td)
+                                .text(shortText)
+                                .attr("title", cellData)
+                                .attr("data-bs-toggle", "tooltip")
+                                .attr("data-bs-placement", "top");
+                        }
+                    } },
                 { data: "RequiredQuantity", title: "QTY" },
                 {
                     data: "UnitRate",
@@ -731,6 +743,9 @@
                     }
                 }
             ],
+                columnDefs: [
+                    { className: "text-center", targets: "_all" }
+                ],
             ordering: false,
             dom: '<"d-flex justify-content-between align-items-center mb-2"Bf>rt<"d-flex justify-content-between align-items-center mt-2"ip>',
 
@@ -793,6 +808,9 @@
                     }
                 }
             ],
+            columnDefs: [
+                { className: "text-center", targets: "_all" }
+            ],
             language: {
                 lengthMenu: ""
             }
@@ -852,7 +870,6 @@
             paging: true,
             searching: true,
             ordering: false, 
-            ordering: true,
             info: true,
             lengthChange: false,
             pageLength: 5,
@@ -873,7 +890,20 @@
                 },
                 { data: 'ItemCode' },
                 { data: 'ItemName' },
-                { data: 'Description' },
+                {
+                    data: 'Description',
+                    createdCell: function (td, cellData) {
+                        if (cellData) {
+                            // truncate text if too long
+                            let shortText = cellData.length > 25 ? cellData.substring(0, 25) + "..." : cellData;
+                            $(td)
+                                .text(shortText)
+                                .attr("title", cellData)
+                                .attr("data-bs-toggle", "tooltip")
+                                .attr("data-bs-placement", "top");
+                        }
+                    }
+},
                 {
                     data: 'RequiredQuantity',
                     render: function (data) {
@@ -898,6 +928,9 @@
                         return `<button class="btn btn-sm btn-success save-item-btn">Save</button>`;
                     }
                 }
+            ],
+            columnDefs: [
+                { className: "text-center", targets: "_all" }
             ]
 
         });
