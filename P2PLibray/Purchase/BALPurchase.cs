@@ -1978,6 +1978,28 @@ namespace P2PLibray.Purchase
             DataSet ds = await obj.ExecuteStoredProcedureReturnDS("PurchaseProcedure", para);
             return ds;
         }
+        //<summary>
+        //Fetch All Just In Time Items to create the PO
+        //</summary>
+        public async Task<DataSet> FetchAllJITItemsOK()
+        {
+            Dictionary<string, string> para = new Dictionary<string, string>();
+            para.Add("@Flag", "FetchAllJITItemsOK");
+            DataSet ds = await obj.ExecuteStoredProcedureReturnDS("PurchaseProcedure", para);
+            return ds;
+        }
+        /// <summary>
+        /// Fetch item details for selected JIT items
+        /// </summary>
+        public async Task<DataSet> FetchSelectedJITItemDetailstOK(List<string> itemCodes)
+        {
+            Dictionary<string, string> para = new Dictionary<string, string>();
+            string csvItemCodes = string.Join(",", itemCodes);
+            para.Add("@Flag", "FetchJITDetaistoPOOK");
+            para.Add("@ItemCodes", csvItemCodes);
+            DataSet ds = await obj.ExecuteStoredProcedureReturnDS("PurchaseProcedure", para);
+            return ds;
+        }
 
         #endregion
 
@@ -2173,6 +2195,7 @@ namespace P2PLibray.Purchase
                         p.AddedDate = Convert.ToDateTime(row["AddedDate"].ToString());
                         p.AddedDateString = p.AddedDate.ToString("dd-MM-yyyy");
                         p.FullName = row["FullName"].ToString();
+                        p.RequiredDate = Convert.ToDateTime(row["RequiredDate"].ToString());
                         //p.StatusName = row["StatusName"].ToString();
                         p.Priority = row["Priority"].ToString();
                         lst.Add(p);
@@ -2254,6 +2277,7 @@ namespace P2PLibray.Purchase
                         p.PRCode = row["PRCode"].ToString();
                         p.AddedDate = Convert.ToDateTime(row["AddedDate"].ToString());
                         p.AddedDateString = p.AddedDate.ToString("dd-MM-yyyy");
+                        p.RequiredDate = Convert.ToDateTime(row["RequiredDate"].ToString());
                         //p.StatusName = row["StatusName"].ToString();
                         p.ApprovedRejectedDate = Convert.ToDateTime(row["ApproveRejectedDate"].ToString());
                         p.ApprovedRejectedDateString = p.ApprovedRejectedDate.ToString("dd-MM-yyyy");
@@ -2558,7 +2582,8 @@ namespace P2PLibray.Purchase
                         p.VenderName = row["VenderName"].ToString();
                         p.CompanyName = row["CompanyName"].ToString();
                         p.TotalAmount = Convert.ToDecimal(row["TotalAmount"].ToString());
-
+                        p.ExpectedDate = Convert.ToDateTime(row["VendorDeliveryDate"].ToString());
+                        p.ExpectedDateString = p.ExpectedDate.ToString("dd-MM-yyyy");
 
                         lst.Add(p);
                     }
@@ -2637,9 +2662,13 @@ namespace P2PLibray.Purchase
 
                         p.POCode = row["POCode"].ToString();
                         p.AddedDate = Convert.ToDateTime(row["PODate"].ToString());
+                        p.RQCode = row["RegisterQuotationCode"].ToString();
+                        p.ApprovedRejectedDate = Convert.ToDateTime(row["ApprovedRejectedDate"].ToString());
+                        p.ApprovedRejectedDateString = p.ApprovedRejectedDate.ToString("dd-MM-yyyy");
                         p.AddedDateString = p.AddedDate.ToString("dd-MM-yyyy");
                         p.TotalAmount = Convert.ToDecimal(row["POCost"].ToString());
                         p.FullName = row["CreatedBy"].ToString();
+                        p.Address = row["BillingAddress"].ToString();
 
                         lst.Add(p);
 

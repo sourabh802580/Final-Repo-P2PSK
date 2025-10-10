@@ -172,6 +172,7 @@
         z-index: 1056;
     }
 
+
     /* Fix if header hidden due to overflow */
     .modal-content {
         overflow: visible !important;
@@ -253,6 +254,7 @@
                                 <th class="text-center">Sr.No</th>
                                 <th class="text-center">QualityCheckCode</th>
                                 <th class="text-center">ItemName</th>
+                                <th class="text-center">Quantity</th>
                                 <th class="text-center">Added By</th>
                                 <th class="text-center">Added Date</th>
                             </tr>
@@ -282,7 +284,7 @@
             <!-- Modal Body -->
             <div class="modal-body Nonconfirm-list-body" style="max-height: 500px; overflow-y: auto;">
                 <!-- Date Filter Container -->
-                <div id="NonconfirmDateFilterContainer" class="mb-3"></div>
+                @*<div id="NonconfirmDateFilterContainer" class="mb-3"></div>*@
                 <!-- Table -->
                 <div class="table-responsive">
                     <table class="table table-striped table-hover table-bordered" id="NonconfirmTable">
@@ -292,6 +294,7 @@
                                 <th class="text-center">Sr.No</th>
                                 <th class="text-center">QualityCheckCode</th>
                                 <th class="text-center">ItemName</th>
+                                <th class="text-center">Quantity</th>
                                 <th class="text-center">Added By</th>
                                 <th class="text-center">Added Date</th>
                             </tr>
@@ -402,34 +405,31 @@
                 if (data) {
                     $('#confirm').text(data.ConfirmCount);
                     $('#nonconfirm').text(data.NonConfirmCount);
-                    $('#pending').text(data.PendingCount || 0); // pending count
-                    renderDoughnutChart(data.ConfirmCount, data.NonConfirmCount);
+                    $('#pending').text(data.PendingCount );
+                    renderDoughnutChart(data.ConfirmCount, data.NonConfirmCount, data.PendingCount );
+
+                  
                 }
             }
         });
     }
 
     // === Pie Chart ===
-    function renderDoughnutChart(c, n) {
+    function renderDoughnutChart(c, n, p) {
         Highcharts.chart('doughnutChart', {
-            chart: { type: 'pie' }, // Pie chart type
-            title: {
-                text: 'Pending / Confirm / NonConfirm',
-                text: '<span class=" fw-bolder" style="font-size: 22px;">Pending / Confirm / NonConfirm </span>'
-            },
+            chart: { type: 'pie' },
+            title: { text: 'Pending / Confirm / NonConfirm' },
             plotOptions: {
                 pie: {
-                    // Removed innerSize to make it full pie
                     cursor: 'pointer',
-                    dataLabels: {
-                        enabled: true,
-                        format: '{point.name}: {point.y}'
-                    },
+                    dataLabels: { enabled: true, format: '{point.name}: {point.y}' },
                     point: {
                         events: {
                             click: function () {
                                 if (this.name === 'Confirm') loadConfirmList();
                                 else if (this.name === 'Non Confirm') loadNonConfirmList();
+                                else if (this.name === 'Pending');
+
                             }
                         }
                     }
@@ -438,13 +438,14 @@
             series: [{
                 data: [
                     { name: 'Confirm', y: c, color: '#007bff' },
-                    { name: 'Non Confirm', y: n, color: '#ff0000' }
+                    { name: 'Non Confirm', y: n, color: '#ff0000' },
+                    { name: 'Pending', y: p, color: '#ff0000' }
+
                 ]
             }]
         });
     }
-
-    // Attach Date Filter
+  // Attach Date Filter
     function attachDateFilter(container, tableId, table, colIndex) {
         $(container).html(`<div class="input-group" style="max-width:280px;">
      <span class="input-group-text bg-primary text-white"><i class="bi bi-calendar-date"></i></span>
@@ -471,6 +472,7 @@
       <td class="text-center">${i + 1}</td>
       <td class="text-center">${x.QualityCheckCode}</td>
       <td class="text-center">${x.ItemName}</td>
+      <td class="text-center">${x.Quantity}</td>
       <td class="text-center">${x.AddedBy}</td>
                                 <td>${moment(x.AddedDate).format('DD/MM/YYYY')}</td>
     </tr>`;
@@ -482,6 +484,7 @@
                 let t = $('#NonconfirmTable').DataTable({
                     dom: '<"dt-toolbar"<"dt-left"B><"dt-search"f>>rt<"bottom d-flex justify-content-between align-items-center"ip>>',
                     ordering: false,
+                  
                     buttons: [
                         // Print button
                         {
@@ -732,6 +735,7 @@
          <td class="text-center">${i + 1}</td>
          <td class="text-center">${x.QualityCheckCode}</td>
          <td class="text-center">${x.ItemName}</td>
+         <td class="text-center">${x.Quantity}</td>
          <td class="text-center">${x.AddedBy}</td>
                                 <td>${moment(x.AddedDate).format('DD/MM/YYYY')}</td>
        </tr>`;

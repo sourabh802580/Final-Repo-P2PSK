@@ -35,11 +35,7 @@
         </div>
         <div class="col-md-4">
             <label><span class="text-danger">*</span> INVOICE DATE:</label>
-            <input type="date"
-                   id="txtInvoiceDate"
-                   class="form-control form-control-sm"
-                   value="@(ViewBag.InvoiceDate != null ? Convert.ToDateTime(ViewBag.InvoiceDate).ToString("yyyy-MM-dd") : "")"
-                   onchange="formatDate(this)">
+            <input type="date" id="txtInvoiceDate" class="form-control form-control-sm">
         </div>
 
 
@@ -158,9 +154,79 @@
 <div id="toastContainer" class="toast-container position-fixed top-0 end-0 p-3" style="z-index:1100;"></div>
 
 <script>
+
+
+
+    document.addEventListener("DOMContentLoaded", function() {
+
+    const txtDisplay = document.getElementById("txtInvoiceDateDisplay");
+    const txtHidden = document.getElementById("txtInvoiceDate");
+
+    // Function to format yyyy-mm-dd -> dd/mm/yyyy
+    function formatDate(dateStr) {
+        if(!dateStr) return "";
+        const [year, month, day] = dateStr.split("-");
+        return `${day}/${month}/${year}`;
+    }
+
+    // Function to parse dd/mm/yyyy -> yyyy-mm-dd
+    function parseDate(displayStr) {
+        if(!displayStr) return "";
+        const [day, month, year] = displayStr.split("/");
+        return `${year}-${month}-${day}`;
+    }
+
+    // If server has a preloaded date
+    const serverDate = '@(ViewBag.InvoiceDate != null ? Convert.ToDateTime(ViewBag.InvoiceDate).ToString("yyyy-MM-dd") : "")';
+    if(serverDate) {
+        txtHidden.value = serverDate;
+        txtDisplay.value = formatDate(serverDate);
+    }
+
+    // When user clicks text input, trigger calendar
+    txtDisplay.addEventListener("click", () => {
+        txtHidden.focus();
+        txtHidden.click();
+    });
+
+    // When calendar changes, update display
+    txtHidden.addEventListener("change", () => {
+        txtDisplay.value = formatDate(txtHidden.value);
+    });
+
+});
+
+
+
+
+
+
+
     $(document).ready(function () {
 
+        @*function showFormattedDate(input) {
+        if (!input.value) {
+            document.getElementById("lblFormattedDate").textContent = "";
+            return;
+        }
 
+        // Convert yyyy-mm-dd → dd/mm/yyyy
+        const [year, month, day] = input.value.split("-");
+        const formattedDate = `${day}/${month}/${year}`;
+
+        // Show formatted date below input
+        document.getElementById("lblFormattedDate").textContent = `Selected Date: ${formattedDate}`;
+    }
+
+    // If preloaded by Razor (ViewBag), display formatted version
+    document.addEventListener("DOMContentLoaded", () => {
+        const dateInput = document.getElementById("txtInvoiceDate");
+        const serverDate = '@(ViewBag.InvoiceDate != null ? Convert.ToDateTime(ViewBag.InvoiceDate).ToString("yyyy-MM-dd") : "")';
+        if (serverDate) {
+            dateInput.value = serverDate;
+            showFormattedDate(dateInput);
+        }
+    });*@
         // Initialize Bootstrap tooltips
         function initTooltips() {
             var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
@@ -273,7 +339,7 @@
             $('#txtUnitRate').val(item.CostPerUnit);
             $('#txtDiscount').val(item.Discount + "%");
             $('#txtGST').val(item.GST);
-            $('#txtAmount').val(item.TotalAmount); 
+            $('#txtAmount').val(item.TotalAmount);
             $('#txtItemDesc').val(item.Description);
             $('#txtQC').val(item.IsQuality);
             $('#txtUOM').val(item.UOMName);
@@ -331,7 +397,7 @@
                 UnitRate: item.CostPerUnit,
                 Discount: item.DiscountPercent,
                 GST: item.GST,
-                Amount: item.TotalAmount 
+                Amount: item.TotalAmount
             }).draw(false);
 
 
