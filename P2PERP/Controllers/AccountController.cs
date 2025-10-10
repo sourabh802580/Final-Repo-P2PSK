@@ -512,7 +512,6 @@ namespace P2PERP.Controllers
                                 id = pr.IdCode,
                                 title = $"Purchase Requisition Is Added By {pr.AddedBy}",
                                 start = pr.AddedDate.ToString("yyyy/MM/ddTHH:mm:ss"),
-                                //className = pr.Status == "Approved" ? "bg-success" : (pr.Status == "Pending" ? "bg-warning" : "bg-danger"),
                                 color = "#007bff",
 
                                 extendedProps = new
@@ -545,7 +544,6 @@ namespace P2PERP.Controllers
                                 title = $"Request For Quotation Is Added By {pr.AddedBy}",
                                 start = pr.AddedDate.ToString("yyyy-MM-dd"),
                                 end = ((pr.EndDate.Date.AddDays(1) - pr.AddedDate.Date).TotalDays > 7 ? pr.AddedDate.Date.AddDays(7) : pr.EndDate.Date.AddDays(-2)).ToString("yyyy-MM-dd"),
-                                //className = pr.Status == "Requested" ? "bg-success" : "bg-warning",
                                 color = "#17a2b8",
 
                                 extendedProps = new
@@ -591,9 +589,6 @@ namespace P2PERP.Controllers
                                 id = $"RQ-{pr.AddedDate:yyyyMMdd}",
                                 title = $"{pr.Count} Quotations are Registerd By {pr.AddedBy}",
                                 start = pr.AddedDate.ToString("yyyy-MM-ddTHH:mm:ss"),
-                                //color = "#f8f9fa",
-                                //textColor = "#212529",
-                                //borderColor = "#212529",
                                 color = "#6f42c1",
 
                                 extendedProps = new
@@ -617,8 +612,6 @@ namespace P2PERP.Controllers
                                 id = po.IdCode,
                                 title = $"Purchase Order Is Added By {po.AddedBy}",
                                 start = po.AddedDate.ToString("yyyy-MM-ddTHH:mm:ss"),
-                                //className = po.Status == "Approved" ? "bg-success" :
-                                //            (po.Status == "Pending" ? "bg-warning" : "bg-danger"),
                                 color = "#fd7e14",
 
                                 extendedProps = new
@@ -669,7 +662,6 @@ namespace P2PERP.Controllers
                                 id = grn.IdCode,
                                 title = $"GRN Is Added By {grn.AddedBy}",
                                 start = grn.AddedDate.ToString("yyyy-MM-ddTHH:mm:ss"),
-                                //className = grn.Status == "Completed" ? "bg-success" : "bg-warning",
                                 color = "#28a745",
 
                                 extendedProps = new
@@ -705,7 +697,6 @@ namespace P2PERP.Controllers
                                 id = gr.IdCode,
                                 title = $"Goods Return Entry Is Added By {gr.AddedBy}",
                                 start = gr.AddedDate.ToString("yyyy-MM-ddTHH:mm:ss"),
-                                //className = gr.Status == "Assign" ? "bg-warning" : "bg-success",
                                 color = "ffc107",
 
                                 extendedProps = new
@@ -757,7 +748,6 @@ namespace P2PERP.Controllers
                                 id = $"QC-{qc.AddedDate:yyyyMMdd}",
                                 title = $"{qc.Count} Items Has {(qc.Status == "Confirmed" ? "Passed" : "Failed")} Quality Check",
                                 start = qc.AddedDate.ToString("yyyy-MM-ddTHH:mm:ss"),
-                                //className = qc.Status == "Non-Confirmed" ? "bg-danger" : "bg-success",
                                 color = "#dc3545",
 
                                 extendedProps = new
