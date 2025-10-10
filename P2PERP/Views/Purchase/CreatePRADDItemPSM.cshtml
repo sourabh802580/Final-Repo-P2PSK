@@ -1,6 +1,6 @@
 ﻿@model P2PLibray.Purchase.Purchase
 @{
-    ViewBag.Title = " ";
+    ViewBag.Title = "Items Request Management";
 }
 
 <div class="container">
@@ -12,25 +12,24 @@
                 <label class="form-label fw-bold">Items Request:</label>
                 <select id="ItemReqStatus" class="form-select"></select>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-3 dropdown-container">
                 <label class="form-label fw-bold">Select Plan:</label>
-                <select id="planname" class="form-select" disabled></select>
+                <select id="planname" class="form-select limited-dropdown" disabled></select>
             </div>
         </div>
-
-        <div class="mb-2">
+        <div class="d-flex justify-content-between align-items-center">
+            <!-- Datepicker (Left) -->
             <div class="input-group" style="max-width: 340px;">
                 <span class="input-group-text bg-primary text-white">
                     <i class="bi bi-calendar-date"></i>
                 </span>
                 <input type="text" id="FirstreportrangePSM" class="form-control" readonly placeholder="Select Date" />
             </div>
-        </div>
-        <div class="d-flex justify-content-end mt-3">
-            <button id="btnCreatePR" class="btn btn-success me-2" data-bs-toggle="modal" data-bs-target="#createPRModal" disabled>
+
+            <!-- Button (Right) -->
+            <button id="btnCreatePR" class="btn btn-success ms-2" data-bs-toggle="modal" data-bs-target="#createPRModal" disabled>
                 <i class="bi bi-plus-circle"></i> Create PR
             </button>
-            <button id="btnCancel" class="btn btn-secondary">Cancel</button>
         </div>
         <div class="table-responsive text-center mt-3">
             <table id="itemsTable" class="table table-bordered table-striped table-hover w-100 text-center align-middle">
@@ -103,15 +102,32 @@
                         <button type="submit" class="btn btn-success px-5 me-2">
                             <i class="bi bi-check-circle"></i> Save PR
                         </button>
-                        <button type="reset" class="btn btn-danger px-5" id="prResetBtn">
-                            <i class="bi bi-x-circle"></i> Cancel
-                        </button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 </div>
+<style>
+    .dropdown-container {
+        position: relative;
+        display: inline-block;
+        width: 250px;
+        font-family: system-ui, sans-serif;
+    }
+    /* Force fixed dropdown width */
+    #planname[size="5"] {
+        overflow-y: auto;
+    }
+    .limited-dropdown {
+        max-height: calc(1.5em * 5); /* 5 rows + padding */
+        overflow-y: auto;
+    }
+    .limited-dropdown option {
+        padding: 5px;
+    }
+</style>
+
 <script>
     //Toastr configuration
     toastr.options = {
@@ -122,7 +138,6 @@
         preventDuplicates: true,
         timeOut: 3000
     };
-
     // PDF customization helpers
     function buildDatetimeString() {
         var now = new Date();
@@ -140,7 +155,7 @@
         }
         return -1;
     }
-
+    //PDF Code
     function pdfCustomizeGeneric(doc, title, orientation) {
         orientation = orientation || 'portrait';
         try {
@@ -324,7 +339,12 @@
                     data: "RequiredDate",
                     render: function (data, type, row) {
                         if (!data) return "";
-                        return data.replace(/-/g, "/");
+                        var date = new Date(data);
+                        var day = String(date.getDate()).padStart(2, '0');
+                        var month = String(date.getMonth() + 1).padStart(2, '0');
+                        var year = date.getFullYear();
+
+                        return `${day}/${month}/${year}`;
                     },
                     className: "text-center align-middle"
                 }
@@ -596,18 +616,21 @@
                 $plan.prop('disabled', false)
                     .empty()
                     .append('<option value="">-- Loading Plans... --</option>');
-                // Load available plans
-                $.getJSON('/Purchase/SelectPlanNamesPSM')
-                    .done(function (data) {
-                        $plan.empty().append('<option value="">-- Select Plan --</option>');
-                        $.each(data, function (i, item) {
-                            $plan.append($('<option>', { value: item.Value, text: item.Text }));
-                        });
-                    })
-                    .fail(function () {
-                        toastr.error("Failed to load plans!");
-                        $plan.empty().append('<option value="">-- No Plans Found --</option>');
-                    });
+                $(document).ready(function () {
+                    const $plan = $('#planname');
+                    $.getJSON('/Purchase/SelectPlanNamesPSM')
+                        .done(function (data) {
+                            $plan.prop('disabled', false);
+                            $plan.empty().append('<option value="">-- Select Plan --</option>');
+                            $.each(data, function (i, item) {
+                                $plan.append($('<option>', { value: item.Value, text: item.Text }));
+                            });
+                        })
+                        .fail(function () {
+                            toastr.error("Failed to load plans!");
+                            $plan.empty().append('<option value="">-- No Plans Found --</option>');
+                   });
+                });
             }
             else if (selected === "8") {
                 $planContainer.hide();
@@ -636,17 +659,22 @@
             autoUpdateInput: false,
             opens: "right",
             drops: "down",
-            locale: { cancelLabel: 'Clear' },
+            locale: {
+                cancelLabel: 'Clear',
+                format: 'DD/MM/YYYY' // display format
+            },
             ranges: {
                 'Today': [moment(), moment()],
-                'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
                 'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-                'This Month': [moment().startOf('month'), moment().endOf('month')],
-                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                'Last 1 Month': [moment().subtract(1, 'months').startOf('day'), moment()],
+                'Last 3 Months': [moment().subtract(3, 'months').startOf('day'), moment()],
+                'Last 1 Year': [moment().subtract(12, 'months').startOf('day'), moment()]
             }
         }, function (start, end) {
-            $('#FirstreportrangePSM').val(start.format('YYYY-MM-DD') + ' - ' + end.format('YYYY-MM-DD'));
+            // Show in dd/MM/yyyy format
+            $('#FirstreportrangePSM').val(start.format('DD/MM/YYYY') + ' - ' + end.format('DD/MM/YYYY'));
+
+            // Pass backend-friendly format (yyyy-MM-dd)
             dateFrom = start.format('YYYY-MM-DD');
             dateTo = end.format('YYYY-MM-DD');
             reloadItems();
@@ -654,7 +682,8 @@
 
         $('#FirstreportrangePSM').on('cancel.daterangepicker', function () {
             $(this).val('');
-            dateFrom = ""; dateTo = "";
+            dateFrom = "";
+            dateTo = "";
             reloadItems();
         });
 
@@ -664,10 +693,13 @@
 
         function loadItems(url, params) {
             $.getJSON(url, params)
-                .done(function (data) { table.clear().rows.add(data).draw(); })
-                .fail(function () { table.clear().draw(); });
+                .done(function (data) {
+                    table.clear().rows.add(data).draw();
+                })
+                .fail(function () {
+                    table.clear().draw();
+                });
         }
-
         // Generate PR Code
         $.getJSON("/Purchase/GeneratePRCodePSM").done(function (res) {
             if (res) {
@@ -712,7 +744,7 @@
                                 <td>${rowData.ItemName || ''}</td>
                                 <td>${rowData.Description || ''}</td>
                                 <td>${rowData.UOMName || ''}</td>
-                                <td>${rowData.UnitRates || ''}</td>
+                                <td>₹ ${rowData.UnitRates || ''}</td>
                                 <td class="text-end">${rowData.Quantity || ''}</td>
                                 <td class="text-center">
                                 ${rowData.RequiredDate ? new Date(rowData.RequiredDate).toLocaleDateString('en-GB') : ''}
