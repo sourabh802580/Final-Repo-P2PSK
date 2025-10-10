@@ -145,7 +145,7 @@ namespace P2PLibray.Purchase
         public decimal GST { get; set; }
         public string UOMName { get; set; }
         public string Description { get; set; }
-        public decimal ShippingCharges { get; set; }
+        //public decimal ShippingCharges { get; set; }
 
 
 
@@ -381,6 +381,11 @@ namespace P2PLibray.Purchase
         public string AddedDateVK { get; set; }
     
         public int HasUnregisteredVendors { get; set; }
+
+        public int AnyVendor { get; set; }
+
+
+
 
 
         #endregion vaibhavi

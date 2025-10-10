@@ -439,8 +439,16 @@ namespace P2PLibray.Purchase
                             Description = row["Description"].ToString(),
                             HasUnregisteredVendors = row.Table.Columns.Contains("HasUnregisteredVendors") && row["HasUnregisteredVendors"] != DBNull.Value
                                 ? Convert.ToInt32(row["HasUnregisteredVendors"])
+                                : 0,
+
+ AnyVendor = row.Table.Columns.Contains("HasRegisteredQuotation") && row["HasRegisteredQuotation"] != DBNull.Value
+                                ? Convert.ToInt32(row["HasRegisteredQuotation"])
                                 : 0
+
+
                         });
+
+
                     }
                 }
                 return items;
@@ -798,7 +806,7 @@ namespace P2PLibray.Purchase
                             CostPerUnit = row["CostPerUnit"] == DBNull.Value ? 0 : Convert.ToDecimal(row["CostPerUnit"]),
                             Discount = row["Discount"] == DBNull.Value ? 0 : Convert.ToDecimal(row["Discount"]),
                             GST = row["GSTPct"] == DBNull.Value ? 0 : Convert.ToDecimal(row["GSTPct"]),
-                            ShippingCharges= row["ShippingCharges"]== DBNull.Value ? 0 : Convert.ToDecimal(row["ShippingCharges"])
+                           // ShippingCharges= row["ShippingCharges"]== DBNull.Value ? 0 : Convert.ToDecimal(row["ShippingCharges"])
                         });
                     }
                 }
