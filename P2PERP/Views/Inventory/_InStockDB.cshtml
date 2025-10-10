@@ -90,7 +90,7 @@
 
                     <!-- GRN / Invoice Details - Enhanced Card Layout -->
                     <div class="card shadow-sm border-0 mb-4">
-                      
+
                         <div class="card-body p-0">
                             <div class="row g-0">
                                 <!-- Left Column -->
@@ -166,7 +166,7 @@
 
                     <!-- Item Allocation Table - Enhanced -->
                     <div class="card shadow-sm border-0">
-                       
+
                         <div class="card-body p-0">
                             <div class="table-responsive">
                                 <table class="table table-hover align-middle mb-0 instockTable">
@@ -265,7 +265,7 @@
                                                             </div>
                                                             <div class="d-flex align-items-center gap-2">
                                                                 <label class="form-label small fw-semibold text-muted mb-0">Assign Qty:</label>
-                                                                <input type="number" class="form-control form-control-sm assign-qty" style="width: 100px;" min="0" value="0" @(isComplete ? "disabled" : "") />
+                                                                <input type="number" class="form-control form-control-sm assign-qty" style="width: 150px;" min="0" font-size="14px"; placeholder="Enter quantity" @(isComplete ? "disabled" : "") />
                                                             </div>
                                                         </div>
                                                     </div>
@@ -280,7 +280,7 @@
 
                     <!-- Footer Buttons -->
                     <div class="d-flex justify-content-end gap-3 mt-4 pt-3 border-top">
-                       
+
                         <button type="button" class="btn btn-success px-4 btnAssign">
                             <i class="bi bi-check-circle me-2"></i>Assign Bin
                         </button>
@@ -299,237 +299,222 @@
 
 
 <script>
-    $(document).ready(function () {
+$(document).ready(function () {
 
-
-
-        //  Initialize DataTable for instock
+    // Ensure DataTable initialized only once
+    if (!$.fn.DataTable.isDataTable('.instockTable')) {
         $('.instockTable').DataTable({
-            destroy: true,     // ensures no duplicate initialization
+            destroy: true,
             responsive: true,
             searching: false,
             ordering: false,
             paging: false,
             info: false,
-            columnDefs: [
-                { targets: "_all", className: "text-center align-middle" }
-            ]
-        });
-
-
-
-        // 🔹 Directly load Areas using Model.WareHouseCode
-        let warehouseCode = '@Model.WareHouseCode';
-        if (warehouseCode) {
-            $(".area-ddl").each(function () {
-                var $area = $(this);
-                $area.empty().append($('<option/>').val("").text("-- Select Area --"));
-
-                $.ajax({
-                    url: '@Url.Action("GetSectionDRB", "Inventory")',
-                    type: 'GET',
-                    data: { code: warehouseCode },
-                    success: function (data) {
-                        console.log("Sections:", data);
-                        $.each(data, function (i, section) {
-                            $area.append($('<option/>').val(section.SectionCode).text(section.SectionName));
-                        });
-                    }
-                });
-            });
-        }
-
-        // 🔹 Area → Rack
-        $(document).on("change", ".area-ddl", function () {
-            var sectionCode = $(this).val();
-            var $row = $(this).closest("tr");
-            var $rack = $row.find(".rack-ddl");
-            var $rowddl = $row.find(".row-ddl");
-            var $bin = $row.find(".bin-ddl");
-
-            $rack.empty().append($('<option/>').val("").text("-- Select Rack --"));
-            $rowddl.empty().append($('<option/>').val("").text("-- Select Row --"));
-            $bin.empty().append($('<option/>').val("").text("-- Select Bin --"));
-
-            if (sectionCode) {
-                $.ajax({
-                    url: '@Url.Action("GetRackDRB", "Inventory")',
-                    type: 'GET',
-                    data: { Sectioncode: sectionCode },
-                    success: function (data) {
-                        console.log("Racks:", data);
-                        $.each(data, function (i, rack) {
-                            $rack.append($('<option/>').val(rack.RackCode).text(rack.RackName));
-                        });
-                    }
-                });
-            }
-        });
-
-        // 🔹 Rack → Row
-        $(document).on("change", ".rack-ddl", function () {
-            var rackCode = $(this).val();
-            var $row = $(this).closest("tr");
-            var $rowddl = $row.find(".row-ddl");
-            var $bin = $row.find(".bin-ddl");
-
-            $rowddl.empty().append($('<option/>').val("").text("-- Select Row --"));
-            $bin.empty().append($('<option/>').val("").text("-- Select Bin --"));
-
-            if (rackCode) {
-                $.ajax({
-                    url: '@Url.Action("GetRowDRB", "Inventory")',
-                    type: 'GET',
-                    data: { Rackcode: rackCode },
-                    success: function (data) {
-                        console.log("Rows:", data);
-                        $.each(data, function (i, rw) {
-                            $rowddl.append($('<option/>').val(rw.RowCode).text(rw.RowName));
-                        });
-                    }
-                });
-            }
-        });
-
-        // 🔹 Row → Bin
-        $(document).on("change", ".row-ddl", function () {
-    var rowCode = $(this).val();
-    var $row = $(this).closest("tr");
-    var grnItemCode = $row.find(".grnitemcode").val(); // ✅ Fixed selector
-    var $bin = $row.find(".bin-ddl");
-
-    $bin.empty().append($('<option/>').val("").text("-- Select Bin --"));
-
-    if (rowCode) {
-        $.ajax({
-            url: '@Url.Action("GetBinDRB", "Inventory")',
-            type: 'GET',
-            dataType: 'json', // ✅ ensure response parsed correctly
-            data: {
-                RowCode: rowCode,       // ✅ match exact param name
-                GRNItemCode: grnItemCode
-            },
-            success: function (data) {
-                console.log("Bins:", data);
-                $.each(data, function (i, bin) {
-                    $bin.append(
-                        $('<option/>')
-                            .val(bin.BinCode)
-                            .text(bin.BinName)
-                            .attr("data-max", bin.MaxQuantity)
-                            .attr("data-current", bin.CurrentItems)
-                    );
-                });
-            },
-            error: function (xhr, status, error) {
-                console.error("Error loading bins:", error);
-            }
+            columnDefs: [{ targets: "_all", className: "text-center align-middle" }]
         });
     }
-});
 
-
-        // Bin → Show capacity
-        $(document).on("change", ".bin-ddl", function () {
-            var $bin = $(this);
-            var $row = $bin.closest("tr");
-
-            var selected = $bin.find(":selected");
-            var max = selected.data("max") || 0;
-            var current = selected.data("current") || 0;
-
-            $row.find(".current-items").text(current);
-            $row.find(".max-capacity").text(max);
-            $row.find(".assign-qty").val(0);
-            $row.find(".remaining").text(max - current);
-        });
-
-        // When AssignQty changes → update Remaining
-        $(document).on("input", ".assign-qty", function () {
-            var $input = $(this);
-            var $row = $input.closest("tr");
-
-            var assignQty = parseInt($input.val()) || 0;
-            var current = parseInt($row.find(".current-items").text()) || 0;
-            var max = parseInt($row.find(".max-capacity").text()) || 0;
-
-            var remaining = max - (current + assignQty);
-
-            // Prevent over-assign
-            if (remaining < 0) {
-                toastr.warning("Bin Capacity Exceeded...!");
-                $input.val(0);
-                remaining = max - current;
-            }
-
-            $row.find(".remaining").text(remaining);
-        });
-
-        // 🔹 Save Assignments
-       $(".btnAssign").click(function () {
-    let assignments = [];
-
-    $(".instockTable tbody tr").each(function () {
-        let grnItemCode = $(this).find(".grnitemcode").val(); // Correct identifier
-        let binCode = $(this).find(".bin-ddl").val();
-        let assignQty = parseInt($(this).find(".assign-qty").val()) || 0;
-
-        if (binCode && assignQty > 0) {
-            assignments.push({
-                GRNItemCode: grnItemCode,
-                BinCode: binCode,
-                QuantityStored: assignQty,
-                CreatedDate: new Date().toISOString()
-            });
-        }
-    });
-
-    if (assignments.length === 0) {
-        Swal.fire({
-            icon: 'warning',
-            title: 'No Items',
-            text: 'No items assigned to bins!',
-            confirmButtonText: 'OK'
-        });
-        return;
-    }
+   
+    const warehouseCode = '@Model.WareHouseCode';
+    if (!warehouseCode) return;
 
     $.ajax({
-        url: '@Url.Action("SaveItemBinAssignmentDRB", "Inventory")',
-        type: 'POST',
-        contentType: "application/json",
-        data: JSON.stringify(assignments),
-        success: function (res) {
-            Swal.fire({
-                icon: 'success',
-                title: 'Assignment Saved',
-                text: 'Bin assignment saved successfully!',
-                timer: 2000,
-                showConfirmButton: false
-            }).then(() => {
-                location.reload();
-            });
-        },
-        error: function () {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Something went wrong while saving bin assignments!'
+        url: '@Url.Action("GetSectionDRB", "Inventory")',
+        type: 'GET',
+        data: { code: warehouseCode },
+        success: function (data) {
+            console.log("Sections reloaded:", data);
+            $(".area-ddl").each(function () {
+                const $area = $(this);
+                $area.empty().append($('<option/>').val("").text("-- Select Area --"));
+                $.each(data, function (i, section) {
+                    $area.append($('<option/>').val(section.SectionCode).text(section.SectionName));
+                });
             });
         }
     });
-});
 
 
-        // 🔹 Disable row if fully stored
+
+    // Clear dependent dropdowns before repopulating
+    function resetDropdowns($row) {
+        $row.find(".rack-ddl, .row-ddl, .bin-ddl").each(function () {
+            $(this).empty().append($('<option/>').val("").text(""));
+        });
+    }
+
+    // Area → Rack
+    $(document).off("change", ".area-ddl").on("change", ".area-ddl", function () {
+        const sectionCode = $(this).val();
+        const $row = $(this).closest("tr");
+        const $rack = $row.find(".rack-ddl");
+        resetDropdowns($row);
+
+        if (sectionCode) {
+            $.ajax({
+                url: '@Url.Action("GetRackDRB", "Inventory")',
+                type: 'GET',
+                data: { Sectioncode: sectionCode },
+                success: function (data) {
+                    console.log("Racks:", data);
+                    $rack.append($('<option/>').val("").text("-- Select Rack --"));
+                    $.each(data, function (i, rack) {
+                        if ($rack.find(`option[value='${rack.RackCode}']`).length === 0) { // No duplicates
+                            $rack.append($('<option/>').val(rack.RackCode).text(rack.RackName));
+                        }
+                    });
+                }
+            });
+        }
+    });
+
+    // Rack → Row
+    $(document).off("change", ".rack-ddl").on("change", ".rack-ddl", function () {
+        const rackCode = $(this).val();
+        const $row = $(this).closest("tr");
+        const $rowddl = $row.find(".row-ddl");
+        const $bin = $row.find(".bin-ddl");
+        $rowddl.empty().append($('<option/>').val("").text("-- Select Row --"));
+        $bin.empty().append($('<option/>').val("").text("-- Select Bin --"));
+
+        if (rackCode) {
+            $.ajax({
+                url: '@Url.Action("GetRowDRB", "Inventory")',
+                type: 'GET',
+                data: { Rackcode: rackCode },
+                success: function (data) {
+                    console.log("Rows:", data);
+                    $.each(data, function (i, rw) {
+                        if ($rowddl.find(`option[value='${rw.RowCode}']`).length === 0) { // Prevent duplicates
+                            $rowddl.append($('<option/>').val(rw.RowCode).text(rw.RowName));
+                        }
+                    });
+                }
+            });
+        }
+    });
+
+    // Row → Bin
+    $(document).off("change", ".row-ddl").on("change", ".row-ddl", function () {
+        const rowCode = $(this).val();
+        const $row = $(this).closest("tr");
+        const grnItemCode = $row.find(".grnitemcode").val();
+        const $bin = $row.find(".bin-ddl");
+        $bin.empty().append($('<option/>').val("").text("-- Select Bin --"));
+
+        if (rowCode) {
+            $.ajax({
+                url: '@Url.Action("GetBinDRB", "Inventory")',
+                type: 'GET',
+                dataType: 'json',
+                data: { RowCode: rowCode, GRNItemCode: grnItemCode },
+                success: function (data) {
+                    console.log("Bins:", data);
+                    $.each(data, function (i, bin) {
+                        if ($bin.find(`option[value='${bin.BinCode}']`).length === 0) { // Prevent duplicates
+                            $bin.append(
+                                $('<option/>')
+                                    .val(bin.BinCode)
+                                    .text(bin.BinName)
+                                    .attr("data-max", bin.MaxQuantity)
+                                    .attr("data-current", bin.CurrentItems)
+                            );
+                        }
+                    });
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error loading bins:", error);
+                }
+            });
+        }
+    });
+
+    // Bin capacity update
+    $(document).off("change", ".bin-ddl").on("change", ".bin-ddl", function () {
+        const $bin = $(this);
+        const $row = $bin.closest("tr");
+        const selected = $bin.find(":selected");
+        const max = selected.data("max") || 0;
+        const current = selected.data("current") || 0;
+
+        $row.find(".current-items").text(current);
+        $row.find(".max-capacity").text(max);
+        $row.find(".assign-qty").val(0);
+        $row.find(".remaining").text(max - current);
+    });
+
+    // Assign quantity update
+    $(document).off("input", ".assign-qty").on("input", ".assign-qty", function () {
+        const $input = $(this);
+        const $row = $input.closest("tr");
+        const assignQty = parseInt($input.val()) || 0;
+        const current = parseInt($row.find(".current-items").text()) || 0;
+        const max = parseInt($row.find(".max-capacity").text()) || 0;
+        let remaining = max - (current + assignQty);
+
+        if (remaining < 0) {
+            toastr.warning("Bin Capacity Exceeded...!");
+            $input.val(0);
+            remaining = max - current;
+        }
+
+        $row.find(".remaining").text(remaining);
+    });
+
+    // Save Assignments
+    $(".btnAssign").off("click").on("click", function () {
+        const assignments = [];
+
         $(".instockTable tbody tr").each(function () {
-            var qty = parseInt($(this).find("td:eq(5)").text()) || 0;
-            var stored = parseInt($(this).find("td:eq(6)").text()) || 0;
+            const grnItemCode = $(this).find(".grnitemcode").val();
+            const binCode = $(this).find(".bin-ddl").val();
+            const assignQty = parseInt($(this).find(".assign-qty").val()) || 0;
 
-            if (qty === stored) {
-                $(this).addClass("table-secondary");
-                $(this).find("select, input").prop("disabled", true);
+            if (binCode && assignQty > 0) {
+                assignments.push({
+                    GRNItemCode: grnItemCode,
+                    BinCode: binCode,
+                    QuantityStored: assignQty,
+                    CreatedDate: new Date().toISOString()
+                });
+            }
+        });
+
+        if (assignments.length === 0) {
+            Swal.fire({ icon: 'warning', title: 'No Items', text: 'No items assigned to bins!', confirmButtonText: 'OK' });
+            return;
+        }
+
+        $.ajax({
+            url: '@Url.Action("SaveItemBinAssignmentDRB", "Inventory")',
+            type: 'POST',
+            contentType: "application/json",
+            data: JSON.stringify(assignments),
+            success: function () {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Assignment Saved',
+                    text: 'Bin assignment saved successfully!',
+                    timer: 2000,
+                    showConfirmButton: false
+                }).then(() => location.reload());
+            },
+            error: function () {
+                Swal.fire({ icon: 'error', title: 'Error', text: 'Something went wrong while saving bin assignments!' });
             }
         });
     });
+
+
+    // Disable row if fully stored
+    $(".instockTable tbody tr").each(function () {
+        var qty = parseInt($(this).find("td:eq(5)").text()) || 0;
+        var stored = parseInt($(this).find("td:eq(6)").text()) || 0;
+
+        if (qty === stored) {
+            $(this).addClass("table-secondary");
+            $(this).find("select, input").prop("disabled", true);
+        }
+    });
+});
 </script>
