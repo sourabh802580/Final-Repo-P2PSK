@@ -748,6 +748,7 @@
             });
         });
 
+
         // Form validation
         const forms = document.querySelectorAll(".needs-validation");
         Array.from(forms).forEach((form) => {
@@ -1361,28 +1362,33 @@
             drops: "down",
             locale: {
                 cancelLabel: 'Clear',
-                format: 'DD/MM/YYYY' // set display format
+                format: 'DD/MM/YYYY' // display format
             },
             ranges: {
                 'Today': [moment(), moment()],
                 'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
                 'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-                'This Month': [moment().startOf('month'), moment().endOf('month')],
-                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                'Last 1 Month': [moment().subtract(1, 'months').startOf('day'), moment()],
+                'Last 3 Months': [moment().subtract(3, 'months').startOf('day'), moment()],
+                'Last 1 Year': [moment().subtract(12, 'months').startOf('day'), moment()]
+                //'This Month': [moment().startOf('month'), moment().endOf('month')],
+                //'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
             }
         }, function (start, end) {
+            // Update input field
             $('#vendorcreateddate').val(start.format('DD/MM/YYYY') + ' - ' + end.format('DD/MM/YYYY'));
 
+            // Apply date filter on vendorTable
             $.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
-                var addedDate = moment(data[8], 'DD/MM/YYYY');
-                return addedDate.isBetween(start, end, undefined, '[]'); 
+                var addedDate = moment(data[8], 'DD/MM/YYYY'); // adjust column index if needed
+                return addedDate.isBetween(start, end, undefined, '[]'); // inclusive range
             });
 
             vendorTable.draw();
             $.fn.dataTable.ext.search.pop();
         });
 
+        // Clear the date picker
         $('#vendorcreateddate').on('cancel.daterangepicker', function () {
             $(this).val('');
             vendorTable.draw();
@@ -1453,9 +1459,9 @@
                 text: "Do you really want to save this vendor?",
                 icon: "warning",
                 showCancelButton: true,
-                confirmButtonText: "Yes, save it!",
+                confirmButtonText: "Yes, create it!",
                 cancelButtonText: "No, cancel!",
-                reverseButtons: true
+                reverseButtons: false // Yes first, Cancel second
             }).then((result) => {
                 if (result.isConfirmed) {
                     $.ajax({
@@ -1595,7 +1601,8 @@
         // Show modal
         $("#viewvendorModal").modal("show");
     }
-    // Approve Vendor function with confirmation
+        // Approve Vendor function with confirmations
+
     function ApproveVendor(VendorId) {
         // Show confirm popup first
         swalWithBootstrapButtons.fire({
@@ -1603,9 +1610,9 @@
             text: "Do you really want to approve this vendor?",
             icon: "warning",
             showCancelButton: true,
-            confirmButtonText: "Yes, approve it!",
+            confirmButtonText: "Yes, create it!",
             cancelButtonText: "No, cancel!",
-            reverseButtons: true,
+            reverseButtons: false 
         }).then((result) => {
             if (result.isConfirmed) {
                 // Call AJAX only if user confirmed

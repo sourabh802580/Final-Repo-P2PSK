@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+using static P2PLibray.Quality.GRNShowItemPR;
 using static P2PLibray.Quality.Quality;
 
 namespace P2PERP.Controllers
@@ -234,7 +235,42 @@ namespace P2PERP.Controllers
 			}
 		}
 
+		// Pending Items Controller
+		public async Task<JsonResult> PendingItemsGraphPR(string startDate = null, string endDate = null)
+		{
+			try
+			{
+				// Fetch data from BAL method
+				var dr = await bal.GetPendingItemsAsyncPR(startDate, endDate);
 
+				List<PendingItemPR> pendingList = new List<PendingItemPR>();
+
+				// Read data and populate list
+				if (dr.HasRows)
+				{
+					while (await dr.ReadAsync())
+					{
+						pendingList.Add(new PendingItemPR
+						{
+							GRNCode = dr["GRNCode"]?.ToString() ?? "",
+							ItemCode = dr["ItemCode"]?.ToString() ?? "",
+							ItemName = dr["ItemName"]?.ToString() ?? "",
+							AddedDate = dr["ItemAddedDate"]?.ToString() ?? ""
+						});
+					}
+				}
+				dr.Close();
+
+				// Return JSON result
+				return Json(new { data = pendingList }, JsonRequestBehavior.AllowGet);
+			}
+			catch (Exception ex)
+			{
+				// Log error
+				System.Diagnostics.Debug.WriteLine($"Error in PendingItemsGraphPR: {ex.Message}");
+				return Json(new { data = new List<PendingItemPR>() }, JsonRequestBehavior.AllowGet);
+			}
+		}
 
 
 

@@ -4,8 +4,46 @@
 }
 <style>
     .dtpicker {
-        max-width: 200px !important;
+        max-width: 220px !important;
     }
+
+        /* Remove focus border from input */
+        .dtpicker:focus,
+        .dtpicker:focus-visible {
+            outline: none !important;
+            box-shadow: none !important;
+            border-color: #ced4da !important; /* default Bootstrap border color */
+        }
+
+    /* Also remove focus highlight from input-group wrapper */
+    .input-group:focus-within {
+        box-shadow: none !important;
+        border-color: #ced4da !important;
+    }
+
+    #tblRFQ th,
+    #tblRFQ td,
+    #tblRecent th,
+    #tblRecent td,
+    #tblPRItems td,
+    #tblRFQDetails td,
+    #tblVendors td {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    #rfqList h6 {
+        text-align: center;
+    }
+
+    .modal-header {
+        align-items: center; /* vertically centers children */
+        padding-top: 0.5rem; /* optional: fine-tune top space */
+        padding-bottom: 0.5rem;
+    }
+
+
+
 </style>
 
 
@@ -30,13 +68,18 @@
                             <span class="input-group-text bg-primary text-white">
                                 <i class="bi bi-calendar-event"></i>
                             </span>
-                            <input type="text" id="dateRange" class="form-control dtpicker" placeholder="Select Date Range" />
+                            <input type="text"
+                                   id="dateRange"
+                                   class="form-control dtpicker"
+                                   placeholder="Select Date Range"
+                                   readonly />
                         </div>
                     </div>
+
                 </div>
 
                 <div class="table-responsive">
-                    <table id="tblRecent" class="table table-striped">
+                    <table id="tblRecent" class="table table-striped table-bordered">
                         <thead class="table-dark">
                             <tr>
                                 <th><input type="checkbox" id="selectAllPR"></th>
@@ -65,7 +108,7 @@
                             <span class="input-group-text bg-primary text-white">
                                 <i class="bi bi-calendar-event"></i>
                             </span>
-                            <input type="text" id="rfqDateRange" class="form-control dtpicker" placeholder="Select Date Range" />
+                            <input type="text" id="rfqDateRange" class="form-control dtpicker" placeholder="Select Date Range" readonly />
                         </div>
                     </div>
                 </div>
@@ -152,10 +195,13 @@
         <div class="modal-content">
 
             <!-- Modal Header -->
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title mb-0 text-white text-center flex-grow-1" id="rfqDetailsTitle">Purchase Requisition</h5>
+            <div class="modal-header bg-primary text-white align-items-center">
+                <h5 class="modal-title mb-0 text-white text-center flex-grow-1" id="rfqDetailsTitle">
+                    Purchase Requisition
+                </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
+
 
             <div class="modal-body">
                 <form id="rfqForm" method="post" action="/RFQ/CreateRFQ">
@@ -259,7 +305,7 @@
 
             <!-- Modal Header -->
             <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title mb-0 text-white text-center flex-grow-1" id="rfqDetailsTitle">RFQ Details</h5>
+                <h5 class="modal-title mb-0 text-white text-center flex-grow-1" id="rfqDetailsTitle1">RFQ Details</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
 
@@ -340,7 +386,6 @@
 
             <!-- Modal Footer -->
             <div class="modal-footer">
-                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
                 <button id="btnSendRFQ" class="btn btn-success btn-sm">Send To Vendor</button>
             </div>
 
@@ -627,24 +672,6 @@
     </div>
 </div>
 
-<style>
-
-    #tblRFQ th,
-    #tblRFQ td,
-    #tblRecent th,
-    #tblRecent td,
-    #tblPRItems td,
-    #tblRFQDetails td,
-    #tblVendors td {
-        text-align: center;
-        vertical-align: middle;
-    }
-
-    #rfqList h6 {
-        text-align: center;
-    }
-</style>
-
 
 
 
@@ -652,6 +679,35 @@
 
 <script>
     $(document).ready(function () {
+
+        function formatDate(dateStr) {
+            if (!dateStr) return "N/A";
+
+            // Normalize all separators
+            let clean = dateStr.trim().replace('T', ' ').replace(/\./g, '-').replace(/\//g, '-');
+
+            // Case 1: ISO or SQL format like 2025-10-06 00:00:00 or 2025-10-06T00:00:00
+            let isoMatch = clean.match(/^(\d{4})-(\d{2})-(\d{2})/);
+            if (isoMatch) {
+                const [_, y, m, d] = isoMatch;
+                return `${d}/${m}/${y}`; // ✅ dd/MM/yyyy
+            }
+
+            // Case 2: dd-MM-yyyy or dd/MM/yyyy
+            let dmyMatch = clean.match(/^(\d{2})-(\d{2})-(\d{4})/);
+            if (dmyMatch) {
+                const [_, d, m, y] = dmyMatch;
+                return `${d}/${m}/${y}`;
+            }
+
+            // Case 3: last resort — use Date() safely
+            const d = new Date(clean);
+            if (!isNaN(d.getTime())) {
+                return d.toLocaleDateString("en-GB"); // dd/MM/yyyy
+            }
+
+            return "N/A";
+        }
 
         // PDF/Print customization function
         function customizeDoc(doc) {
@@ -1178,12 +1234,6 @@
                         $("#ExpectedDate").val(`${dd}/${mm}/${yyyy}`);
                     }
 
-
-
-                   
-
-
-
                     $("#rfqModal").modal("show");
 
                 }
@@ -1248,7 +1298,6 @@
             console.log("Active Submit Form Function");
             e.preventDefault();
 
-
             var formData = {
                 RFQCode: $("#RfqCodeInput").val(),
                 ContactPerson: $("#ContactPerson").val(),
@@ -1265,16 +1314,18 @@
                     text: 'Please fill all required fields.'
                 });
                 return;
-
             }
-            console.log("Formdata", formData);
+
+            console.log("Form Data:", formData);
+
             $.ajax({
                 url: '/Purchase/SaveRFQSJ',
                 type: 'POST',
-                data: formData,
+                data: JSON.stringify(formData),   // ✅ send JSON
+                contentType: 'application/json',  // ✅ tell server it’s JSON
                 success: function (response) {
                     if (response.success) {
-                        console.log("Save RQ", response);
+                        console.log("Save RFQ", response);
                         rfqModal.hide();
                         loadPRList();
 
@@ -1287,15 +1338,12 @@
                             icon: 'success',
                             title: 'Success!',
                             text: 'RFQ saved successfully!',
-                            showConfirmButton: false,  
-                            timer: 1000,                
+                            showConfirmButton: false,
+                            timer: 1000,
                             timerProgressBar: true
                         });
 
-                        // Still show toastr as before
                         toastr.success("RFQ saved successfully!");
-
-
                     } else {
                         Swal.fire({
                             icon: 'error',
@@ -1314,6 +1362,7 @@
                 }
             });
         });
+
 
 
         $(document).on("click", "#btnCreateRFQ", function () {
@@ -1414,7 +1463,9 @@
                                 <td></td>
                                 <td>${item.PRCode ?? ""}</td>
                                 <td>${item.RFQCode ?? ""}</td>
-                                <td>${moment(item.RequiredDate).format('D/M/YYYY')}</td>
+                               <td>${moment(item.RequiredDate, 'DD-MM-YYYY hh:mm:ss A').isValid()
+                                ? moment(item.RequiredDate, 'DD-MM-YYYY hh:mm:ss A').format('DD/MM/YYYY')
+                                : ''}</td>
                                 <td>
                                     <span data-bs-toggle="tooltip" data-bs-placement="top" title="${desc}">
                                         ${desc}
@@ -1838,7 +1889,7 @@
                         ]
                     });
 
-                    $("#rfqDetailsTitle").text("RFQ Details – " + (header.RFQCode || ""));
+                    $("#rfqDetailsTitle1").text("RFQ Details – " + (header.RFQCode || header.rfqCode || ""));
 
                     if (actionType === "send") {
                         $("#btnSendRFQ").show();
@@ -1968,10 +2019,24 @@
             }
 
 
+            // Initially disable the button
+            $("#btnSendToSelected").prop("disabled", true);
+
+            // Handle industry selection
             $("#industryFilter").off("change").on("change", function () {
                 let industryId = $(this).val();
+
+                // Reload vendors based on selected industry
                 loadVendors(industryId);
+
+                // Enable or disable the button based on selection
+                if (industryId && industryId !== "") {
+                    $("#btnSendToSelected").prop("disabled", false);
+                } else {
+                    $("#btnSendToSelected").prop("disabled", true);
+                }
             });
+
         });
 
         // ==============================

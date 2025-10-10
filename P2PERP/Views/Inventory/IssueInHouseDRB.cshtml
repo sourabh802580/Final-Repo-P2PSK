@@ -4,135 +4,191 @@
 }
 
 
+<style>
+    .form-control, .form-select {
+        border-radius: 0.5rem;
+        border: 1px solid #ced4da;
+        transition: all 0.3s ease;
+    }
+
+        .form-control:focus, .form-select:focus {
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+            border-color: #86b7fe;
+        }
+
+    .btn {
+        border-radius: 0.5rem;
+        transition: all 0.3s ease;
+    }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+    .card {
+        border: none;
+    }
+
+    .table th {
+        border-top: none;
+        font-weight: 600;
+    }
+
+    .table-responsive {
+        border-radius: 0.5rem;
+        overflow: hidden;
+    }
+
+    /* Responsive adjustments */
+    @@media (max-width: 768px) {
+        .form-control, .form-select, .btn {
+            font-size: 0.9rem;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+    }
+</style>
 
 <div class="container mt-4">
-
-    <div class="card-header bg-primary text-white d-flex justify-content-center align-items-center rounded-top p-2">
-        <h5 class="modal-title fw-bold text-white">Transfer In-House</h5>
-
+    <!-- Header -->
+    <div class="card-header bg-primary text-white d-flex justify-content-center align-items-center rounded-top p-3">
+        <h5 class="modal-title fw-bold text-white mb-0"><i class="bi bi-arrow-left-right me-2"></i>Transfer In-House</h5>
     </div>
 
-    <!-- Header Form -->
+    <!-- Main Card -->
     <div class="card shadow-lg border-0 rounded">
-
-
-
-
         <div class="card-body p-4">
             <form id="issueItemForm">
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold">Issue Code</label>
-                        <input type="text" id="IssueCode" class="form-control bg-secondary-subtle text-dark" readonly />
+                <!-- First Row - Three Columns -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold text-primary">Issue Code</label>
+                        <input type="text" id="IssueCode" class="form-control form-control-lg bg-light text-dark shadow-sm" readonly />
                     </div>
-                    <div class="col-md-6">
-                        @Html.LabelFor(m => m.IssueDate, new { @class = "form-label fw-bold" })
-                        @Html.TextBoxFor(
-                            m => m.IssueDate,
-                            "{0:yyyy-MM-dd}",
-                            new
-                                 {
-                                @class = "form-control bg-secondary-subtle text-dark",
-                                type = "date",
-                                id = "IssueDate",
-                                Value = DateTime.Now.ToString("yyyy-MM-dd"),
-                                @readonly = "readonly"
-                            }
-                        )
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold text-primary">Issue Date</label>
+                        <input type="date" id="IssueDate" class="form-control form-control-lg bg-light text-dark shadow-sm" value="@DateTime.Now.ToString("yyyy-MM-dd")" readonly />
                     </div>
-
-                    <div class="col-md-6">
-                        @Html.LabelFor(m => m.Department, new { @class = "form-label fw-bold" })
-                        <select class="form-select dept-select" id="Department"></select>
-                    </div>
-
-                    <div class="col-md-6">
-                        @Html.LabelFor(m => m.EmployeeName, new { @class = "form-label fw-bold" })
-                        <select class="form-select emp-select" id="Employee"></select>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold">Item Name</label>
-                        <select class="form-select item-select" id="ItemName"></select>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold">Bin Name</label>
-                        <select class="form-select item-bin" id="BinName">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold text-primary">Department<span class="text-danger">*</span></label>
+                        <select class="form-select form-select-lg dept-select shadow-sm" id="Department">
+                            <option selected>Select Department</option>
                         </select>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold">Item Code</label>
-                        <input type="text" id="ItemCode" class="form-control bg-secondary-subtle" readonly />
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold">Category</label>
-                        <input type="text" id="ItemCategory" class="form-control bg-secondary-subtle" readonly />
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold">UOM</label>
-                        <input type="text" id="UOM" class="form-control bg-secondary-subtle" readonly />
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold">Quantity</label>
-                        <input type="text" id="Quantity" class="form-control bg-secondary-subtle" />
                     </div>
                 </div>
 
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold">Unit Price</label>
-                        <input type="number" id="PricePerUnit" class="form-control bg-secondary-subtle" readonly />
+                <!-- Second Row - Three Columns -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold text-primary">Employee Name<span class="text-danger">*</span></label>
+                        <select class="form-select form-select-lg emp-select shadow-sm" id="Employee">
+                            <option selected>Select Employee</option>
+                        </select>
                     </div>
-                    <div class="col-md-6 pt-10">
-                        <button type="button" id="btnAddItem" class="btn btn-success px-4 square-pill">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold text-primary">Item Name<span class="text-danger">*</span></label>
+                        <select class="form-select form-select-lg item-select shadow-sm" id="ItemName">
+                            <option selected>Select Item</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold text-primary">Bin Name<span class="text-danger">*</span></label>
+                        <select class="form-select form-select-lg item-bin shadow-sm" id="BinName">
+                            <option selected>Select Bin</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Third Row - Three Columns -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold text-primary">Item Code</label>
+                        <input type="text" id="ItemCode" class="form-control form-control-lg bg-light text-dark shadow-sm" readonly />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold text-primary">Category</label>
+                        <input type="text" id="ItemCategory" class="form-control form-control-lg bg-light text-dark shadow-sm" readonly />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold text-primary">UOM</label>
+                        <input type="text" id="UOM" class="form-control form-control-lg bg-light text-dark shadow-sm" readonly />
+                    </div>
+                </div>
+
+                <!-- Fourth Row - Two Columns + Button -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold text-primary">Quantity</label>
+                        <input type="number" id="Quantity" class="form-control form-control-lg bg-light text-dark shadow-sm" min="1" />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold text-primary">Unit Price</label>
+                        <input type="number" id="PricePerUnit" class="form-control form-control-lg bg-light text-dark shadow-sm" readonly />
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button type="button" id="btnAddItem" class="btn btn-success btn-lg w-50 shadow-sm">
                             <i class="bi bi-plus-circle me-2"></i> Add Item
                         </button>
                     </div>
                 </div>
-               
             </form>
         </div>
 
-        <div class="container d-flex justify-content-end">
-            <button type="button" id="btnSubmitIssuedItems" class="btn btn-warning btn-sm square-pill">
-                <i class="bi bi-check2-circle me-2"></i> Issue
-            </button>
-        </div>
-
-        <div class="container table-responsive mt-10">
-            <table id="issuedItemsTable" class="table table-hover align-middle">
-                <thead class="table-primary text-dark">
-                    <tr>
-                        <th>Item Code</th>
-                        <th>Item Name</th>
-                        <th>Category</th>
-                        <th>UOM</th>
-                        <th>Qty</th>
-                        <th>Unit Price</th>
-                        <th>Amount</th>
-                        <th>BinName</th>
-                        <th class="text-center">Action</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
+        <!-- Items Table -->
+        <div class="container-fluid px-4 mt-4">
+            <div class="table-responsive rounded shadow-sm">
+                <table id="issuedItemsTable" class="table table-hover align-middle mb-0">
+                    <thead class="table-primary text-dark">
+                        <tr>
+                            <th>Item Code</th>
+                            <th>Item Name</th>
+                            <th>Category</th>
+                            <th>UOM</th>
+                            <th>Qty</th>
+                            <th>Unit Price</th>
+                            <th>Amount</th>
+                            <th>Bin Name</th>
+                            <th class="text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Table rows will be populated dynamically -->
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         <!-- Total Amount Display -->
-        <div class="container d-flex justify-content-end mt-3 align-items-center">
-            <label class="fw-bold me-2 mb-0">Total Amount:</label>
-            <input type="text" id="TotalAmount" class="form-control w-20 text-center fw-bold bg-success text-white" value="0.00" readonly />
-        </div>
+        <div class="container-fluid px-4 mt-4">
+            <div class="row justify-content-end">
+                <div class="col-md-4">
 
+                    <div class="d-flex justify-content-between align-items-center p-1 bg-light rounded shadow-sm">
+                        <label class="fw-bold text-primary mb-0 fs-5">Total Amount:</label>
+                        <input type="text" id="TotalAmount" class="form-control w-50 text-center fw-bold fs-5 bg-success text-white border-0" value="0.00" readonly />
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
- 
+    <!-- Submit Button -->
+    <div class="container-fluid px-4 mt-4 mb-4">
+        <div class="d-flex justify-content-center">
+            <button type="button" id="btnSubmitIssuedItems" class="btn btn-warning btn-lg px-5 shadow-sm">
+                <i class="bi bi-check2-circle me-2"></i> Item Issued
+            </button>
+        </div>
+    </div>
 
 </div>
+
+
+
+
 
 <script>
     $(document).ready(function () {
@@ -205,7 +261,7 @@
         });
 
 
-        
+
 
         // When item selected → auto-fill details
         $(".item-select").change(function () {
@@ -214,7 +270,7 @@
                 var item = $("#ItemCode").val(selected.ItemCode);
                 $("#ItemCategory").val(selected.ItemCategoryName);
                 $("#UOM").val(selected.UOMName);
-                $("#PricePerUnit").val(selected.UnitPrice);  
+                $("#PricePerUnit").val(selected.UnitPrice);
             } else {
                 $("#ItemCode, #ItemCategory, #UOM, #Quantity, #PricePerUnit").val("");
             }
@@ -306,7 +362,7 @@
             <td>₹${amount}</td>
             <td>${binName}</td>   <!-- show Bin column -->
             <td class="text-center">
-                <button type="button" class="btn btn-sm btn-danger btn-delete">Delete</button>
+                <button type="button" class="btn btn-sm btn-danger btn-delete"><i class="bi bi-trash"></i></button>
             </td>
         </tr>
     `);
@@ -343,22 +399,25 @@
 
 
 
-        
 
 
-       
+
+
 
         // Function to calculate and display total amount
         function updateTotal() {
             let total = 0;
             $("#issuedItemsTable tbody tr").each(function () {
-                let amt = parseFloat($(this).find("td:eq(6)").text()) || 0;
+                let amountText = $(this).find("td:eq(6)").text(); // Correct index
+                amountText = amountText.replace(/[^\d.-]/g, ""); // Remove ₹ or commas
+                let amt = parseFloat(amountText) || 0;
                 total += amt;
             });
             $("#TotalAmount").val("₹ " + total.toFixed(2));
         }
 
-        
+
+
 
 
         // Delete row (with SweetAlert confirm)
@@ -407,7 +466,7 @@
                 let row = $(this).find("td");
                 items.push({
                     IssueCode: header.IssueCode,
-                    BinCode: $(this).data("bincode"), 
+                    BinCode: $(this).data("bincode"),
                     ItemCode: $(row[0]).text(),
                     Quantity: $(row[4]).text(),
                     UnitPrice: $(row[5]).text(),
