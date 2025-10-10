@@ -1,6 +1,6 @@
 ﻿<div class="d-flex justify-content-between align-items-center mb-3">
     <div class="flex-grow-1 text-center">
-        <h4 class="mb-0 text-primary">Row List</h4>
+        <h4 class="mb-0 h3 text-primary">Row List</h4>
     </div>
     <button class="btn btn-success" id="btnAddrow">
         <i class="bi bi-plus-circle"></i> Add Row
@@ -36,7 +36,7 @@
         <div class="modal-content">
             <div class="modal-header bg-primary text-white position-relative">
                 <h5 class="modal-title text-white mb-3 h3 w-100 text-center">Add Row</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close  h3 mb-3 btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <form id="addRowForm" class="row g-3">
@@ -57,7 +57,7 @@
                             <span class="input-group-text"><i class="ri-archive-drawer-line"></i></span>
                             <div class="form-floating form-floating-outline">
                                 <input type="text" class="form-control" id="addRowName" name="RowName" required>
-                                <label for="addRowName">Row Name</label>
+                                <label for="addRowName">Row Name <span class="text-danger">*</span></label>
                             </div>
                         </div>
                     </div>
@@ -70,7 +70,7 @@
                                 <select class="form-select" id="addWarehouseDropdown" name="WarehouseId" required>
                                     <option value="">-- Select Warehouse --</option>
                                 </select>
-                                <label for="addWarehouseDropdown">Warehouse</label>
+                                <label for="addWarehouseDropdown">Warehouse <span class="text-danger">*</span></label>
                             </div>
                         </div>
                     </div>
@@ -83,7 +83,7 @@
                                 <select class="form-select" id="addSectionDropdown" name="SectionId" required>
                                     <option value="">-- Select Section --</option>
                                 </select>
-                                <label for="addSectionDropdown">Section</label>
+                                <label for="addSectionDropdown">Section <span class="text-danger">*</span></label>
                             </div>
                         </div>
                     </div>
@@ -96,7 +96,7 @@
                                 <select class="form-select" id="addRackDropdown" name="RackId" required>
                                     <option value="">-- Select Rack --</option>
                                 </select>
-                                <label for="addRackDropdown">Rack</label>
+                                <label for="addRackDropdown">Rack <span class="text-danger">*</span></label>
                             </div>
                         </div>
                     </div>
@@ -114,9 +114,9 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-outline-danger bg-danger text-white px-4" data-bs-dismiss="modal">
+                @*<button type="button" class="btn btn-outline-danger bg-danger text-white px-4" data-bs-dismiss="modal">
                     <i class="bi bi-x-circle me-2"></i>Close
-                </button>
+                </button>*@
                 <button type="submit" form="addRowForm" class="btn btn-success px-4" id="saveRow">
                     <i class="bi bi-check-circle me-2 text-white"></i>Save
                 </button>
@@ -154,7 +154,7 @@
                             <span class="input-group-text"><i class="ri-archive-drawer-line"></i></span>
                             <div class="form-floating form-floating-outline">
                                 <input type="text" class="form-control" id="editRowName" name="RowName" required>
-                                <label for="editRowName">Row Name</label>
+                                <label for="editRowName">Row Name <span class="text-danger">*</span></label>
                             </div>
                         </div>
                     </div>
@@ -208,9 +208,9 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-outline-danger bg-danger text-white px-4" data-bs-dismiss="modal">
+                @*<button type="button" class="btn btn-outline-danger bg-danger text-white px-4" data-bs-dismiss="modal">
                     <i class="bi bi-x-circle me-2"></i>Close
-                </button>
+                </button>*@
                 <button type="submit" form="editRowForm" class="btn btn-primary px-4" id="updateRow">
                     <i class="bi bi-check-circle me-2 text-white"></i>Update
                 </button>
@@ -621,7 +621,8 @@
                 }
             ],
             columnDefs: [
-                { orderable: false, targets: "_all" }
+                { orderable: false, targets: "_all" },
+                { className: "text-center", targets: "_all" }
             ],
         });
 
@@ -643,11 +644,11 @@
             opens: 'left',
             ranges: {
                 'Today': [moment(), moment()],
-                'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
                 'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-                'This Month': [moment().startOf('month'), moment().endOf('month')],
-                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                'Last 1 Month': [moment().subtract(1, 'months').startOf('day'), moment()],
+                'Last 3 Months': [moment().subtract(3, 'months').startOf('day'), moment()],
+                'Last 1 Year': [moment().subtract(12, 'months').startOf('day'), moment()]
+
             }
         });
 

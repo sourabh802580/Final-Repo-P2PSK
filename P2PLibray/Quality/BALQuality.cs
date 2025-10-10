@@ -143,9 +143,7 @@ namespace P2PLibray.Quality
                             AddDate = dr["Add Date"] == DBNull.Value
                                 ? ""
                                 : Convert.ToDateTime(dr["Add Date"]).ToString("dd/MM/yyyy"),
-                            QualityCheckDate = dr["Quality Check Date"] == DBNull.Value
-                                ? ""
-                                : Convert.ToDateTime(dr["Quality Check Date"]).ToString("dd/MM/yyyy")
+                            
                         });
                     }
                 }
@@ -188,8 +186,11 @@ namespace P2PLibray.Quality
                         FailedQCCode = dr["FailedQCCode"].ToString(),
                         ItemCode = dr["Itemcode"].ToString(),
                         ItemName = dr["ItemName"].ToString(),
-                        Reason = dr["Reason"].ToString()
-                    });
+                        Reason = dr["Reason"].ToString(),
+						AddedDate = dr["QalityCheackDate"] == DBNull.Value
+								? ""
+								: Convert.ToDateTime(dr["QalityCheackDate"]).ToString("dd/MM/yyyy")
+					});
                 }
             }
 

@@ -474,9 +474,6 @@ document.addEventListener('DOMContentLoaded', function () {
                         <strong>Vendor:</strong> ${safe(props.VendorName)}
                     </div>
                     <div class="col-sm-6">
-                        <strong>Status:</strong> ${safe(props.StatusName)}
-                    </div>
-                    <div class="col-sm-6">
                         <strong>Company Address:</strong> ${safe(props.CompanyAddress)}
                     </div>
                     <div class="col-sm-6 mb-3">

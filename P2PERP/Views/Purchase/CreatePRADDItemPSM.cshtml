@@ -6,51 +6,57 @@
 <div class="container">
     <div class="card shadow-lg border-0 rounded-4 p-4">
         <h4 class="mb-4 text-primary fw-bold text-center">Items Request Management</h4>
-
         <div class="row mb-3">
-            <div class="col-md-3">
-                <label class="form-label fw-bold">Item Request:</label>
-                <select id="ItemReqStatus" class="form-select"></select>
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">
+                        Items Request: <span class="text-danger">*</span>
+                    </label>
+                    <select id="ItemReqStatus" class="form-select"></select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">
+                        Select Plan: <span class="text-danger">*</span>
+                    </label>
+                    <select id="planname" class="form-select" disabled></select>
+                </div>
             </div>
-            <div class="col-md-3 dropdown-container">
-                <label class="form-label fw-bold">Select Plan:</label>
-                <select id="planname" class="form-select limited-dropdown" disabled></select>
             </div>
-        </div>
-        <div class="d-flex justify-content-between align-items-center">
-            <!-- Datepicker (Left) -->
-            <div class="input-group" style="max-width: 340px;">
-                <span class="input-group-text bg-primary text-white">
-                    <i class="bi bi-calendar-date"></i>
-                </span>
-                <input type="text" id="FirstreportrangePSM" class="form-control" readonly placeholder="Select Date" />
-            </div>
+            <div class="mb-2">
+                <div class="d-flex justify-content-between align-items-center">
+                    <!-- Datepicker (Left) -->
+                    <div class="input-group" style="max-width: 340px;">
+                        <span class="input-group-text bg-primary text-white">
+                            <i class="bi bi-calendar-date"></i>
+                        </span>
+                        <input type="text" id="FirstreportrangePSM" class="form-control" readonly placeholder="Select Date" />
+                    </div>
 
-            <!-- Button (Right) -->
-            <button id="btnCreatePR" class="btn btn-success ms-2" data-bs-toggle="modal" data-bs-target="#createPRModal" disabled>
-                <i class="bi bi-plus-circle"></i> Create PR
-            </button>
+                    <!-- Button (Right) -->
+                    <button id="btnCreatePR" class="btn btn-success ms-2" data-bs-toggle="modal" data-bs-target="#createPRModal" disabled>
+                        <i class="bi bi-plus-circle"></i> Create PR
+                    </button>
+                </div>
+                <div class="table-responsive text-center mt-3">
+                    <table id="itemsTable" class="table table-bordered table-striped table-hover w-100 text-center align-middle">
+                        <thead class="table-dark text-center">
+                            <tr>
+                                <th><input type="checkbox" id="selectAll" /></th>
+                                <th>SR No</th>
+                                <th>Item Code</th>
+                                <th>Item Name</th>
+                                <th>Description</th>
+                                <th>UOM</th>
+                                <th class="text-center">Unit Rate</th>
+                                <th class="text-center">Quantity</th>
+                                <th class="text-center">Required Date</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-center"></tbody>
+                    </table>
+                </div>
+            </div>
         </div>
-        <div class="table-responsive text-center mt-3">
-            <table id="itemsTable" class="table table-bordered table-striped table-hover w-100 text-center align-middle">
-                <thead class="table-dark text-center">
-                    <tr>
-                        <th><input type="checkbox" id="selectAll" /></th>
-                        <th>SR No</th>
-                        <th>Item Code</th>
-                        <th>Item Name</th>
-                        <th>Description</th>
-                        <th>UOM</th>
-                        <th class="text-center">Unit Rate</th>
-                        <th class="text-center">Quantity</th>
-                        <th class="text-center">Required Date</th>
-                    </tr>
-                </thead>
-                <tbody class="text-center"></tbody>
-            </table>
-        </div>
-    </div>
-</div>
 
 <!-- Create PR Modal -->
 <div class="modal fade" id="createPRModal" tabindex="-1" aria-labelledby="createPRModalLabel" aria-hidden="true">
@@ -69,14 +75,14 @@
                     <div class="row g-4 mb-3">
                         <div class="col-md-3">
                             <label class="form-label fw-bold">Purchase Requisition No:</label>
-                            <input type="text" id="PRcode" name="PRCode" class="form-control" readonly />
+                            <input type="text" id="PRcode" name="PRCode" class="form-control form-control bg-light text-dark border-secondary" readonly/>
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label fw-bold">PR Required Date:</label>
+                            <label class="form-label fw-bold">PR Required Date:<span class="text-danger">*</span></label>
                             <input type="date" id="ToDate" name="RequiredDate" class="form-control" />
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label fw-bold">Priority Name:</label>
+                            <label class="form-label fw-bold">Priority:<span class="text-danger">*</span></label>
                             <select id="priority" name="PriorityId" class="form-select"></select>
                         </div>
                     </div>
@@ -107,6 +113,7 @@
             </div>
         </div>
     </div>
+  </div>
 </div>
 <style>
     .dropdown-container {

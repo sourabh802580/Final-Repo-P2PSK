@@ -2508,6 +2508,7 @@ namespace P2PLibray.Inventory
                 itm.ItemName = ds.Tables[0].Rows[i]["ItemName"].ToString();
                 itm.ItemCode = ds.Tables[0].Rows[i]["ItemCode"].ToString();
                 itm.Description = ds.Tables[0].Rows[i]["Description"].ToString();
+                itm.ReorderQuantity = ds.Tables[0].Rows[i]["ReorderQuantity"].ToString();
             }
 
             for (int i = 0; i < ds.Tables[1].Rows.Count; i++)
@@ -2757,7 +2758,7 @@ namespace P2PLibray.Inventory
             {
                 //Itemmater
                 InventoryOJ items = new InventoryOJ();
-                items.ItemIdOJ =Convert.ToInt32(da["ItemId"]);
+                items.ItemIdOJ = Convert.ToInt32(da["ItemId"]);
                 items.ItemCode = da["ItemCode"].ToString();
                 items.ItemName = da["ItemName"].ToString();
                 items.UOMId = Convert.ToInt32(da["UOMId"]);
@@ -3096,6 +3097,7 @@ namespace P2PLibray.Inventory
             }
         }
 
+
         /// <summary>
         /// Generates the next sequential QualityCode (e.g., IQ001, IQ002).
         /// </summary>
@@ -3142,7 +3144,7 @@ namespace P2PLibray.Inventory
                 DataTable dt = ds.Tables[0];
                 string lastCode = dt.Rows[0]["PlanCode"].ToString();
 
-                int number = int.Parse(lastCode.Substring(5));
+                int number = int.Parse(lastCode.Substring(3));
                 string nextCode = "PLN" + (number + 1).ToString("D3");
 
                 return nextCode;
@@ -3283,17 +3285,12 @@ namespace P2PLibray.Inventory
                 Dictionary<string, object> Edititem = new Dictionary<string, object>();
                 Edititem.Add("@Flag", "UpdateItemOJ");
                 Edititem.Add("@ItemId", n.ItemIdOJ);
-                Edititem.Add("@ItemName", n.ItemName);
-                Edititem.Add("@ItemCategoryId", n.ItemCategoryId);
                 Edititem.Add("@ItemStatusId", n.ItemStatusId);
                 Edititem.Add("@Date", DateTime.Now);
-                Edititem.Add("@UOMId", n.UOMId);
-                Edititem.Add("@Description", n.Description);
                 Edititem.Add("@UnitRates", n.UnitRates);
                 Edititem.Add("@RecorderQ", n.RecorderQuantity);
                 Edititem.Add("@minQ", n.MinQuantity);
-                Edititem.Add("@itemby", n.ItemMakeId);
-                Edititem.Add("@Addedby", "STF002");
+                Edititem.Add("@Addedby", n.StaffCode ?? "");
                 Edititem.Add("@ExpiryDays", n.ExpiryDays);
                 Edititem.Add("@IsQuality", n.ISQualityBit);
 

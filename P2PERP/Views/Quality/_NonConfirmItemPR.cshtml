@@ -29,9 +29,8 @@
                 <th>Sr No</th>
                 <th>GRN Code</th>
                 <th>Vendor Name</th>
-                <th>Add Date</th>
-                <th>Quality Check Date</th>
-                <th class="dt-center">Action</th>
+                <th>Add Date</th>             
+                <th class="dt-center ">Action</th>
             </tr>
         </thead>
     </table>
@@ -69,6 +68,7 @@
                             <th>Item Name</th>
                             <th>Failure Reason</th>
                             <th>Failed QC Code</th>
+                            <th>QualityCheackDate</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -266,10 +266,11 @@
                 { data: "GRNCode", orderable: false },
                 { data: "VenderName", orderable: false },
                 { data: "AddDate", orderable: false },
-                { data: "QualityCheckDate", orderable: false },
+
                 {
                     data: null,
                     className: "dt-center",
+                    orderable: false,
                     render: function (data, type, row) {
                         return `<button class="btn btn-sm btn-primary view-details-btn"
                 data-grn="${row.GRNCode}"
@@ -539,6 +540,7 @@
                                     <td>${item.ItemName}</td>
                                     <td>${item.Reason}</td>
                                     <td>${item.FailedQCCode}</td>
+                                    <td>${item.AddedDate}</td>
                                 </tr>
                             `);
                         });
