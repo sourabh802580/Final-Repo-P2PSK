@@ -31,11 +31,11 @@
 
 <!-- Add Rack Modal -->
 <div class="modal fade" id="addRackModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header bg-primary text-white position-relative">
-                <h5 class="modal-title text-white h3 w-100 text-center">Add Rack</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <h5 class="modal-title text-white h3 mb-3 w-100 text-center">Add Rack</h5>
+                <button type="button" class="btn-close mb-3 h3 btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <form id="addRackForm" class="row g-3">
@@ -113,11 +113,11 @@
 
 <!-- Edit Rack Modal -->
 <div class="modal fade" id="editRackModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header bg-primary text-white position-relative">
-                <h5 class="modal-title text-white h3 w-100 text-center">Update Rack</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <h5 class="modal-title text-white mb-3 h3 w-100 text-center">Update Rack</h5>
+                <button type="button" class="btn-close mb-3 h3 btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <form id="editRackForm" class="row g-3">
@@ -195,11 +195,11 @@
 
 <!-- View Rack Modal -->
 <div class="modal fade" id="viewRackModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header bg-primary text-white position-relative">
-                <h5 class="modal-title text-white w-100 text-center">Rack Details</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <h5 class="modal-title text-white mb-3 h3 w-100 text-center">Rack Details</h5>
+                <button type="button" class="btn-close mb-3 h3 btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <form class="row g-3">
@@ -313,7 +313,7 @@
         var table = $('#rackTable').DataTable({
             dom: '<"d-flex justify-content-between align-items-center mt-1 mb-2"Bf>rt<"d-flex justify-content-between mt-2"<"datatable-info"i><"datatable-pagination"p>>',
             paging: true,
-            pageLength: 25,
+            pageLength: 10,
             lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
             "ajax": {
                 "url": "/Inventory/GetRacksSK",
