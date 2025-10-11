@@ -2127,7 +2127,7 @@ namespace P2PLibray.Inventory
     { "@ItemCode", model.ItemCode.ToString() },
     { "@MaxQuantity", model.MaxQuantity.ToString() },
     { "@RowCode", model.RowCode.ToString() },
-    { "@Description", model.Descriptions ?? "" },
+    { "@Description", model.Description ?? "" },
     { "@AddedBy", model.AddedBy ?? "" },
      {"@AddedDate", model.AddedDate.ToString("yyyy-MM-dd")  }
 };

@@ -145,7 +145,7 @@
                         <div class="input-group input-group-merge mb-3">
                             <span class="input-group-text"><i class="ri-file-text-line"></i></span>
                             <div class="form-floating form-floating-outline">
-                                <textarea class="form-control" id="addDescription" name="Description" rows="3"></textarea>
+                                <textarea class="form-control" id="addDescriptionForBin" name="Description" rows="3"></textarea>
                                 <label for="addDescription">Description</label>
                             </div>
                         </div>
@@ -403,7 +403,7 @@
                         <div class="input-group input-group-merge mb-3">
                             <span class="input-group-text"><i class="ri-inbox-line"></i></span>
                             <div class="form-floating form-floating-outline">
-                                <input type="text" class="form-control" id="vCurrentItems" readonly>
+                                <input type="text" class="form-control" id="vCurrentItemsForView" readonly>
                                 <label for="vCurrentItems">Current Items</label>
                             </div>
                         </div>
@@ -414,7 +414,7 @@
                         <div class="input-group input-group-merge mb-3">
                             <span class="input-group-text"><i class="ri-file-text-line"></i></span>
                             <div class="form-floating form-floating-outline">
-                                <textarea class="form-control" id="vBDescription" rows="2" readonly></textarea>
+                                <textarea class="form-control" id="vBDescriptionForView" rows="2" readonly></textarea>
                                 <label for="vBDescription">Description</label>
                             </div>
                         </div>
@@ -798,6 +798,7 @@
 
         // Add Bin button
         $('#btnAddbin').on('click', function () {
+            clearAddBinFields();
             loadAddWarehouses();
             loadAddItems();
             $.get("/Inventory/GetNextBinCodeSKK", function (res) {
@@ -809,8 +810,13 @@
             });
             $("#addBinModal").modal("show");
         });
+        function clearAddBinFields() {
+            // Clear all input, select, and textarea inside the modal
+            $('#addBinModal').find('input[type="text"], input[type="number"], input[type="email"], textarea').val('');
+            $('#addBinModal').find('select').prop('selectedIndex', 0); // reset dropdowns
+        }
 
-        // ✅ Load Items for Add Modal
+        //  Load Items for Add Modal
         function loadAddItems() {
             $.ajax({
                 url: '@Url.Action("GetItemsSKK", "Inventory")',
@@ -918,7 +924,7 @@
                 SectionId: $("#addSection").val(),
                 RackId: $("#addRack").val(),
                 RowCode: $("#addRow").val(),
-                Description: $("#addDescription").val()
+                Description: $("#addDescriptionForBin").val()
             };
 
             $.ajax({
@@ -1085,8 +1091,8 @@
                     $("#vItem").val(res.ItemName || '');
                     $("#vMaxQuantity").val(res.MaxQuantity || '');
                     $("#demo").val(res.AddedBy || '');
-                    $("#vCurrentItems").val(res.CurrentItems || '');
-                    $("#vBDescription").val(res.Description || "-");
+                    $("#vCurrentItemsForView").val(res.CurrentItems || '');
+                    $("#vBDescriptionForView").val(res.Description || "-");
 
                     let rawDate = res.AddedDate;
                     let formattedDate = "N/A";
