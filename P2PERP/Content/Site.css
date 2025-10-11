@@ -1,1 +1,134 @@
 ﻿
+/* Profile Page */
+/*.content-body .container-fluid {
+    padding-right: 30px;
+    padding-left: 30px;
+}*/
+
+.profile,
+.profile-info {
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.profile {
+    background-color: white;
+    color: #6f6b7d;
+    border: 2px solid #ccc;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.photo-content {
+    position: relative;
+}
+
+    .photo-content .cover-photo {
+        background-size: cover;
+        background-position: center;
+        min-height: 250px;
+        width: 100%;
+    }
+
+    .photo-content .profile-photo {
+        bottom: -75px;
+        left: 5%;
+        max-width: 150px;
+        position: absolute;
+    }
+
+.profile-info {
+    padding: 30px 20px;
+    background: #F7FAFC !important;
+}
+
+    .profile-info h6 {
+        color: black !important;
+    }
+
+        .profile-info h6.text-primary {
+            color: #00F !important;
+        }
+
+    .profile-info p {
+        color: black !important;
+    }
+
+    .profile-info .text-muted {
+        color: #555 !important;
+    }
+
+@media (max-width: 1500px) { /* lg breakpoint in Bootstrap */
+    .profile-info {
+        padding-top: 100px; /* Adjust the value as needed */
+    }
+}
+
+.fc-event-title {
+    /*    white-space: normal !important;
+    word-break: break-word;
+    text-align:center;*/
+}
+
+/* Remove vertical scrollbars from FullCalendar */
+.fc .fc-scroller {
+    overflow: hidden !important;
+}
+
+/* Remove borders, outline, and shadows from mark-read button */
+#notificationItems .mark-read {
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+    background: transparent !important;
+    padding: 0.25rem; /* keep it clickable but compact */
+}
+
+    #notificationItems .mark-read:hover {
+        color: #28a745; /* optional hover color */
+    }
+
+/* Success Toast Custom Style */
+#toast-container > .toast-success {
+    background-color: #ffffff !important; /* white background */
+    color: #28a745 !important; /* green text */
+    border: 1px solid #28a745; /* optional: green border */
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2); /* subtle shadow */
+}
+
+    /* Optional: change icon color to match text */
+    #toast-container > .toast-success .toast-message {
+        color: #28a745 !important;
+    }
+
+
+        /* Make icon green */
+        #toast-container > .toast-success .toast-message:before,
+        #toast-container > .toast-success .toast-icon {
+            color: #28a745 !important; /* green icon */
+        }
+
+#calendar {
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.swal2-container {
+    z-index: 20000 !important;
+}
+
+.modal-backdrop.show {
+    --bs-backdrop-bg: #000;
+    --bs-backdrop-opacity: 0.6;
+}
+
+.calendar-icon {
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid #e0e0e0;
+    transition: all 0.3s ease;
+}
+
+    .calendar-icon:hover {
+        background: white;
+        border-color: #667eea;
+        transform: translateY(-2px);
+    }
