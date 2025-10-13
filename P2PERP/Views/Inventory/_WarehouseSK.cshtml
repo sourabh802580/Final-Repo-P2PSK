@@ -1,7 +1,7 @@
 ﻿<div class="d-flex justify-content-between align-items-center mb-3">
 
     <div class="flex-grow-1 text-center">
-        <h4 class="mb-0 text-primary">Warehouse List</h4>
+        <h4 class="mb-0 h3 text-primary">Warehouse List</h4>
     </div>
 
     <button class="btn btn-success" id="btnAddWarehouse">
@@ -37,12 +37,12 @@
 
 <!-- Add/Edit Warehouse Modal -->
 <div class="modal fade" id="addWarehouseModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
             <!-- Header -->
             <div class="modal-header bg-primary text-white position-relative">
-                <h5 class="modal-title text-white w-100 text-center" id="warehouseModalTitle">Add Warehouse</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <h5 class="modal-title mb-3 h3 text-white w-100 text-center" id="warehouseModalTitle">Add Warehouse</h5>
+                <button type="button" class="btn-close btn-close-white mb-3 mb-3" data-bs-dismiss="modal"></button>
             </div>
 
             <!-- Body -->
@@ -54,7 +54,7 @@
                             <span class="input-group-text"><i class="ri-barcode-line"></i></span>
                             <div class="form-floating form-floating-outline">
                                 <input type="text" class="form-control" id="WarehouseCode" name="WarehouseCode" readonly>
-                                <label for="WarehouseCode">Warehouse Code</label>
+                                <label for="WarehouseCode">Warehouse Code <span class="text-danger">*</span></label>
                             </div>
                         </div>
                     </div>
@@ -65,7 +65,7 @@
                             <span class="input-group-text"><i class="ri-building-4-line"></i></span>
                             <div class="form-floating form-floating-outline">
                                 <input type="text" class="form-control" name="WarehouseName" required>
-                                <label for="WarehouseName">Warehouse Name</label>
+                                <label for="WarehouseName">Warehouse Name <span class="text-danger">*</span></label>
                             </div>
                         </div>
                     </div>
@@ -76,7 +76,7 @@
                             <span class="input-group-text"><i class="ri-map-pin-line"></i></span>
                             <div class="form-floating form-floating-outline">
                                 <input type="text" class="form-control" name="Address" required>
-                                <label for="Address">Address</label>
+                                <label for="Address">Address <span class="text-danger">*</span></label>
                             </div>
                         </div>
                     </div>
@@ -86,10 +86,10 @@
                         <div class="input-group input-group-merge mb-3">
                             <span class="input-group-text"><i class="ri-earth-line"></i></span>
                             <div class="form-floating form-floating-outline">
-                                <select class="form-select" id="CountryId" name="CountryCode" required>
+                                <select class="form-select h-auto " id="CountryId" name="CountryCode" required>
                                     <option value="">-- Select Country --</option>
                                 </select>
-                                <label for="CountryId">Country</label>
+                                <label for="CountryId">Country <span class="text-danger">*</span></label>
                             </div>
                         </div>
                     </div>
@@ -102,7 +102,7 @@
                                 <select class="form-select" id="StateId" name="StateCode" required>
                                     <option value="">-- Select State --</option>
                                 </select>
-                                <label for="StateId">State</label>
+                                <label for="StateId">State <span class="text-danger">*</span></label>
                             </div>
                         </div>
                     </div>
@@ -115,7 +115,7 @@
                                 <select class="form-select" id="CityId" name="CityId" required>
                                     <option value="">-- Select City --</option>
                                 </select>
-                                <label for="CityId">City</label>
+                                <label for="CityId">City <span class="text-danger">*</span></label>
                             </div>
                         </div>
                     </div>
@@ -126,7 +126,7 @@
                             <span class="input-group-text"><i class="ri-phone-fill"></i></span>
                             <div class="form-floating form-floating-outline">
                                 <input type="tel" class="form-control" name="Phone" required pattern="[0-9]{10}" placeholder="Enter 10-digit phone">
-                                <label for="Phone">Phone</label>
+                                <label for="Phone">Phone <span class="text-danger">*</span></label>
                             </div>
                         </div>
                     </div>
@@ -137,7 +137,7 @@
                             <span class="input-group-text"><i class="ri-mail-line"></i></span>
                             <div class="form-floating form-floating-outline">
                                 <input type="email" class="form-control" name="Email" required>
-                                <label for="Email">Email</label>
+                                <label for="Email">Email <span class="text-danger">*</span></label>
                             </div>
                         </div>
                     </div>
@@ -147,7 +147,7 @@
                         <div class="input-group input-group-merge mb-3">
                             <span class="input-group-text"><i class="ri-file-text-line"></i></span>
                             <div class="form-floating form-floating-outline">
-                                <textarea class="form-control" name="Description" rows="3" required></textarea>
+                                <textarea class="form-control" name="Description" rows="3"></textarea>
                                 <label for="Description">Description</label>
                             </div>
                         </div>
@@ -159,19 +159,18 @@
                             <span class="input-group-text"><i class="ri-archive-line"></i></span>
                             <div class="form-floating form-floating-outline">
                                 <input type="number" class="form-control" name="Capacity" required>
-                                <label for="Capacity">Capacity</label>
+                                <label for="Capacity">Capacity <span class="text-danger">*</span></label>
                             </div>
                         </div>
                     </div>
-
                 </form>
             </div>
 
             <!-- Footer -->
             <div class="modal-footer">
-                <button type="button" class="btn btn-outline-danger bg-danger text-white px-4" data-bs-dismiss="modal">
-                    <i class="bi bi-x-circle  me-2"></i>Close
-                </button>
+                @*<button type="button" class="btn btn-outline-danger bg-danger text-white px-4" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-2"></i>Close
+                </button>*@
                 <button type="submit" form="addWarehouseForm" class="btn btn-success px-4" id="warehouseModalSubmitBtn">
                     <i class="bi bi-check-circle me-2 text-white"></i>Save
                 </button>
@@ -182,12 +181,12 @@
 
 <!-- View Warehouse Modal -->
 <div class="modal fade" id="viewWarehouseModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
             <!-- Header -->
             <div class="modal-header bg-primary text-white position-relative">
-                <h5 class="modal-title text-white w-100 text-center">Warehouse Details</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <h5 class="modal-title text-white mb-3 h3 w-100 text-center">Warehouse Details</h5>
+                <button type="button" class="btn-close mb-3 btn-close-white h3" data-bs-dismiss="modal"></button>
             </div>
 
             <!-- Body -->
@@ -310,8 +309,6 @@
 
 <script>
     $(document).ready(function () {
-
-
         // Initialize variables
         let selectedWarehouseIds = new Set();
         let cityMap = new Map();
@@ -325,7 +322,6 @@
                 });
             });
         }
-
 
         $("#CountryId").on("change", function () {
             var countryId = $(this).val();
@@ -354,13 +350,28 @@
             var stateCode = $(this).val();
             console.log("Country: " + countryCode + ", State: " + stateCode);
 
-            $.getJSON('@Url.Action("GetCities", "Account")', { countryCode: countryCode, stateCode: stateCode }, function (data) {
-                console.log("City Data", data);
-                $('#CityId').empty().append('<option>Select City</option>');
-                $.each(data, function (i, city) {
-                    $('#CityId').append('<option value="' + city.Id + '">' + city.Name + '</option>');
-                });
-            });
+            $.getJSON('@Url.Action("GetCities", "Account")',
+                { countryCode: countryCode, stateCode: stateCode },
+                function (data) {
+                    console.log("City Data (raw):", data);
+
+                    // ✅ Check if data is a string — then parse manually
+                    if (typeof data === "string") {
+                        try {
+                            data = JSON.parse(data);
+                        } catch (e) {
+                            console.error("Invalid JSON from server:", e);
+                            return;
+                        }
+                    }
+
+                    $('#CityId').empty().append('<option>Select City</option>');
+
+                    $.each(data, function (i, city) {
+                        $('#CityId').append('<option value="' + city.Id + '">' + city.Name + '</option>');
+                    });
+                }
+            );
         });
 
         // ================= Initialize DataTable =================
@@ -371,6 +382,8 @@
                 type: 'GET',
                 dataSrc: 'data'
             },
+            //Latest entries on top 
+            order: [[2, 'desc']],
             columns: [
                 {
                     data: "WareHouseId",
@@ -384,11 +397,9 @@
                 {
                     data: null,
                     render: function (data, type, row, meta) {
-
                         if (type === 'display') {
                             return meta.row + 1;
                         }
-
                         return '';
                     }
                 },
@@ -402,10 +413,8 @@
                         const cityKey = `${row.CountryCode}_${row.StateCode}_${row.CityId}`;
 
                         if (type === 'export') {
-
                             return cityMap.get(cityKey) || "N/A";
                         }
-
 
                         return `<span class="city-name" data-country="${row.CountryCode}" data-state="${row.StateCode}" data-cityid="${row.CityId}" data-warehouse="${row.WareHouseId}">Loading...</span>`;
                     }
@@ -415,20 +424,46 @@
                     "render": function (data, type, row) {
                         if (!data) return "";
 
+                        // Handle different SQL Server date formats
+                        let dateObj;
 
-                        var match = /Date\((\d+)\)/.exec(data);
+                        // Format 1: /Date(timestamp)/
+                        var match = /\/Date\((\d+)\)\//.exec(data);
                         if (match) {
-                            var dt = new Date(parseInt(match[1], 10));
-                            return dt.toLocaleDateString("en-GB");
+                            dateObj = new Date(parseInt(match[1], 10));
+                        }
+                        // Format 2: ISO string (2024-01-15T10:30:00)
+                        else if (typeof data === 'string' && data.includes('T')) {
+                            dateObj = new Date(data);
+                        }
+                        // Format 3: Simple date string (2024-01-15)
+                        else if (typeof data === 'string') {
+                            dateObj = new Date(data + 'T00:00:00');
+                        }
+                        // Format 4: Already a Date object
+                        else if (data instanceof Date) {
+                            dateObj = data;
+                        }
+                        else {
+                            return "Invalid Date";
                         }
 
-
-                        var dt2 = new Date(data);
-                        if (!isNaN(dt2.getTime())) {
-                            return dt2.toLocaleDateString("en-GB");
+                        // Check if date is valid
+                        if (isNaN(dateObj.getTime())) {
+                            return "Invalid Date";
                         }
 
-                        return data;
+                        // Format based on type
+                        if (type === 'display' || type === 'filter') {
+                            // Display format: DD/MM/YYYY
+                            return dateObj.toLocaleDateString("en-GB");
+                        } else if (type === 'sort') {
+                            // Sort format: timestamp for proper sorting
+                            return dateObj.getTime();
+                        } else {
+                            // For export and other types
+                            return dateObj.toLocaleDateString("en-GB");
+                        }
                     }
                 },
                 { data: "AddedBy" },
@@ -450,7 +485,16 @@
                         return data;
                     }
                 },
-                { data: "Capacity" },
+                {
+                    data: "Capacity",
+                    render: function (data, type, row) {
+                        if (type === 'display' && data) {
+                            // Format capacity with commas for thousands
+                            return parseInt(data).toLocaleString('en-IN');
+                        }
+                        return data;
+                    }
+                },
                 {
                     data: "WareHouseId",
                     render: function (data, type, row) {
@@ -474,7 +518,16 @@
                 }
             ],
             columnDefs: [
-                { orderable: false, targets: "_all" }
+                {
+                    orderable: false,
+                    targets: [0, 13] // Checkbox and Action columns
+                },
+                { orderable: false, targets: "_all" },
+                { className: "text-center", targets: "_all" },
+                {
+                    type: 'date',
+                    targets: 7 // AddedDate column for proper sorting
+                }
             ],
             buttons: [
                 // --- Print ---
@@ -489,9 +542,7 @@
                         },
                         format: {
                             body: function (data, row, column, node) {
-
                                 if (column === 1) {
-
                                     if (!this.serialCounter) {
                                         this.serialCounter = 1;
                                     }
@@ -499,7 +550,6 @@
                                     this.serialCounter++;
                                     return serial.toString();
                                 }
-
                                 // City column is now excluded, so no need for special handling
                                 return data;
                             }
@@ -513,7 +563,6 @@
                         $.fn.dataTable.ext.buttons.print.action.call(this, e, dt, button, config);
                     },
                     customize: function (win) {
-
                         $(win.document.body).prepend(
                             '<h2 style="text-align: center; margin-bottom: 10px;">Warehouse List</h2>' +
                             '<p style="text-align: center; margin-bottom: 20px; color: #666;">Generated on: ' + new Date().toLocaleDateString("en-GB") + '</p>' +
@@ -549,9 +598,7 @@
                         },
                         format: {
                             body: function (data, row, column, node) {
-
                                 if (column === 1) {
-
                                     if (!this.serialCounter) {
                                         this.serialCounter = 1;
                                     }
@@ -559,7 +606,6 @@
                                     this.serialCounter++;
                                     return serial.toString();
                                 }
-
                                 // City column is now excluded, so no need for special handling
                                 return data;
                             }
@@ -573,7 +619,6 @@
                         $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, button, config);
                     },
                     customize: function (doc) {
-
                         doc.content.splice(0, 0, {
                             text: 'Warehouse List',
                             alignment: 'center',
@@ -616,9 +661,7 @@
                         },
                         format: {
                             body: function (data, row, column, node) {
-
                                 if (column === 1) {
-
                                     if (!this.serialCounter) {
                                         this.serialCounter = 1;
                                     }
@@ -626,7 +669,6 @@
                                     this.serialCounter++;
                                     return serial.toString();
                                 }
-
                                 // City column is now excluded, so no need for special handling
                                 return data;
                             }
@@ -653,9 +695,7 @@
                         },
                         format: {
                             body: function (data, row, column, node) {
-
                                 if (column === 1) {
-
                                     if (!this.serialCounter) {
                                         this.serialCounter = 1;
                                     }
@@ -663,8 +703,6 @@
                                     this.serialCounter++;
                                     return serial.toString();
                                 }
-
-
                                 return data;
                             }
                         }
@@ -706,17 +744,14 @@
 
                 const cityKey = `${country}_${state}_${cityId}`;
 
-
                 if (cityMap.has(cityKey)) {
                     span.text(cityMap.get(cityKey));
                     return;
                 }
 
-
                 $.get("/Account/GetCities", { countryCode: country, stateCode: state, CityId: cityId }, function (city) {
                     if (city && city.Name) {
                         span.text(city.Name);
-
                         cityMap.set(cityKey, city.Name);
                     } else {
                         span.text("Unknown");
@@ -730,7 +765,6 @@
             loadAllCityData();
             initTooltips();
         });
-
 
         loadAllCityData();
 
@@ -764,15 +798,15 @@
             locale: { cancelLabel: 'Clear' },
             ranges: {
                 'Today': [moment(), moment()],
-                'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
                 'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-                'This Month': [moment().startOf('month'), moment().endOf('month')],
-                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                'Last 1 Month': [moment().subtract(1, 'months').startOf('day'), moment()],
+                'Last 3 Months': [moment().subtract(3, 'months').startOf('day'), moment()],
+                'Last 1 Year': [moment().subtract(12, 'months').startOf('day'), moment()]
+
             }
         });
 
-        // Custom filter
+        // Custom filter for date range
         $.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
             if (settings.nTable.id !== "warehouseTable") return true;
 
@@ -783,8 +817,15 @@
             var min = moment(minMax[0], 'YYYY-MM-DD');
             var max = moment(minMax[1], 'YYYY-MM-DD');
 
+            // Get the date from table (already formatted as DD/MM/YYYY)
+            var tableDate = data[7]; // AddedDate column
 
-            var dateParts = data[7].split('/');
+            if (!tableDate) return false;
+
+            // Parse DD/MM/YYYY format
+            var dateParts = tableDate.split('/');
+            if (dateParts.length !== 3) return false;
+
             var date = moment(`${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`, 'YYYY-MM-DD');
 
             return date.isBetween(min, max, 'day', '[]');
@@ -805,10 +846,7 @@
         // ================= Add Warehouse Modal =================
         $("#btnAddWarehouse").on("click", function () {
             $("#addWarehouseForm")[0].reset();
-
-
             $("#WareHouseId").remove();
-
 
             $("#warehouseModalTitle").text("Add Warehouse");
             $("#warehouseModalSubmitBtn").html('<i class="bi bi-check-circle me-2 text-white"></i>Save');
@@ -822,14 +860,14 @@
                 }
             });
 
-                  // Load Country data
-$.getJSON('@Url.Action("GetCountries", "Purchase")', function (countrieslst) {
-    console.log("Country Data", countrieslst);
-    $('#CountryId').empty().append('<option value="">Select Country</option>');
-    $.each(countrieslst, function (i, country) {
-        $('#CountryId').append(`<option value="${country.iso2}">${country.name}</option>`);
-    });
-});
+            // Load Country data
+            $.getJSON('@Url.Action("GetCountries", "Purchase")', function (countrieslst) {
+                console.log("Country Data", countrieslst);
+                $('#CountryId').empty().append('<option value="">Select Country</option>');
+                $.each(countrieslst, function (i, country) {
+                    $('#CountryId').append(`<option value="${country.iso2}">${country.name}</option>`);
+                });
+            });
 
             $("#addWarehouseModal").modal("show");
         });
@@ -844,7 +882,6 @@ $.getJSON('@Url.Action("GetCountries", "Purchase")', function (countrieslst) {
                 return;
             }
             $.get("/Account/GetCities", { CountryCode: countryId, stateCode: stateId }, function (data) {
-
                 if (typeof data === "string") {
                     data = JSON.parse(data);
                 }
@@ -872,6 +909,7 @@ $.getJSON('@Url.Action("GetCountries", "Purchase")', function (countrieslst) {
                 success: function (res) {
                     if (res.success) {
                         $("#addWarehouseModal").modal("hide");
+                        // ✅ Refresh table and maintain latest entries on top
                         $('#warehouseTable').DataTable().ajax.reload(null, false);
                         Swal.fire({
                             title: "Success",
@@ -905,8 +943,8 @@ $.getJSON('@Url.Action("GetCountries", "Purchase")', function (countrieslst) {
             var id = $(this).data("id");
             const swalWithBootstrapButtons = Swal.mixin({
                 customClass: {
-                    confirmButton: "btn btn-success me-2",
-                    cancelButton: "btn btn-danger"
+                    confirmButton: "btn btn-danger me-2", 
+                    cancelButton: "btn btn-primary"
                 },
                 buttonsStyling: false
             });
@@ -918,7 +956,7 @@ $.getJSON('@Url.Action("GetCountries", "Purchase")', function (countrieslst) {
                 showCancelButton: true,
                 confirmButtonText: "Yes, delete it!",
                 cancelButtonText: "No, cancel!",
-                reverseButtons: true,
+                reverseButtons: false,
                 timer: 10000,
                 showCloseButton: true
             }).then((result) => {
@@ -936,6 +974,7 @@ $.getJSON('@Url.Action("GetCountries", "Purchase")', function (countrieslst) {
                                     showConfirmButton: false,
                                     timer: 3000
                                 });
+                                //  Refresh table and maintain latest entries on top
                                 table.ajax.reload(null, false);
                             } else {
                                 swalWithBootstrapButtons.fire({
@@ -972,6 +1011,7 @@ $.getJSON('@Url.Action("GetCountries", "Purchase")', function (countrieslst) {
                 }
             });
         });
+
         // ================= View Warehouse =================
         $(document).on("click", ".btn-view", function () {
             var id = $(this).data("id");
@@ -1005,35 +1045,44 @@ $.getJSON('@Url.Action("GetCountries", "Purchase")', function (countrieslst) {
 
                     $("#vwPhone").val(data.Phone);
                     $("#vwEmail").val(data.Email);
-                    $("#vwCapacity").val(data.Capacity);
+                    $("#vwCapacity").val(data.Capacity ? parseInt(data.Capacity).toLocaleString('en-IN') : "0");
                     $("#vwDesc").val(data.Description);
 
+                    // Universal date formatting function
+                    function formatSqlDate(sqlDate) {
+                        if (!sqlDate) return "N/A";
 
-                    let formattedDate = "";
-                    if (data.AddedDate) {
+                        let dateObj;
 
-                        var match = /\/Date\((\d+)\)\//.exec(data.AddedDate);
+                        // Handle /Date(timestamp)/ format
+                        var match = /\/Date\((\d+)\)\//.exec(sqlDate);
                         if (match) {
-                            var d = new Date(parseInt(match[1]));
-                            formattedDate = d.toLocaleDateString("en-GB", {
-                                day: "2-digit",
-                                month: "2-digit",
-                                year: "numeric"
-                            });
-                        } else {
-
-                            var d2 = new Date(data.AddedDate);
-                            if (!isNaN(d2.getTime())) {
-                                formattedDate = d2.toLocaleDateString("en-GB", {
-                                    day: "2-digit",
-                                    month: "2-digit",
-                                    year: "numeric"
-                                });
-                            }
+                            dateObj = new Date(parseInt(match[1], 10));
                         }
-                    }
-                    $("#vwAddedDates").val(formattedDate || "N/A");
+                        // Handle ISO string
+                        else if (typeof sqlDate === 'string' && sqlDate.includes('T')) {
+                            dateObj = new Date(sqlDate);
+                        }
+                        // Handle simple date string
+                        else if (typeof sqlDate === 'string') {
+                            dateObj = new Date(sqlDate + 'T00:00:00');
+                        }
+                        else {
+                            dateObj = new Date(sqlDate);
+                        }
 
+                        if (isNaN(dateObj.getTime())) {
+                            return "Invalid Date";
+                        }
+
+                        return dateObj.toLocaleDateString("en-GB", {
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric"
+                        });
+                    }
+
+                    $("#vwAddedDates").val(formatSqlDate(data.AddedDate));
                     $("#vwAddedBy").val(data.AddedBy);
                     $("#viewWarehouseModal").modal("show");
                 } else {
@@ -1050,7 +1099,6 @@ $.getJSON('@Url.Action("GetCountries", "Purchase")', function (countrieslst) {
                 if (res.success) {
                     var d = res.data;
 
-
                     $("#WarehouseCode").val(d.WarehouseCode);
                     $("input[name='WarehouseName']").val(d.WarehouseName);
                     $("input[name='Address']").val(d.Address);
@@ -1058,7 +1106,6 @@ $.getJSON('@Url.Action("GetCountries", "Purchase")', function (countrieslst) {
                     $("input[name='Email']").val(d.Email);
                     $("textarea[name='Description']").val(d.Description);
                     $("input[name='Capacity']").val(d.Capacity);
-
 
                     if ($("#WareHouseId").length === 0) {
                         $("<input>").attr({
@@ -1071,10 +1118,8 @@ $.getJSON('@Url.Action("GetCountries", "Purchase")', function (countrieslst) {
                         $("#WareHouseId").val(d.WareHouseId);
                     }
 
-
                     $("#warehouseModalTitle").text("Update Warehouse");
                     $("#warehouseModalSubmitBtn").html('<i class="bi bi-check-circle me-2 text-white"></i>Update');
-
 
                     $.get("/Account/GetCountries", function (countries) {
                         $("#CountryId").empty().append('<option value="">-- Select Country --</option>');
@@ -1082,9 +1127,7 @@ $.getJSON('@Url.Action("GetCountries", "Purchase")', function (countrieslst) {
                             $("#CountryId").append('<option value="' + c.Iso2 + '">' + c.Name + '</option>');
                         });
 
-
                         $("#CountryId").val(d.CountryCode);
-
 
                         $.get("/Account/GetStates", { CountryCode: d.CountryCode }, function (states) {
                             $("#StateId").empty().append('<option value="">-- Select State --</option>');
@@ -1092,17 +1135,15 @@ $.getJSON('@Url.Action("GetCountries", "Purchase")', function (countrieslst) {
                                 $("#StateId").append('<option value="' + s.Iso2 + '">' + s.Name + '</option>');
                             });
 
-
                             $("#StateId").val(d.StateCode);
 
-
-                            $.get("/Account/GetCities", { CountryCode: d.CountryCode, stateCode: d.StateCode }, function (cities) {
+                            $.get("/Account/GetCities", { CountryCode: d.CountryCode, StateCode: d.StateCode }, function (cities) {
                                 $("#CityId").empty().append('<option value="">-- Select City --</option>');
                                 $.each(cities, function (i, city) {
                                     $("#CityId").append('<option value="' + city.Id + '">' + city.Name + '</option>');
                                 });
-
-
+                                console.log("Cities Data", cities);
+                                console.log("Selected CityId", d.CityId);
                                 $("#CityId").val(d.CityId);
                             });
                         });

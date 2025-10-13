@@ -90,7 +90,7 @@
         $.fn.dataTable.ext.search.push(function (settings, data) {
             if (settings.nTable.id !== 'RejectGoods') return true; // only apply to this table
             if (!startDate || !endDate) return true; // no filter => show all
-            const addedDate = moment(data[3], ["YYYY-MM-DD", "YYYY-MM-DD HH:mm:ss"]);
+            const addedDate = moment(data[3], ["DD/MM/YYYY", "DD/MM/YYYY HH:mm:ss"]);
             if (!addedDate.isValid()) return true;
             return addedDate.isSameOrAfter(startDate, 'day') && addedDate.isSameOrBefore(endDate, 'day');
         });
@@ -115,7 +115,16 @@
                 },
                 { data: "GRNCode", title: "GRN Code" },
                 //{ data: "StatusName", title: "Status" },
-                { data: "AddedDate", title: "Added Date" },
+                {
+                    data: "AddedDate",
+                    title: "Added Date",
+                    render: function (data, type, row) {
+                        // Check if date is valid
+                        if (!data) return "";
+                        return moment(data).format("DD/MM/YYYY"); // Change to your desired format
+                    }
+
+                },
                 { data: "FullName", title: "Added By" },
                 {
                     data: null,
@@ -135,6 +144,7 @@
             columnDefs: [
                 { targets: "_all", className: "text-center" } // center all columns
             ],
+            ordering: false,
 
             buttons: [
                 // Print
@@ -365,11 +375,10 @@
             locale: { cancelLabel: 'Clear' },
             ranges: {
                 'Today': [moment(), moment()],
-                'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
                 'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-                'This Month': [moment().startOf('month'), moment().endOf('month')],
-                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                'Last 1 Month': [moment().subtract(1, 'months').startOf('day'), moment()],
+                'Last 3 Months': [moment().subtract(3, 'months').startOf('day'), moment()],
+                'Last 1 Year': [moment().subtract(12, 'months').startOf('day'), moment()]
             }
         });
 

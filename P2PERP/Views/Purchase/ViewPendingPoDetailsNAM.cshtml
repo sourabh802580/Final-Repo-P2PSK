@@ -160,7 +160,21 @@
                 $("#po_date").val(h.AddedDateVK || '');
                 $("#companyName").val(h.InvoiceToCompanyName || '');
                 $("#deliveryAddress").val(h.DeliveryAddress || '');
-                $("#termsCondition").text(h.TermConditionName || '');
+                if (h.TermConditionName) {
+                    // Split terms by comma and clean up spaces
+                    const termsArray = h.TermConditionName.split(',').map(t => t.trim()).filter(t => t);
+
+                    // Create an unordered list with serial numbers
+                    let ulHtml = '<ul class="mb-0 ps-3">';
+                    termsArray.forEach((term, i) => {
+                        ulHtml += `<li><strong>${i + 1}.</strong> ${term}</li>`;
+                    });
+                    ulHtml += '</ul>';
+
+                    $("#termsCondition").html(ulHtml);
+                } else {
+                    $("#termsCondition").html('<em>No terms and conditions available</em>');
+                }
                 $("#vendorName").val(h.VendorName || '');
                 $("#vendorCompany").val(h.VendorCompanyName || '');
                 $("#vendorContact").val(h.VendorContact || '');
@@ -179,17 +193,17 @@
                     const c = calcLine(r.Quantity, r.CostPerUnit, r.Discount, r.GSTPct);
                     subtotal += c.lineTotal;
                     $tb.append(`
-                                    <tr>
-                                        <td>${idx + 1}</td>
-                                        <td>${r.ItemName || ''}</td>
-                                        <td>${r.Description || ''}</td>
-                                        <td>${r.Quantity}</td>
-                                        <td>${r.UOMName}</td>
-                                        <td>₹${r.CostPerUnit.toFixed(2)}</td>
-                                        <td>${r.Discount.toFixed(2)}%</td>
-                                        <td>${r.GSTPct.toFixed(2)}%</td>
-                                        <td class="text-end">₹${c.lineTotal.toFixed(2)}</td>
-                                    </tr>`);
+                                            <tr>
+                                                <td>${idx + 1}</td>
+                                                <td>${r.ItemName || ''}</td>
+                                                <td>${r.Description || ''}</td>
+                                                <td>${r.Quantity}</td>
+                                                <td>${r.UOMName}</td>
+                                                <td>₹${r.CostPerUnit.toFixed(2)}</td>
+                                                <td>${r.Discount.toFixed(2)}%</td>
+                                                <td>${r.GSTPct.toFixed(2)}%</td>
+                                                <td class="text-end">₹${c.lineTotal.toFixed(2)}</td>
+                                            </tr>`);
                 });
 
                 $("#ftSubtotal").text(`₹${subtotal.toFixed(2)}`);

@@ -31,7 +31,7 @@
         <!-- Reason Section -->
         <div class="row g-3 mb-4">
             <div class="col-md-6">
-                <label class="form-label fw-bold">Reason For GoodReturn</label>
+                <label class="form-label fw-bold">Reason For GoodReturn<span class="text-danger">*</span></label>
                 @Html.TextBoxFor(m => m.ReasonForGoodReturn, new { @class = "form-control reason-return", placeholder = "Enter Reason For GoodReturn" })
                 <span class="text-danger error-msg"></span>
             </div>
@@ -85,9 +85,7 @@
 
         <!-- Footer Buttons -->
         <div class="d-flex justify-content-end gap-2">
-            <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">
-                <i class="bi bi-x-circle"></i> Cancel
-            </button>
+          
             <button type="submit" class="btn btn-success px-4">
                 <i class="bi bi-check-circle"></i> Save Goods Return
             </button>

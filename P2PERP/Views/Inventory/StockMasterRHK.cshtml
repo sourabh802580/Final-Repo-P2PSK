@@ -76,11 +76,11 @@
                 <div class="modal-header bg-primary text-white position-relative">
                     <div class="w-100 text-center">
 
-                        <h5 class="modal-title text-white fw-bold mb-0 " id="viewPlanModalLabel">Plan Details</h5>
+                        <h5 class="modal-title text-white fw-bold mb-2 " id="viewPlanModalLabel">Plan Details</h5>
 
 
                     </div>
-                    <button type="button" class="btn-close btn-close-white position-absolute end-0 me-3" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close btn-close-white position-absolute end-0 me-3 mb-2" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body" id="viewPlanContent">
 
@@ -106,12 +106,13 @@
 
     let tableStartDate = null; // Start date for table filtering
     let tableEndDate = null;   // End date for table filtering
-    let dataTable; // Declare dataTable variable globally
+    let stockMasterDataTable; // More specific name // Declare dataTable variable globally
 
 
 
 
     $(document).ready(function () {
+
         loadStockPlans();
 
         // Handle View button click → load modal partial (using event delegation)
@@ -189,8 +190,8 @@
 
                     $('[data-bs-toggle="tooltip"]').tooltip();
 
-                    initDataTable();
-                    initDateRangePicker();
+                    initDataTable1();
+                    initDateRangePicker1();
 
                 } else {
                     $('#tblRecent').html(`<tr><td colspan="6" class="text-center text-muted">No stock plans found</td></tr>`);
@@ -202,18 +203,15 @@
         });
     }
 
-    // Format date to dd/MM/yyyy
-    function formatDisplayDate(dateValue) {
-        const d = new Date(dateValue);
-        return isNaN(d) ? dateValue : d.toLocaleDateString('en-GB');
-    }
 
 
 
 
 
-    function initDataTable() {
-        dataTable = $('#reqTable').DataTable({
+
+    function initDataTable1() {
+
+        stockMasterDataTable = $('#reqTable').DataTable({
             pageLength: 10,
             paging: true,
             ordering: false,
@@ -456,66 +454,71 @@
 
 
 
-
-    function initDateRangePicker() {
+    function initDateRangePicker1() {
         $('#reportrange').daterangepicker({
             autoUpdateInput: false,
             locale: {
                 cancelLabel: 'Clear',
-                format: 'DD-MM-YYYY'
+                format: 'YYYY-MM-DD'
             },
             ranges: {
                 'Today': [moment(), moment()],
-                'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
                 'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-                'This Month': [moment().startOf('month'), moment().endOf('month')],
-                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                'Last 1 Month': [moment().subtract(1, 'months').startOf('day'), moment()],
+                'Last 3 Months': [moment().subtract(3, 'months').startOf('day'), moment()],
+                'Last 1 Year': [moment().subtract(12, 'months').startOf('day'), moment()]
             }
         });
 
-        // Apply date range when user selects
         $('#reportrange').on('apply.daterangepicker', function (ev, picker) {
             tableStartDate = picker.startDate;
             tableEndDate = picker.endDate;
-            $(this).val(tableStartDate.format('DD-MM-YYYY') + ' - ' + tableEndDate.format('DD-MM-YYYY'));
-
-            // Filter the table based on date range
+            $(this).val(tableStartDate.format('YYYY-MM-DD') + ' - ' + tableEndDate.format('YYYY-MM-DD'));
             filterTableByDate();
         });
 
-        // Clear date range on cancel
-        $('#reportrange').on('cancel.daterangepicker', function (ev, picker) {
+        $('#reportrange').on('cancel.daterangepicker', function () {
             tableStartDate = null;
             tableEndDate = null;
             $(this).val('');
-            dataTable.draw(); // Reset filtering
+
+            // Remove the custom filter and redraw
+            $.fn.dataTable.ext.search = $.fn.dataTable.ext.search.filter(f => !f.name || f.name !== 'addedDateFilter');
+            dataTable.draw();
         });
     }
 
 
+
+
     function filterTableByDate() {
         if (tableStartDate && tableEndDate) {
-            // Custom filtering function for date range
-            $.fn.dataTable.ext.search.push(
-                function (settings, data, dataIndex) {
-                    var date = moment(data[3], 'DD-MM-YYYY'); // Assuming date is in 4th column (index 3)
-
-                    if ((tableStartDate === null && tableEndDate === null) ||
-                        (tableStartDate === null && date <= tableEndDate) ||
-                        (tableStartDate <= date && tableEndDate === null) ||
-                        (tableStartDate <= date && date <= tableEndDate)) {
-                        return true;
-                    }
-                    return false;
-                }
+            // Remove any previous filters
+            $.fn.dataTable.ext.search = $.fn.dataTable.ext.search.filter(f =>
+                !f.name || f.name !== 'addedDateFilter'
             );
+
+            const addedDateFilter = function (settings, data, dataIndex) {
+                // Only apply to the main table (reqTable), not to modal tables
+                if (settings.nTable.id !== 'reqTable') {
+                    return true; // Don't filter other tables
+                }
+
+                const addedDate = moment(data[3], 'DD/MM/YYYY');
+                if (!addedDate.isValid()) return false;
+
+                return addedDate.isSameOrAfter(tableStartDate, 'day') &&
+                    addedDate.isSameOrBefore(tableEndDate, 'day');
+            };
+
+            addedDateFilter.name = 'addedDateFilter';
+            $.fn.dataTable.ext.search.push(addedDateFilter);
         }
 
-        dataTable.draw();
-
-        // Remove the custom filter function after drawing
-        $.fn.dataTable.ext.search.pop();
+        // Only draw if it's the stock master table
+        if (stockMasterDataTable) {
+            stockMasterDataTable.draw();
+        }
     }
 
      

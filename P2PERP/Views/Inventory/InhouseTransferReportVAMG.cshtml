@@ -92,14 +92,20 @@
     <div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
-                <div class="modal-header  bg-primary text-center">
-                    <h5 class="modal-title text-center  text-white" id="detailModalLabel">Items Detail</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
+                <div class="modal-header bg-primary position-relative">
+                    <h5 class="modal-title text-white position-absolute top-50 start-50 translate-middle m-3" id="detailModalLabel">
+                        Items Detail
+                    </h5>                   
+                    <button type="button"
+                            class="btn-close btn-close-white position-absolute end-0 top-20 translate-middle-y me-1 mt-1"
+                            data-bs-dismiss="modal"
+                            aria-label="Close">
+                    </button>                </div>
                 <div class="modal-body">
                     <table class="table table-bordered table-striped" id="detailTable">
                         <thead class="table-dark text-white text-center fw-bold">
                             <tr>
+                                <th>Sr No</th>
                                 <th>Item Name</th>
                                 <th>Department</th>
                                 <th>Category</th>
@@ -178,6 +184,7 @@
         if (table) table.destroy();
 
         table = $('#reportTable').DataTable({
+            ordering: false,
             ajax: { url: '/Inventory/InhouseTransferReportDataAMG', data: { fromDate, toDate }, dataSrc: '' },
             dom: '<"d-flex justify-content-between align-items-center mt-1 mb-2"Bf>rt<"d-flex justify-content-between mt-2"<"datatable-info"i><"datatable-pagination"p>>', pageLength: 10,
             lengthMenu: [10, 25, 50, 100],
@@ -430,6 +437,32 @@
 
         $.getJSON('/Inventory/InhouseTransferReportDataAMG', { fromDate, toDate }, function (data) {
             fullData = data;
+
+            if (!data || data.length === 0) {
+                // Destroy any existing chart if it exists
+                if (Highcharts.charts && Highcharts.charts.length) {
+                    Highcharts.charts.forEach(chart => {
+                        if (chart && chart.renderTo && chart.renderTo.id === 'deptCatChart') {
+                            chart.destroy();
+                        }
+                    });
+                }
+
+                // Show a clean "No data" message
+                const noDataHTML = `
+        <div class="d-flex flex-column align-items-center justify-content-center" style="height:300px;">
+            <i class="bi bi-emoji-frown text-secondary" style="font-size:2rem;"></i>
+            <span class="mt-2 text-muted fw-semibold">No data found for the selected date range</span>
+        </div>
+    `;
+
+                $('#deptCatChart').html(noDataHTML);
+
+                return; // stop chart rendering
+            }
+
+
+
             const matrix = {}, categoriesSet = new Set(), departmentsSet = new Set();
             data.forEach(d => {
                 const dept = d.TransferTo || 'Unknown';
@@ -514,26 +547,35 @@
         const tbody = $('#detailTable tbody');
         tbody.empty();
 
-        filtered.forEach(item => {
+        filtered.forEach((item, index) => {
             tbody.append(`<tr>
+                    <td>${index + 1}</td>
+
             <td>${item.ItemName}</td>
             <td>${item.TransferTo}</td>
             <td>${item.ItemCategory}</td>
             <td>${item.Quantity}</td>
             <td>${item.UOM}</td>
-            <td>${item.TransferDate ? new Date(item.TransferDate).toLocaleDateString() : ''}</td>
+            <td>${item.TransferDate ? formatDate(item.TransferDate) : ''}</td>
+
         </tr>`);
         });
-
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0'); // month is 0-based
+            const year = String(date.getFullYear()).slice(-2); // last 2 digits
+            return `${day}/${month}/${year}`;
+        }
         // Initialize DataTable
         $('#detailTable').DataTable({
             paging: true,
             searching: true,
-            ordering: true,
+            ordering: false,
             order: [[0, 'asc']],
             lengthMenu: [5, 10, 25, 50],
             pageLength: 5,
-            dom: '<"top d-flex justify-content-end"f>rtip', // simple layout: filter + table + info + pagination
+            dom: '<"d-flex justify-content-end align-items-center mt-1 mb-2"f>rt<"d-flex justify-content-between mt-2"<"datatable-info"i><"datatable-pagination"p>>',
             // dom: '<"top d-flex justify-content-end mb-2">',
             columnDefs: [
                 { className: "text-center", targets: "_all" } // center all columns
@@ -551,11 +593,10 @@
             drops: "down",
             ranges: {
                 'Today': [moment(), moment()],
-                'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
                 'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-                'This Month': [moment().startOf('month'), moment().endOf('month')],
-                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                'Last 1 Month': [moment().subtract(1, 'months').startOf('day'), moment()],
+                'Last 3 Months': [moment().subtract(3, 'months').startOf('day'), moment()],
+                'Last 1 Year': [moment().subtract(12, 'months').startOf('day'), moment()]
             },
             locale: { cancelLabel: 'Clear' }
         }, function (start, end) {

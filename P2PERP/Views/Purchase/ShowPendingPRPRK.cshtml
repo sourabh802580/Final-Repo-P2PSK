@@ -3,7 +3,7 @@
 }
 
 
-<div class="main-content d-flex justify-content-center">
+<div class="main-content d-flex justify-content-center" style="min-height:auto;">
     <div class="shadow-sm rounded bg-white p-3" style="width:1200px;">
 
         <div class="main-content">
@@ -23,7 +23,7 @@
             </ul>
             <!-- Header -->
             <div class="text-center mb-3">
-                <h2 class="text-primary fw-bold">Pending Purchase Requisition</h2>
+                <h3 class="text-primary fw-bold">Pending Purchase Requisition</h3>
             </div>
 
 
@@ -47,6 +47,7 @@
                             <th>Sr No</th>
                             <th>PR Code</th>
                             <th>Added Date</th>
+                            <th>EXPECTED Date</th>
                             <th>Added By</th>
                             @*<th>Status</th>*@
                             <th>Priority</th>
@@ -66,7 +67,7 @@
     <div class="modal-dialog modal-xl modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header bg-primary text-white justify-content-center">
-                <h5 class="modal-title fw-bold mb-0 text-white">Pending Purchase Requisition Items</h5>
+                <h5 class="modal-title fw-bold mb-4 text-white">Pending Purchase Requisition Items</h5>
                 <button type="button" class="btn-close btn-close-white position-absolute end-0 me-3" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body" id="prModalBody"></div>
@@ -84,20 +85,21 @@
     .modal-backdrop {
         display: none;
     }
-     Blur only main content when modal opens 
+
+    Blur only main content when modal opens
     body.modal-open .main-content {
         position: relative;
     }
 
-        body.modal-open .main-content::before {
-            content: '';
-            position: fixed;
-            inset: 0;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 1040;  
-            pointer-events: none;   
-        }
-     
+    body.modal-open .main-content::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1040;
+        pointer-events: none;
+    }
+
     .modal {
         z-index: 1055 !important;
     }
@@ -138,9 +140,8 @@
 </style>
 
 <script>
-    // ✅ Global Toastr-based toast wrapper (replaces Bootstrap toast)
+    // ✅ Global Toastr-based toast wrapper
     function showToast(message, type = 'warning') {
-        // configure toastr (position top-right to match previous behaviour)
         toastr.options = {
             "closeButton": true,
             "debug": false,
@@ -160,43 +161,32 @@
         };
 
         switch ((type || "").toLowerCase()) {
-            case 'success':
-                toastr.success(message);
-                break;
+            case 'success': toastr.success(message); break;
             case 'danger':
-            case 'error':
-                toastr.error(message);
-                break;
-            case 'info':
-                toastr.info(message);
-                break;
-            default:
-                toastr.warning(message);
+            case 'error': toastr.error(message); break;
+            case 'info': toastr.info(message); break;
+            default: toastr.warning(message);
         }
     }
 
     $(function () {
         window.table = null;
 
-
         function exportColumns(idx) {
-            // ✅ Exclude checkbox (0) and Action (7)
-            return idx !== 0 && idx !== 6;
+            return idx !== 0 && idx !== 7; // Exclude checkbox (0) and Action (6)
         }
 
         function loadPendingPR() {
             window.table = $('#pendingPRTable').DataTable({
-
                 dom: '<"dt-toolbar"<"dt-left"B><"dt-search"f>>rt<"bottom d-flex justify-content-between align-items-center"ip>',
+                ordering: false,
                 buttons: [
-                   
-                    
-                       {
+                    // ✅ Print
+                    {
                         extend: 'print',
-                        title:'PR List',
+                        title: 'PR List',
                         text: '<i class="bi bi-printer-fill text-dark fs-5" data-bs-toggle="tooltip" title="Print Selected Rows"></i>',
                         titleAttr: 'Print',
-
                         action: function (e, dt, button, config) {
                             if ($('.row-select:checked').length === 0) {
                                 showToast("Please select at least one row to Print", "warning");
@@ -204,61 +194,27 @@
                             }
                             $.fn.dataTable.ext.buttons.print.action.call(this, e, dt, button, config);
                         },
-
                         exportOptions: {
                             columns: exportColumns,
-                            rows: function (idx, data, node) {
-                                return $(node).find('.row-select').prop('checked');
-                            }
+                            rows: function (idx, data, node) { return $(node).find('.row-select').prop('checked'); }
                         },
-
                         customize: function (win) {
-                            // ✅ Format date as DD/MM/YYYY
-                            const today = new Date();
-                            const generatedDate = today.toLocaleDateString('en-GB'); // e.g. 01/10/2025
-
-                            // ❌ Remove default DataTables title
                             $(win.document.body).find('h1').remove();
-
-                            // ✅ Add custom header
+                            const today = new Date().toLocaleDateString('en-GB');
                             $(win.document.body).prepend(`
                                 <div style="text-align:center; margin-bottom:10px;">
                                     <h2 style="margin:0;">Pending Purchase Requisition</h2>
-                                    <div style="font-size:12px;">Generated on: ${generatedDate}</div>
+                                    <div style="font-size:12px;">Generated on: ${today}</div>
                                 </div>
-        `);
-
-                            // ✅ Style the table
+                            `);
                             const $table = $(win.document.body).find('table');
-                            $table.addClass('table table-bordered table-striped').css({
-                                'font-size': '14px',
-                                'width': '100%',
-                                'border-collapse': 'collapse',
-                                'margin-top': '20px'
-                            });
-
-                            // ✅ Style header
-                            $table.find('thead th').css({
-                                'background-color': '#000000',
-                                'color': '#ffffff',
-                                'text-align': 'center'
-                            });
-
-                            // ✅ Center table body cells
+                            $table.addClass('table table-bordered table-striped').css({ 'font-size': '14px', 'width': '100%', 'border-collapse': 'collapse', 'margin-top': '20px' });
+                            $table.find('thead th').css({ 'background-color': '#000', 'color': '#fff', 'text-align': 'center' });
                             $table.find('tbody td').css('text-align', 'center');
-
-                            // ✅ Add correct serial numbers
-                            $table.find('tbody tr').each(function (i) {
-                                $(this).find('td:first').text(i + 1);
-                            });
+                            $table.find('tbody tr').each(function (i) { $(this).find('td:first').text(i + 1); });
                         }
-                    
-
-
-                    
-
                     },
-                    // ✅ PDF second
+                    // ✅ PDF
                     {
                         extend: 'pdfHtml5',
                         title: 'Pending Purchase Requisition',
@@ -271,34 +227,22 @@
                         exportOptions: {
                             columns: exportColumns,
                             rows: function (idx, data, node) { return $(node).find('.row-select').prop('checked'); },
-                            format: {
-                                body: function (data, rowIdx, colIdx) {
-                                    if (colIdx === 0) return rowIdx + 1;
-                                    if (typeof data === 'string') return data.replace(/<\/?[^>]+(>|$)/g, "").trim();
-                                    return data;
-                                }
-                            }
+                            format: { body: function (data) { return typeof data === 'string' ? data.replace(/<\/?[^>]+(>|$)/g, "").trim() : data; } }
                         },
                         customize: function (doc) {
                             try {
-                                doc.content[0].alignment = 'center';
-                                doc.content[0].fontSize = 14;
+                                doc.content[0].alignment = 'center'; doc.content[0].fontSize = 14;
                                 var exportDate = new Date().toLocaleDateString('en-GB');
                                 doc.content.splice(1, 0, { text: 'Export Date: ' + exportDate, alignment: 'center', margin: [0, 0, 0, 8], fontSize: 10 });
                                 var tableNode = doc.content.find(c => c.table);
                                 if (!tableNode) return;
                                 doc.styles = doc.styles || {};
-                                doc.styles.tableHeader = { alignment: 'center', fillColor: '#212529', color: '#ffffff', bold: true };
+                                doc.styles.tableHeader = { alignment: 'center', fillColor: '#212529', color: '#fff', bold: true };
                                 doc.styles.tableBodyEven = { alignment: 'center' };
                                 doc.styles.tableBodyOdd = { alignment: 'center' };
-                                tableNode.layout = {
-                                    hLineWidth: () => .5, vLineWidth: () => .5,
-                                    hLineColor: () => '#dddddd', vLineColor: () => '#dddddd',
-                                    paddingLeft: () => 30, paddingRight: () => 30,
-                                    paddingTop: () => 4, paddingBottom: () => 4
-                                };
+                                tableNode.layout = { hLineWidth: () => 0.5, vLineWidth: () => 0.5, hLineColor: () => '#ddd', vLineColor: () => '#ddd', paddingLeft: () => 30, paddingRight: () => 20, paddingTop: () => 4, paddingBottom: () => 4 };
                                 tableNode.table.body.forEach((row, i) => { if (i > 0) row[0] = { text: String(i), alignment: 'center' }; });
-                            } catch (err) { console.error('PDF customize error:', err); }
+                            } catch (err) { console.error(err); }
                         }
                     },
                     // ✅ Excel
@@ -308,32 +252,23 @@
                         text: '<i class="bi bi-file-earmark-excel text-success fs-5" data-bs-toggle="tooltip" title="Export to Excel"></i>',
                         titleAttr: 'Export Excel',
                         action: function (e, dt, button, config) {
-                            if ($('.row-select:checked').length === 0) {
-                                showToast("Please select at least one row to export Excel");
-                                return;
-                            }
+                            if ($('.row-select:checked').length === 0) { showToast("Please select at least one row to export Excel"); return; }
                             window.__excelSrCounter = 0;
                             $.fn.dataTable.ext.buttons.excelHtml5.action.call(this, e, dt, button, config);
                         },
                         exportOptions: {
                             columns: exportColumns,
-                            rows: function (idx, data, node) {
-                                return $(node).find('.row-select').prop('checked');
-                            },
+                            rows: function (idx, data, node) { return $(node).find('.row-select').prop('checked'); },
                             format: {
-                                body: function (data, rowIdx, colIdx, node) {
-                                    if (colIdx === 1) {
-                                        return ++window.__excelSrCounter;
-                                    }
-                                    if (typeof data === 'string') {
-                                        return data.replace(/<\/?[^>]+(>|$)/g, "").trim();
-                                    }
+                                body: function (data, rowIdx, colIdx) {
+                                    if (colIdx === 1) return ++window.__excelSrCounter;
+                                    if (typeof data === 'string') return data.replace(/<\/?[^>]+(>|$)/g, "").trim();
                                     return data;
                                 }
                             }
                         }
                     },
-                    // ✅ CSV last
+                    // ✅ CSV
                     {
                         extend: 'csvHtml5',
                         title: 'Pending_Purchase_Requisition',
@@ -346,13 +281,7 @@
                         exportOptions: {
                             columns: exportColumns,
                             rows: function (idx, data, node) { return $(node).find('.row-select').prop('checked'); },
-                            format: {
-                                body: function (data, rowIdx, colIdx) {
-                                    if (colIdx === 0) return rowIdx + 1;
-                                    if (typeof data === 'string') return data.replace(/<\/?[^>]+(>|$)/g, "").trim();
-                                    return data;
-                                }
-                            }
+                            format: { body: function (data, rowIdx, colIdx) { return colIdx === 0 ? rowIdx + 1 : (typeof data === 'string' ? data.replace(/<\/?[^>]+(>|$)/g, "").trim() : data); } }
                         }
                     }
                 ],
@@ -366,59 +295,50 @@
                     { data: null, orderable: false, className: 'text-center', render: (d, t, r) => `<input type="checkbox" class="row-select" value="${r.PRCode}"/>` },
                     { data: null, orderable: false, className: 'text-center', render: (d, t, r, meta) => meta.row + 1 },
                     { data: 'PRCode' },
-                    {
-                        data: 'AddedDate', // raw date from server
-                        render: function (data, type, row) {
-                            if (!data) return '';
-                            return moment(data).format('DD/MM/YYYY'); // format using Moment.js
-                        },
-                        defaultContent: ''
-                    }
-,
+                    { data: 'AddedDate', render: d => d ? moment(d).format('DD/MM/YYYY') : '' },
+                    { data: 'RequiredDate', render: d => d ? moment(d).format('DD/MM/YYYY') : '' },
+
                     { data: 'FullName', defaultContent: '' },
-                    //{ data: 'StatusName', defaultContent: '' },
-                    { data: 'Priority', defaultContent: '' },
+                    // ✅ Priority with color badge
                     {
-                        data: 'PRCode', orderable: false, className: 'text-center', render: d =>
-                            `<button class="btn btn-sm btn-primary btnAction" data-id="${d}" data-bs-toggle="tooltip" title="View Details">
-                            <i class="bi bi-eye-fill"></i>
-                         </button>` }
+                        data: 'Priority', defaultContent: '', render: function (data) {
+                            if (!data) return '';
+                            let badgeClass = '';
+                            switch (data.toLowerCase()) {
+                                case 'cold': badgeClass = 'badge bg-success'; break;
+                                case 'warm': badgeClass = 'badge bg-warning'; break;
+                                case 'hot': badgeClass = 'badge bg-danger'; break;
+                                default: badgeClass = 'badge bg-secondary';
+                            }
+                            return `<span class="${badgeClass}">${data}</span>`;
+                        }
+                    },
+                    { data: 'PRCode', orderable: false, className: 'text-center', render: d => `<button class="btn btn-sm btn-primary btnAction" data-id="${d}" data-bs-toggle="tooltip" title="View Details"><i class="bi bi-eye-fill"></i></button>` }
                 ]
             });
         }
 
         loadPendingPR();
 
-        // ✅ Tooltip initialization
-        function initTooltips() {
-            $('[data-bs-toggle="tooltip"]').tooltip();
-        }
+        // ✅ Tooltip
+        function initTooltips() { $('[data-bs-toggle="tooltip"]').tooltip(); }
         initTooltips();
+        $('#pendingPRTable').on('draw.dt', function () { initTooltips(); });
 
-        // Re-init after DataTable draw
-        $('#pendingPRTable').on('draw.dt', function () {
-            initTooltips();
-        });
-
-        // Select All
+        // ✅ Select All
         $(document).on("change", "#selectAll", function () { $(".row-select").prop("checked", this.checked); });
-        $(document).on("change", ".row-select", function () {
-            $("#selectAll").prop("checked", $(".row-select:checked").length === $(".row-select").length);
-        });
+        $(document).on("change", ".row-select", function () { $("#selectAll").prop("checked", $(".row-select:checked").length === $(".row-select").length); });
 
-        // Open modal
+        // ✅ Open modal
         $(document).on("click", ".btnAction", function () {
             let prCode = $(this).data("id");
             $("#prModalBody").html("<div class='text-center p-3'>Loading...</div>");
             $.get("/Purchase/ShowPendingPRItemPRK", { prCode })
-                .done(function (html) {
-                    $("#prModalBody").html(html);
-                    new bootstrap.Modal(document.getElementById("prModal")).show();
-                })
+                .done(function (html) { $("#prModalBody").html(html); new bootstrap.Modal(document.getElementById("prModal")).show(); })
                 .fail(function () { showToast("Error loading PR details", "danger"); });
         });
 
-        // Date filter
+        // ✅ Date filter
         $(document).on('focus', '#PRdatepicker', function () {
             if (!$(this).data('daterangepicker')) {
                 $(this).daterangepicker({
@@ -429,24 +349,24 @@
                     locale: { cancelLabel: 'Clear' },
                     ranges: {
                         'Today': [moment(), moment()],
-                        'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
                         'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-                        'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-                        'This Month': [moment().startOf('month'), moment().endOf('month')],
-                        'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                        'Last 1 Month': [moment().subtract(1, 'months').startOf('day'), moment()],
+                        'Last 3 Months': [moment().subtract(3, 'months').startOf('day'), moment()],
+                        'Last 1 Year': [moment().subtract(12, 'months').startOf('day'), moment()]
                     }
                 }, function (start, end) {
-                         $('#PRdatepicker').val(start.format('DD/MM/YYYY') + ' - ' + end.format('DD/MM/YYYY'));
+                    $('#PRdatepicker').val(start.format('DD/MM/YYYY') + ' - ' + end.format('DD/MM/YYYY'));
                     $.fn.dataTable.ext.search.push(function (settings, data) {
                         if (settings.nTable.id !== 'pendingPRTable') return true;
                         const addedDate = moment(data[3], 'DD/MM/YYYY');
                         return addedDate.isBetween(start, end, undefined, '[]');
                     });
-                    table.draw();
-                    $.fn.dataTable.ext.search.pop();
+                    table.draw(); $.fn.dataTable.ext.search.pop();
                 });
                 $('#PRdatepicker').on('cancel.daterangepicker', function () { $(this).val(''); table.draw(); });
             }
         });
+
     });
 </script>
+

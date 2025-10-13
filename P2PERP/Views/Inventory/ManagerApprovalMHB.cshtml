@@ -2,10 +2,10 @@
     ViewBag.Title = "ManagerApprovalMHB";
 }
 
-<div class="main-content">
+<div class="main-content container-fluid ">
 
 
-    <div class="container mt-4">
+    <div class="container mt-4 bg-white">
         <h2 class="mb-4 text-center text-primary"> Manager Approval Panel</h2>
         <div class="mb-3">
             <div class="input-group" style="max-width: 280px;">
@@ -43,31 +43,32 @@
     <div class="modal fade" id="planDetailsModal" tabindex="-1" aria-labelledby="planDetailsModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-xl modal-dialog-scrollable">
             <div class="modal-content border-0 shadow">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title text-center w-100 text-white">📝 Plan Details</h5>
-                    <button type="button" class="btn-close btn-close-white" onclick="closePlanModal()" aria-label="Close"></button>
+                <div class="modal-header bg-primary text-white mb-4">
+                    <h5 class="modal-title text-center w-100 text-white mb-4"> Plan Details</h5>
+                    <button type="button" class="btn-close btn-close-white mb-4" onclick="closePlanModal()" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
 
                     <div class="row mb-3">
                         <div class="col-md-4">
                             <label class="fw-bold">Plan Name:</label>
-                            <div id="modalPlanName" class="text-muted"></div>
+                            <div id="modalPlanName" class="text-muted form-control"></div>
                         </div>
                         <div class="col-md-4">
                             <label class="fw-bold">MRP Code:</label>
-                            <div id="modalPlanCode" class="text-muted"></div>
+                            <div id="modalPlanCode" class="text-muted form-control"></div>
                         </div>
                         <div class="col-md-4">
                             <label class="fw-bold">Year:</label>
-                            <div id="modalPlanyear" class="text-muted"></div>
+                            <div id="modalPlanyear" class="text-muted form-control"></div>
                         </div>
                     </div>
 
                     <div class="table-responsive mb-3">
-                        <table class="table table-bordered text-center table-striped">
-                            <thead class="table-secondary">
+                        <table id="modalItemTable" class="table table-hover table-bordered align-middle text-center shadow-sm">
+                            <thead class="table-dark ">
                                 <tr>
+                                    <th>Sr No</th>
                                     <th>Item Name</th>
                                     <th>Item Code</th>
                                     <th>Quantity</th>
@@ -80,7 +81,7 @@
                         </table>
                     </div>
 
-                    <div class="row mb-3">
+                    <div class="row mb-3 text-center">
                         <div class="col-md-6">
                             <label class="fw-bold">From Date:</label>
                             <div id="modalfromdate" class="text-muted"></div>
@@ -91,9 +92,9 @@
                         </div>
                     </div>
 
-                    <div class="text-center mt-4">
-                        <button id="approveBtn" class="btn btn-success px-4 me-3">✅ Approve</button>
-                        <button id="rejectBtn" class="btn btn-danger px-4">❌ Reject</button>
+                    <div class="text-center mt-4 ">
+                        <button id="approveBtn" class="btn btn-success px-4 me-3">Approve</button>
+                        <button id="rejectBtn" class="btn btn-danger px-4"> Reject</button>
                     </div>
                 </div>
             </div>
@@ -106,26 +107,28 @@
         <div class="modal-dialog">
             <div class="modal-content shadow">
                 <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title">❌ Reason for Rejection</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    <h5 class="modal-title mb-3"> Reason for Rejection</h5>
+                    <button type="button" class="btn-close btn-close-white mb-3" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <textarea id="rejectReasonText" class="form-control" rows="4" placeholder="Enter reason for rejection..."></textarea>
                 </div>
                 <div class="modal-footer">
                     <button id="submitRejectBtn" class="btn btn-danger">Submit</button>
-                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    @*<button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>*@
                 </div>
             </div>
         </div>
     </div>
+
+    @*edit plan modal*@
     <div class="modal fade" id="editPlanModal" tabindex="-1" aria-labelledby="editPlanModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-xl modal-dialog-scrollable">
             <div class="modal-content border-0 shadow">
-                <div class="modal-header bg-warning text-white">
-                    <h5 class="modal-title text-center w-100 text-white" id="editPlanModalLabel">✏ Edit Plan</h5>
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title text-center w-100 text-white mb-3" id="editPlanModalLabel"> Edit Plan</h5>
 
-                    <button type="button" class="btn-close btn-close-white" onclick="closeEditModal()" aria-label="Close"></button>
+                    <button type="button" class="btn-close btn-close-white mb-3" onclick="closeEditModal()" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
 
@@ -170,7 +173,7 @@
                             <input type="text" class="form-control" id="editRequestType" readonly />
                         </div>
                         <div class="col-md-1 d-flex align-items-end">
-                            <button class="btn btn-primary w-100" onclick="addItemToEditTable()">Add</button>
+                            <button class="btn btn-success w-100" onclick="addItemToEditTable()"><i class="bi bi-plus-circle me-2"></i>Add</button>
                         </div>
                     </div>
                     <div class="row mb-3">
@@ -182,8 +185,8 @@
 
                     <!-- Item Table -->
                     <div class="table-responsive mb-3">
-                        <table class="table table-bordered text-center table-striped">
-                            <thead class="table-secondary">
+                        <table id="editItemTable" class="table table-bordered text-center table-striped">
+                            <thead class="table-dark">
                                 <tr>
                                     <th>Item Name</th>
                                     <th>Item Code</th>
@@ -199,7 +202,7 @@
                     </div>
 
                     <!-- Date Range -->
-                    <div class="row mb-3">
+                    <div class="row mb-3 text-center">
                         <div class="col-md-6">
                             <label>From Date:</label>
                             <input type="date" class="form-control" id="editFromDate" />
@@ -212,7 +215,7 @@
 
                     <div class="text-center">
                         <button type="button" class="btn btn-success px-4" id="sendForApprovalBtn">
-                            Send for Approval
+                            Save Changes
                         </button>
                     </div>
 
@@ -222,6 +225,28 @@
     </div>
 </div>
 <style>
+    .status-badge {
+        padding: 6px 10px;
+        /*        border-radius: 20px;*/
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .status-pending {
+        background-color: #ffc107;
+        color: #212529;
+    }
+
+    .status-rejected {
+        background-color: #dc3545;
+        color: white;
+    }
+
+    .status-approved {
+        background-color: #28a745;
+        color: white;
+    }
+
     .modal-backdrop {
         display: none;
     }
@@ -245,7 +270,7 @@
     }
 
     #plansTable th,
-    #plansTable td {
+    #plansTable td, #modalItemTable th, #modalItemTable td, #editItemTable td, #editItemTable th {
         text-align: center !important;
         vertical-align: middle !important;
     }
@@ -253,176 +278,15 @@
 
 <script>
 
-    //function fetchPlans() {
-    //    const tbody = $('#plansTable tbody');
-    //    tbody.html(<tr><td colspan="5"><div class="spinner-border text-primary" role="status"></div></td></tr>);
+    let allItems = []; // will hold all items from server
 
-    //    $.ajax({
-    //        url: '/Inventory/FetchPlanDetailsMHB',
-    //        method: 'GET',
-    //        success: function (items) {
-    //            tbody.empty();
-
-    //            if (!items || items.length === 0) {
-    //                tbody.append(<tr><td colspan="5" class="text-muted">No plans found.</td></tr>);
-    //                return;
-    //            }
-
-    //            $.each(items, function (index, plan) {
-    //                let actionButtons = `
-    //            <button class="btn btn-sm btn-outline-primary me-2"
-    //                onclick="viewPlanDetails('${plan.MaterialReqPlanningCode}', '${plan.PlanName}', '${plan.StatusName}')">
-    //                View
-    //            </button>`;
-
-    //                if (plan.StatusName === "Pending") {
-    //                    actionButtons += `
-    //                    <button class="btn btn-sm btn-outline-warning"
-    //                        onclick="openEditModal('${plan.MaterialReqPlanningCode}', '${plan.PlanName}')">
-    //                        Edit
-    //                    </button>`;
-    //               }
-
-    //                const row = `
-    //    <tr>
-    //        <td><input type="checkbox" class="row-select" /></td> <!-- ✅ checkbox -->
-    //        <td>${index + 1}</td>
-    //        <td>${plan.PlanName}</td>
-    //        <td>${plan.MaterialReqPlanningCode}</td>
-    //        <td>${plan.AddedDate}</td>
-    //        <td>${plan.StatusName}</td>
-    //        <td>${actionButtons}</td>
-    //    </tr>`;
-    //                tbody.append(row);
-    //            });
-
-    //        },
-    //        error: function () {
-    //            tbody.html(<tr><td colspan="5" class="text-danger">Failed to load data.</td></tr>);
-    //        }
-    //    });
-
-    //    if ($.fn.DataTable.isDataTable('#plansTable')) {
-    //        $('#plansTable').DataTable().destroy();
-    //    }
-
-    //    $('#plansTable').DataTable({
-    //        dom: '<"d-flex justify-content-between align-items-center mb-3"<"dt-left"B><"dt-search"f>>rt<"bottom d-flex justify-content-between align-items-center"ip>',
-    //        buttons: [
-    //            {
-    //                extend: 'print',
-    //                title: 'Manager Approval Panel',
-    //                text: '<i class="bi bi-printer-fill text-dark fs-5"></i>',
-    //                exportOptions: {
-    //                    columns: [1, 2, 3, 4, 5, 6],
-    //                    rows: function (idx, data, node) {
-    //                        return $(node).find('.row-select').prop('checked');
-    //                    },
-    //                    format: {
-    //                        body: function (data, rowIdx, colIdx, node) {
-    //                            if (colIdx === 1) return rowIdx + 1; // Sr. No
-    //                            return $(node).text().trim();
-    //                        }
-    //                    }
-    //                },
-    //                action: function (e, dt, button, config) {
-    //                    if ($('.row-select:checked').length === 0) {
-    //                        showExportToast();
-    //                        return;
-    //                    }
-    //                    $.fn.dataTable.ext.buttons.print.action.call(this, e, dt, button, config);
-    //                }
-    //            },
-    //            {
-    //                extend: 'pdfHtml5',
-    //                title: 'Manager Approval Panel',
-    //                text: '<i class="bi bi-file-earmark-pdf text-danger fs-5"></i>',
-    //                exportOptions: {
-    //                    columns: [1, 2, 3, 4, 5, 6],
-    //                    rows: function (idx, data, node) {
-    //                        return $(node).find('.row-select').prop('checked');
-    //                    },
-    //                    format: {
-    //                        body: function (data, rowIdx, colIdx, node) {
-    //                            if (colIdx === 1) return rowIdx + 1;
-    //                            return $(node).text().trim();
-    //                        }
-    //                    }
-    //                },
-    //                action: function (e, dt, button, config) {
-    //                    if ($('.row-select:checked').length === 0) {
-    //                        showExportToast();
-    //                        return;
-    //                    }
-    //                    $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, button, config);
-    //                }
-    //            },
-    //            {
-    //                extend: 'excelHtml5',
-    //                title: 'Manager Approval Panel',
-    //                text: '<i class="bi bi-file-earmark-excel text-success fs-5"></i>',
-    //                exportOptions: {
-    //                    columns: [1, 2, 3, 4, 5, 6],
-    //                    rows: function (idx, data, node) {
-    //                        return $(node).find('.row-select').prop('checked');
-    //                    },
-    //                    format: {
-    //                        body: function (data, rowIdx, colIdx, node) {
-    //                            if (colIdx === 1) return rowIdx + 1;
-    //                            return $(node).text().trim();
-    //                        }
-    //                    }
-    //                },
-    //                action: function (e, dt, button, config) {
-    //                    if ($('.row-select:checked').length === 0) {
-    //                        showExportToast();
-    //                        return;
-    //                    }
-    //                    $.fn.dataTable.ext.buttons.excelHtml5.action.call(this, e, dt, button, config);
-    //                }
-    //            },
-    //            {
-    //                extend: 'csvHtml5',
-    //                title: 'Manager Approval Panel',
-    //                text: '<i class="bi bi-filetype-csv text-primary fs-5"></i>',
-    //                exportOptions: {
-    //                    columns: [1, 2, 3, 4, 5, 6],
-    //                    rows: function (idx, data, node) {
-    //                        return $(node).find('.row-select').prop('checked');
-    //                    },
-    //                    format: {
-    //                        body: function (data, rowIdx, colIdx, node) {
-    //                            if (colIdx === 1) return rowIdx + 1;
-    //                            return $(node).text().trim();
-    //                        }
-    //                    }
-    //                },
-    //                action: function (e, dt, button, config) {
-    //                    if ($('.row-select:checked').length === 0) {
-    //                        showExportToast();
-    //                        return;
-    //                    }
-    //                    $.fn.dataTable.ext.buttons.csvHtml5.action.call(this, e, dt, button, config);
-    //                }
-    //            }
-    //        ],
-    //        columnDefs: [
-    //            { targets: 1, render: function (data, type, row, meta) { return meta.row + 1; } }, // Sr. No
-    //            { orderable: false, targets: [0, 6] } // Checkbox & Action buttons not sortable
-    //        ]
-    //    });
-
-
-
-    //}
 
     function fetchPlans() {
         const tableSelector = '#plansTable';
 
         // Show loading spinner
         const tbody = $(tableSelector + ' tbody');
-        tbody.html('<tr><td colspan="7" class="text-center"><div class="spinner-border text-primary" role="status"></div></td></tr>');
-
+        tbody.html(`<tr><td colspan="7"><div class="spinner-border text-primary" role="status"></div></td></tr>`);
 
         // Fetch data from server
         $.ajax({
@@ -436,110 +300,176 @@
 
                 // Clear tbody manually before repopulating (safety)
                 tbody.empty();
-
-                // Initialize DataTable first
                 const table = $(tableSelector).DataTable({
                     dom: '<"d-flex justify-content-between align-items-center mb-3"<"dt-left"B><"dt-search"f>>rt<"bottom d-flex justify-content-between align-items-center"ip>',
+                    ordering: false,
                     buttons: [
+                        // ✅ Print
                         {
                             extend: 'print',
                             title: 'Manager Approval Panel',
-                            text: '<i class="bi bi-printer-fill text-dark fs-5"></i>',
-                            exportOptions: {
-                                columns: [1, 2, 3, 4, 5, 6],
-                                rows: function (idx, data, node) {
-                                    return $(node).find('.row-select').prop('checked');
-                                },
-                                format: {
-                                    body: function (data, rowIdx, colIdx, node) {
-                                        return colIdx === 1 ? rowIdx + 1 : $(node).text().trim();
-                                    }
-                                }
-                            },
+                            text: '<i class="bi bi-printer-fill text-dark fs-5" data-bs-toggle="tooltip" title="Print Selected Rows"></i>',
+                            titleAttr: 'Print',
                             action: function (e, dt, button, config) {
                                 if ($('.row-select:checked').length === 0) {
-                                    showExportToast();
+                                    showExportToast("Please select at least one row to Print");
                                     return;
                                 }
                                 $.fn.dataTable.ext.buttons.print.action.call(this, e, dt, button, config);
+                            },
+                            exportOptions: {
+                                columns: [1, 2, 3, 4, 5, 6],
+                                rows: function (idx, data, node) {
+                                    return $(node).find('.row-select').prop('checked');
+                                }
+                            },
+                            customize: function (win) {
+                                $(win.document.body).prepend(
+                                    `<div style="text-align:center; font-size:12px; margin-bottom:10px;">
+                        Generated on: ${new Date().toLocaleString()}
+                    </div>`
+                                );
+                                $(win.document.body).find('table')
+                                    .addClass('table table-bordered table-striped')
+                                    .css('font-size', '14px');
+                                $(win.document.body).find('thead')
+                                    .css('background-color', '#0d6efd')
+                                    .css('color', 'white');
+                                $(win.document.body).find('table tbody tr').each(function (i) {
+                                    $(this).find('td:first').text(i + 1);
+                                });
                             }
                         },
+                        // ✅ PDF
                         {
                             extend: 'pdfHtml5',
                             title: 'Manager Approval Panel',
-                            text: '<i class="bi bi-file-earmark-pdf text-danger fs-5"></i>',
-                            exportOptions: {
-                                columns: [1, 2, 3, 4, 5, 6],
-                                rows: function (idx, data, node) {
-                                    return $(node).find('.row-select').prop('checked');
-                                },
-                                format: {
-                                    body: function (data, rowIdx, colIdx, node) {
-                                        return colIdx === 1 ? rowIdx + 1 : $(node).text().trim();
-                                    }
-                                }
-
-                            },
+                            text: '<i class="bi bi-file-earmark-pdf text-danger fs-5" data-bs-toggle="tooltip" title="Export to PDF"></i>',
+                            titleAttr: 'Export PDF',
                             action: function (e, dt, button, config) {
                                 if ($('.row-select:checked').length === 0) {
-                                    showExportToast();
+                                    showExportToast("Please select at least one row to export PDF");
                                     return;
                                 }
                                 $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, button, config);
+                            },
+                            exportOptions: {
+                                columns: [1, 2, 3, 4, 5],
+                                rows: function (idx, data, node) {
+                                    return $(node).find('.row-select').prop('checked');
+                                },
+                                format: {
+                                    body: function (data, rowIdx, colIdx) {
+                                        if (colIdx === 1) return rowIdx + 1;
+                                        if (typeof data === 'string') return data.replace(/<\/?[^>]+(>|$)/g, "").trim();
+                                        return data;
+                                    }
+                                }
+                            },
+                            customize: function (doc) {
+                                try {
+                                    // Center + enlarge title
+                                    doc.content[0].alignment = 'center';
+                                    doc.content[0].fontSize = 14;
+
+                                    // Add export date
+                                    var exportDate = new Date().toLocaleDateString('en-GB');
+                                    doc.content.splice(1, 0, {
+                                        text: 'Export Date: ' + exportDate,
+                                        alignment: 'center',
+                                        margin: [0, 0, 0, 8],
+                                        fontSize: 10
+                                    });
+
+                                    // Style table
+                                    var tableNode = doc.content.find(c => c.table);
+                                    if (!tableNode) return;
+
+                                    doc.styles = doc.styles || {};
+                                    doc.styles.tableHeader = { alignment: 'center', fillColor: '#212529', color: '#ffffff', bold: true };
+                                    doc.styles.tableBodyEven = { alignment: 'center' };
+                                    doc.styles.tableBodyOdd = { alignment: 'center' };
+
+                                    tableNode.layout = {
+                                        hLineWidth: () => .5, vLineWidth: () => .5,
+                                        hLineColor: () => '#dddddd', vLineColor: () => '#dddddd',
+                                        paddingLeft: () => 50, paddingRight: () => 6,
+                                        paddingTop: () => 4, paddingBottom: () => 4
+                                    };
+
+                                    // Re-number Sr No column
+                                    tableNode.table.body.forEach((row, i) => {
+                                        if (i > 0) row[0] = { text: String(i), alignment: 'center' };
+                                    });
+                                } catch (err) {
+                                    console.error('PDF customize error:', err);
+                                }
                             }
                         },
+                        // ✅ Excel
                         {
                             extend: 'excelHtml5',
                             title: 'Manager Approval Panel',
-                            text: '<i class="bi bi-file-earmark-excel text-success fs-5"></i>',
-                            exportOptions: {
-                                columns: [1, 2, 3, 4, 5, 6],
-                                rows: function (idx, data, node) {
-                                    return $(node).find('.row-select').prop('checked');
-                                },
-                                format: {
-                                    body: function (data, rowIdx, colIdx, node) {
-                                        return colIdx === 1 ? rowIdx + 1 : $(node).text().trim();
-                                    }
-                                }
-                            },
+                            text: '<i class="bi bi-file-earmark-excel text-success fs-5" data-bs-toggle="tooltip" title="Export to Excel"></i>',
+                            titleAttr: 'Export Excel',
                             action: function (e, dt, button, config) {
                                 if ($('.row-select:checked').length === 0) {
-                                    showExportToast();
+                                    showExportToast("Please select at least one row to export Excel");
                                     return;
                                 }
+                                window.__excelSrCounter = 0;
                                 $.fn.dataTable.ext.buttons.excelHtml5.action.call(this, e, dt, button, config);
-                            }
-                        },
-                        {
-                            extend: 'csvHtml5',
-                            title: 'Manager Approval Panel',
-                            text: '<i class="bi bi-filetype-csv text-primary fs-5"></i>',
+                            },
                             exportOptions: {
                                 columns: [1, 2, 3, 4, 5, 6],
                                 rows: function (idx, data, node) {
                                     return $(node).find('.row-select').prop('checked');
                                 },
                                 format: {
-                                    body: function (data, rowIdx, colIdx, node) {
-                                        return colIdx === 1 ? rowIdx + 1 : $(node).text().trim();
+                                    body: function (data, rowIdx, colIdx) {
+                                        if (colIdx === 1) return ++window.__excelSrCounter;
+                                        if (typeof data === 'string') return data.replace(/<\/?[^>]+(>|$)/g, "").trim();
+                                        return data;
                                     }
                                 }
-                            },
+                            }
+                        },
+                        // ✅ CSV
+                        {
+                            extend: 'csvHtml5',
+                            title: 'Manager_Approval_Panel',
+                            text: '<i class="bi bi-filetype-csv text-primary fs-5" data-bs-toggle="tooltip" title="Export to CSV"></i>',
+                            titleAttr: 'Export CSV',
                             action: function (e, dt, button, config) {
                                 if ($('.row-select:checked').length === 0) {
-                                    showExportToast();
+                                    showExportToast("Please select at least one row to export CSV");
                                     return;
                                 }
                                 $.fn.dataTable.ext.buttons.csvHtml5.action.call(this, e, dt, button, config);
+                            },
+                            exportOptions: {
+                                columns: [1, 2, 3, 4, 5, 6],
+                                rows: function (idx, data, node) {
+                                    return $(node).find('.row-select').prop('checked');
+                                },
+                                format: {
+                                    body: function (data, rowIdx, colIdx) {
+                                        if (colIdx === 1) return rowIdx + 1;
+                                        if (typeof data === 'string') return data.replace(/<\/?[^>]+(>|$)/g, "").trim();
+                                        return data;
+                                    }
+                                }
                             }
                         }
                     ],
                     columnDefs: [
                         { targets: 1, render: function (data, type, row, meta) { return meta.row + 1; } },
                         { orderable: false, targets: [0, 6] }
-                    ]
+                    ],
+                    order: []
                 });
+
+
 
                 // No items case
                 if (!items || items.length === 0) {
@@ -549,56 +479,69 @@
                     return;
                 }
 
+
                 // Populate table rows
                 items.forEach((plan, index) => {
                     let actionButtons = `
-                        <div class="d-flex align-items-center gap-2">
+                       <div class="d-flex align-items-center justify-content-center gap-2">
                             <!-- View Button -->
                             <button class="btn btn-sm btn-primary d-flex align-items-center justify-content-center"
                                     style="width: 32px; height: 32px;"
                                     onclick="viewPlanDetails('${plan.MaterialReqPlanningCode}', '${plan.PlanName}', '${plan.StatusName}')"
-                                    title="View">
+                                    data-bs-toggle="tooltip" title="View">
                                 <i class="bi bi-eye-fill text-white"></i>
                             </button>`;
 
-                                        if (plan.StatusName === "Pending") {
-                                            actionButtons += `
+                    if (plan.StatusName === "Pending") {
+                        actionButtons += `
                             <!-- Edit Button -->
                             <button class="btn btn-sm btn-warning d-flex align-items-center justify-content-center"
                                     style="width: 32px; height: 32px;"
                                     onclick="openEditModal('${plan.MaterialReqPlanningCode}', '${plan.PlanName}')"
-                                    title="Edit">
+                                    data-bs-toggle="tooltip"  title="Edit">
                                 <i class="bi bi-pencil-fill text-white"></i>
                             </button>`;
                     }
 
                     actionButtons += `</div>`;
-                //});
+                    const statusClassMap = {
+                        pending: 'status-badge status-pending',
+                        rejected: 'status-badge status-rejected',
+                        approved: 'status-badge status-approved'
+                    };
 
+                    // Get the CSS class based on StatusName (case-insensitive)
+                    const statusClass = statusClassMap[plan.StatusName.toLowerCase()] || 'status-badge';
 
-
-
+                    // Wrap StatusName in a span
+                    const statusHTML = `<span class="${statusClass}">${plan.StatusName}</span>`;
                     const rowData = [
-                        $('<input>', { type: 'checkbox', class: 'row-select' }).prop('outerHTML'),
+                        `<input type="checkbox" class="row-select" />`,
                         index + 1,
                         plan.PlanName,
                         plan.MaterialReqPlanningCode,
                         plan.AddedDate,
-                        plan.StatusName,
+                        statusHTML,
                         actionButtons
                     ];
 
-
                     table.row.add(rowData);
+
+
                 });
+             
 
                 table.draw();
+                $('[data-bs-toggle="tooltip"]').tooltip();
+
             },
             error: function () {
-                tbody.html('<tr><td colspan="7" class="text-danger">Failed to load data.</td></tr>');
+                tbody.html(`<tr><td colspan="7" class="text-danger">Failed to load data.</td></tr>`);
             }
         });
     }
+
+
 
     toastr.options = {
         closeButton: true,
@@ -630,38 +573,182 @@
             type: 'GET',
             data: { MRPcode: mrpCode },
             success: function (data) {
+
+              
+                 
                 $('#modalPlanName').text(data.PlanName || '');
                 $('#modalPlanCode').text(data.MRPCode || '');
                 $('#modalPlanyear').text(data.Year || '');
-                $('#modalfromdate').text(data.FromDate || '');
-                $('#modaltodate').text(data.ToDate || '');
+                function formatDate(dateStr) {
+                    if (!dateStr) return "";
+                    let d = new Date(dateStr);
+                    if (isNaN(d)) return dateStr; // fallback if invalid
+                    let day = String(d.getDate()).padStart(2, '0');
+                    let month = String(d.getMonth() + 1).padStart(2, '0');
+                    let year = String(d.getFullYear()).slice(-4); // last 2 digits
+                    return `${day}/${month}/${year}`;
+                }
 
+                $('#modalfromdate').text(formatDate(data.FromDate || ''));
+                $('#modaltodate').text(formatDate(data.ToDate || ''));
+
+               
                 const tbody = $('#modalItemTableBody');
                 tbody.empty();
+               
+
 
                 if (data.ItemList && data.ItemList.length > 0) {
                     $.each(data.ItemList, function (i, item) {
                         const row = `
-                                <tr>
-                                    <td>${item.ItemName}</td>
-                                    <td>${item.ItemCode}</td>
-                                    <td>${item.QuantityMRP}</td>
-                                    <td>${item.UOMName}</td>
-                                    <td>${item.Description}</td>
-                                    <td>${item.RequestType}</td>
-                                </tr>`;
+                            <tr>
+
+                                <td></td> <!-- Sr No will be auto-filled by DataTable -->
+                                <td>${item.ItemName}</td>
+                                <td>${item.ItemCode}</td>
+                                <td>${item.QuantityMRP}</td>
+                                <td>${item.UOMName}</td>
+                              <td data-bs-toggle="tooltip" data-bs-placement="top" title="${item.Description}">${item.Description}</td>
+                                <td>${item.RequestType}</td>
+                            </tr>`;
                         tbody.append(row);
                     });
-                } else {
-                    tbody.append('<tr><td colspan="6">No items found.</td></tr>');
-
+                }
+                else {
+                    tbody.append(`<tr><td colspan="6">No items found.</td></tr>`);
                 }
 
+                // Destroy previous DataTable if exists
+                if ($.fn.DataTable.isDataTable('#modalItemTable')) {
+                    $('#modalItemTable').DataTable().destroy();
+                }
+
+                // Initialize DataTable
+                $('#modalItemTable').DataTable({
+                    paging: true,
+                    searching: true,
+                    ordering: false,
+                    info: false,
+                    lengthChange: false,
+                    dom: '<"d-flex justify-content-between align-items-center mb-3"<"dt-left"B><"dt-search"f>>rt<"bottom d-flex justify-content-end"p>',
+                    buttons: [
+                        // ✅ Print
+                        {
+                            extend: 'print',
+                            title: 'Plan Items',
+                            text: '<i class="bi bi-printer-fill text-dark fs-5" data-bs-toggle="tooltip" title="Print"></i>',
+                            titleAttr: 'Print',
+                            exportOptions: {
+                                columns: ':not(:last-child)' // exclude actions column
+                            },
+                            customize: function (win) {
+                                $(win.document.body).prepend(
+                                    `<div style="text-align:center; font-size:12px; margin-bottom:10px;">
+                    Generated on: ${new Date().toLocaleString()}
+                </div>`
+                                );
+                                $(win.document.body).find('table')
+                                    .addClass('table table-bordered table-striped')
+                                    .css('font-size', '14px');
+                                $(win.document.body).find('thead')
+                                    .css('background-color', '#0d6efd')
+                                    .css('color', 'white');
+                                $(win.document.body).find('table tbody tr').each(function (i) {
+                                    $(this).find('td:first').text(i + 1); // ✅ Sr No
+                                });
+                            }
+                        },
+                        // ✅ PDF
+                        {
+                            extend: 'pdfHtml5',
+                            title: 'Plan Items',
+                            text: '<i class="bi bi-file-earmark-pdf text-danger fs-5" data-bs-toggle="tooltip" title="Export to PDF"></i>',
+                            titleAttr: 'Export PDF',
+                            exportOptions: {
+                                columns: ':not(:last-child)',
+                                format: {
+                                    body: function (data, rowIdx, colIdx) {
+                                        if (colIdx === 0) return rowIdx + 1; // ✅ Sr No
+                                        if (typeof data === 'string') return data.replace(/<\/?[^>]+(>|$)/g, "").trim();
+                                        return data;
+                                    }
+                                }
+                            },
+                            customize: function (doc) {
+                                doc.content[0].alignment = 'center';
+                                doc.content[0].fontSize = 14;
+
+                                doc.content.splice(1, 0, {
+                                    text: 'Export Date: ' + new Date().toLocaleDateString('en-GB'),
+                                    alignment: 'center',
+                                    margin: [0, 0, 0, 8],
+                                    fontSize: 10
+                                });
+
+                                var tableNode = doc.content.find(c => c.table);
+                                if (tableNode) {
+                                    doc.styles.tableHeader = { alignment: 'center', fillColor: '#212529', color: '#ffffff', bold: true };
+                                    tableNode.layout = {
+                                        hLineWidth: () => .5, vLineWidth: () => .5,
+                                        hLineColor: () => '#dddddd', vLineColor: () => '#dddddd',
+                                        paddingLeft: () => 6, paddingRight: () => 6,
+                                        paddingTop: () => 4, paddingBottom: () => 4
+                                    };
+                                }
+                            }
+                        },
+                        // ✅ Excel
+                        {
+                            extend: 'excelHtml5',
+                            title: 'Plan Items',
+                            text: '<i class="bi bi-file-earmark-excel text-success fs-5" data-bs-toggle="tooltip" title="Export to Excel"></i>',
+                            titleAttr: 'Export Excel',
+                            exportOptions: {
+                                columns: ':not(:last-child)',
+                                format: {
+                                    body: function (data, rowIdx, colIdx) {
+                                        if (colIdx === 0) return rowIdx + 1; // ✅ Sr No
+                                        if (typeof data === 'string') return data.replace(/<\/?[^>]+(>|$)/g, "").trim();
+                                        return data;
+                                    }
+                                }
+                            }
+                        },
+                        // ✅ CSV
+                        {
+                            extend: 'csvHtml5',
+                            title: 'Plan_Items',
+                            text: '<i class="bi bi-filetype-csv text-primary fs-5" data-bs-toggle="tooltip" title="Export to CSV"></i>',
+                            titleAttr: 'Export CSV',
+                            exportOptions: {
+                                columns: ':not(:last-child)',
+                                format: {
+                                    body: function (data, rowIdx, colIdx) {
+                                        if (colIdx === 0) return rowIdx + 1; // ✅ Sr No
+                                        if (typeof data === 'string') return data.replace(/<\/?[^>]+(>|$)/g, "").trim();
+                                        return data;
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                    ,
+                    columnDefs: [{
+                        targets: 0,
+                        render: function (data, type, row, meta) {
+                            return meta.row + 1; // ✅ Sr No
+                        }
+                    }]
+
+                });
+                $('[data-bs-toggle="tooltip"]').tooltip();
                 // Toggle approve/reject buttons
                 if (status === "Approved" || status === "Rejected") {
                     $('#approveBtn').hide();
                     $('#rejectBtn').hide();
-                } else {
+                }
+
+                else {
                     $('#approveBtn').show();
                     $('#rejectBtn').show();
                 }
@@ -669,12 +756,18 @@
                 $('#planDetailsModal').modal('show');
             },
             error: function () {
-                alert("⚠ Failed to load plan details.");
+                alert("⚠️ Failed to load plan details.");
             }
         });
     }
 
+
     function closePlanModal() {
+
+        if ($.fn.DataTable.isDataTable('#modalItemTable')) {
+            $('#modalItemTable').DataTable().destroy();
+        }
+
         const modal = bootstrap.Modal.getInstance(document.getElementById('planDetailsModal'));
         modal.hide();
     }
@@ -731,41 +824,90 @@
             });
         });
 
-
-
         $('#rejectBtn').click(function () {
             currentMRPCode = $('#modalPlanCode').text();
-            //$('#planDetailsModal').modal('hide');
+
+            // ✅ Don't hide the main modal — just lower its z-index
+            $('#planDetailsModal').css('z-index', '1040');
+            $('.modal-backdrop').last().css('z-index', '1039');
+
+            // Clear and show rejection modal
             $('#rejectReasonText').val('');
-            $('#rejectReasonModal').modal('show');       // Show rejection modal
+            $('#rejectReasonModal').modal('show');
+        });
+
+        // ✅ When Reject modal closes, restore Plan modal z-index and focus it again
+        $('#rejectReasonModal').on('hidden.bs.modal', function () {
+            $('#planDetailsModal').css('z-index', '1050');  // Bring back above backdrop
+            $('body').addClass('modal-open');               // Prevent background scroll
         });
 
         // Submit Rejection
         $('#submitRejectBtn').click(function () {
             const reason = $('#rejectReasonText').val().trim();
+            const mrpCode = currentMRPCode;
 
             if (reason === '') {
-                alert("⚠ Please enter a rejection reason.");
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Reason Required',
+                    text: '⚠️ Please enter a rejection reason.',
+                    confirmButtonColor: '#3085d6'
+                });
                 return;
             }
 
-            $.ajax({
-                url: '/Inventory/RejectPlanMHB',
-                type: 'POST',
-                data: {
-                    MRPCode: currentMRPCode,
-                    Reason: reason
-                },
-                success: function () {
-                    alert("❌ Plan rejected successfully.");
-                    $('#rejectReasonModal').modal('hide');
-                    fetchPlans(); // Refresh table
-                },
-                error: function () {
-                    alert("❗ Failed to reject plan.");
+            // 🔔 Confirm rejection
+            Swal.fire({
+                title: 'Reject this Plan?',
+                html: `<p>This action will mark the MRP plan as <b>rejected</b>.</p>
+               <p><strong>Reason:</strong> ${reason}</p>`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, Reject'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // 🔄 Show loading while request is processing
+                    Swal.fire({
+                        title: 'Rejecting...',
+                        text: 'Please wait...',
+                        allowOutsideClick: false,
+                        didOpen: () => Swal.showLoading()
+                    });
+
+                    // 🔧 Send rejection request
+                    $.ajax({
+                        url: '/Inventory/RejectPlanMHB',
+                        type: 'POST',
+                        data: {
+                            MRPCode: mrpCode,
+                            Reason: reason
+                        },
+                        success: function () {
+                            Swal.fire({
+                                icon: 'success',
+                                title: '❌ Rejected!',
+                                text: 'Plan rejected successfully.',
+                                showConfirmButton: false,
+                                timer: 1500
+                            });
+
+                            $('#rejectReasonModal').modal('hide');
+                            $('#planDetailsModal').modal('hide');
+                            fetchPlans();
+                        },
+                        error: function () {
+                            Swal.fire('❌ Error', 'Failed to reject plan.', 'error');
+                        }
+                    });
                 }
             });
         });
+
+
+
     });
 
     function openEditModal(mrpCode, planName) {
@@ -788,31 +930,66 @@
                 $('#editFromDate').val(formatDate(data.FromDate));
                 $('#editToDate').val(formatDate(data.ToDate));
 
+                const tbody = $('#editItemTableBody');
+                tbody.empty();
+
                 if (data.ItemList && data.ItemList.length > 0) {
                     data.ItemList.forEach(item => {
-                        $('#editItemTableBody').append(`
-                            <tr>
-                                <td>${item.ItemName}</td>
-                                <td>${item.ItemCode}</td>
-                                <td>${item.QuantityMRP}</td>
-                                <td>${item.UOMName}</td>
-                                <td>${item.Description}</td>
-                                <td>${item.RequestType}</td>
-                                <td><a href="#" class="text-danger" onclick="$(this).closest('tr').remove()">Remove</a></td>
-                            </tr>
-                        `);
+                        tbody.append(`
+                    <tr>
+                        <td>${item.ItemName}</td>
+                        <td>${item.ItemCode}</td>
+                        <td>${item.QuantityMRP}</td>
+                        <td>${item.UOMName}</td>
+                      <td data-bs-toggle="tooltip" data-bs-placement="top" title="${item.Description}">${item.Description}</td>
+                        <td>${item.RequestType}</td>
+                      <td>
+                            <button class="btn btn-outline-danger btn-sm d-flex bg-danger align-items-center justify-content-center p-0"
+                                    style="width: 32px; height: 32px;"
+                                    data-bs-toggle="tooltip" data-bs-placement="top" title="Remove"
+                                    onclick="$(this).closest('tr').remove()">
+                                <i class="bi bi-trash text-white" ></i>
+                            </button>
+                        </td>
+
+
+                    </tr>
+                `);
+
                     });
+
+
+                } else {
+                    tbody.append(`<tr><td colspan="7">No items found.</td></tr>`);
                 }
+
+                // ✅ Reinitialize DataTable
+              
+
+                $('#editItemTable').DataTable({
+                    paging: true,
+                    searching: true,
+                    ordering: false,
+                    info: false,
+                    lengthChange: false
+                });
+                $('[data-bs-toggle="tooltip"]').tooltip();
 
                 new bootstrap.Modal(document.getElementById('editPlanModal')).show();
             },
             error: function () {
-                alert("⚠ Failed to load plan for edit.");
+                alert("⚠️ Failed to load plan for edit.");
             }
         });
+
     }
 
     function closeEditModal() {
+
+        if ($.fn.DataTable.isDataTable('#editItemTable')) {
+            $('#editItemTable').DataTable().destroy();
+        }
+
         const modal = bootstrap.Modal.getInstance(document.getElementById('editPlanModal'));
         modal.hide();
     }
@@ -826,7 +1003,7 @@
         const description = $('#editItemDescription').val() || '–';
 
         if (!itemName || !itemCode || !qty || !uom || !reqType) {
-            alert("⚠ Fill all fields before adding.");
+            alert("⚠️ Fill all fields before adding.");
             return;
         }
 
@@ -836,12 +1013,19 @@
                 <td>${itemCode}</td>
                 <td>${qty}</td>
                 <td>${uom}</td>
-                <td>${description}</td>
+                  <td data-bs-toggle="tooltip" data-bs-placement="top" title="${description}">${description}</td>
                 <td>${reqType}</td>
-                <td><a href="#" class="text-danger" onclick="$(this).closest('tr').remove()">Remove</a></td>
+                <td>
+                    <button class="btn btn-outline-danger btn-sm btn-delete bg-danger d-flex align-items-center justify-content-center"
+                            style="width: 32px; height: 32px;"
+                            data-bs-toggle="tooltip" data-bs-placement="top" title="Remove"
+                            onclick="$(this).closest('tr').remove()">
+                        <i class="bi bi-trash-fill text-white"></i>
+                    </button>
+                  </td>
             </tr>
         `);
-
+        $('[data-bs-toggle="tooltip"]').tooltip();
         // Clear input fields
         $('#editItemCode, #editQuantity, #editUOM, #editRequestType, #editItemDescription').val('');
         $('#editItemName').val('');
@@ -850,36 +1034,54 @@
 
 
 
-    //function formatDate(dateString) {
-    //    const date = new Date(dateString);
-    //    return date.toISOString().split('T')[0];
-    //}
+
     function formatDate(dateString) {
-        if (!dateString) return ""; // nothing to format
-
         const date = new Date(dateString);
-
-        if (isNaN(date.getTime())) {
-            console.warn("Invalid date:", dateString);
-            return ""; // or return dateString to display as-is
-        }
-
         return date.toISOString().split('T')[0];
     }
+    //function populateItemDropdown() {
+    //    $.ajax({
+    //        url: '/Inventory/GetItemListMHB', // Your endpoint
+    //        type: 'GET',
+    //        success: function (items) {
+    //            $('#editItemName').empty().append('<option value="">Select</option>');
+    //            items.forEach(item => {
+    //                $('#editItemName').append(`<option value="${item.ItemId}">${item.ItemName}</option>`);
+    //            });
 
+    //        }
+    //    });
+    //}
     function populateItemDropdown() {
         $.ajax({
             url: '/Inventory/GetItemListMHB', // Your endpoint
             type: 'GET',
             success: function (items) {
-                $('#editItemName').empty().append('<option value="">Select</option>');
-                items.forEach(item => {
-                    $('#editItemName').append(`<option value="${item.ItemId}">${item.ItemName}</option>`);
-                });
-
+                allItems = items; // store globally
+                updateItemDropdown(); // populate with filtered data
             }
         });
     }
+
+    function updateItemDropdown() {
+        const ddl = $("#editItemName");
+        ddl.empty().append('<option value="">Select Item</option>');
+
+        // get all existing ItemCodes in table
+        const existingCodes = [];
+        $("#editItemTableBody tr").each(function () {
+            const itemCode = $(this).find("td:nth-child(2)").text().trim();
+            if (itemCode) existingCodes.push(itemCode);
+        });
+
+        // now fill dropdown excluding those already added
+        allItems.forEach(i => {
+            if (!existingCodes.includes(i.ItemCode)) {
+                ddl.append(`<option value="${i.ItemId}">${i.ItemName}</option>`);
+            }
+        });
+    }
+
 
     $(document).on('change', '#editItemName', function () {
         const selectedItemId = $(this).val();
@@ -905,7 +1107,7 @@
                 $('#editRequestType').val('MRPItems');
             },
             error: function () {
-                alert("⚠ Failed to fetch item details.");
+                alert("⚠️ Failed to fetch item details.");
             }
         });
     });
@@ -927,9 +1129,9 @@
             });
         });
 
-        // ⚠ Validation: no items
+        // ⚠️ Validation: no items
         if (items.length === 0) {
-            Swal.fire("⚠ Warning", "Please add at least one item before sending for approval.", "warning");
+            Swal.fire("⚠️ Warning", "Please add at least one item before sending for approval.", "warning");
             return;
         }
 
@@ -943,8 +1145,8 @@
 
         // 🔔 Confirm submission
         Swal.fire({
-            title: 'Send Plan for Approval?',
-            text: "This action will update the plan and send it for approval.",
+            title: 'Are you sure?',
+            text: "Do you want to save these changes?",
             icon: 'question',
             showCancelButton: true,
             confirmButtonColor: '#198754',
@@ -971,7 +1173,7 @@
                             Swal.fire({
                                 icon: 'success',
                                 title: '✅ Success',
-                                text: 'Plan submitted successfully!',
+                                text: 'Your changes have been saved.',
                                 showConfirmButton: false,
                                 timer: 1500
                             });
@@ -1012,11 +1214,10 @@
                 locale: { cancelLabel: 'Clear' },
                 ranges: {
                     'Today': [moment(), moment()],
-                    'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
                     'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-                    'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-                    'This Month': [moment().startOf('month'), moment().endOf('month')],
-                    'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                    'Last 1 Month': [moment().subtract(1, 'months').startOf('day'), moment()],
+                    'Last 3 Months': [moment().subtract(3, 'months').startOf('day'), moment()],
+                    'Last 1 Year': [moment().subtract(12, 'months').startOf('day'), moment()]
                 }
             });
 
@@ -1049,5 +1250,13 @@
 
         return addedDate.isBetween(addedStart, addedEnd, null, '[]'); // inclusive
     });
+
+    // Enable Bootstrap tooltips everywhere
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    })
+
+  
 
 </script>

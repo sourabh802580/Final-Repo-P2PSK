@@ -1,15 +1,11 @@
 ﻿<div class="d-flex justify-content-between align-items-center mb-3">
-
     <div class="flex-grow-1 text-center">
-        <h4 class="mb-0 text-primary">Rack List</h4>
+        <h4 class="mb-0 h3 text-primary">Rack List</h4>
     </div>
-
     <button class="btn btn-success" id="btnAddrack">
         <i class="bi bi-plus-circle"></i> Add Rack
     </button>
-
 </div>
-
 
 <!-- Table without fixed height container -->
 <div class="table-responsive">
@@ -33,25 +29,23 @@
     </table>
 </div>
 
-<!-- Add/Edit Rack Modal -->
-<div class="modal fade" id="rackModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+<!-- Add Rack Modal -->
+<div class="modal fade" id="addRackModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header bg-primary text-white position-relative">
-                <h5 class="modal-title text-white w-100 text-center" id="rackModalTitle">Add Rack</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <h5 class="modal-title text-white h3 mb-3 w-100 text-center">Add Rack</h5>
+                <button type="button" class="btn-close mb-3 h3 btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <form id="rackForm" class="row g-3">
-                    <input type="hidden" id="RackId" name="RackId" />
-
+                <form id="addRackForm" class="row g-3">
                     <!-- Rack Code -->
                     <div class="col-md-6">
                         <div class="input-group input-group-merge mb-3">
                             <span class="input-group-text"><i class="ri-barcode-line"></i></span>
                             <div class="form-floating form-floating-outline">
-                                <input type="text" class="form-control" id="RackCode" name="RackCode" required readonly>
-                                <label for="RackCode">Rack Code</label>
+                                <input type="text" class="form-control" id="addRackCode" name="RackCode" required readonly>
+                                <label for="addRackCode">Rack Code</label>
                             </div>
                         </div>
                     </div>
@@ -61,8 +55,8 @@
                         <div class="input-group input-group-merge mb-3">
                             <span class="input-group-text"><i class="ri-archive-drawer-line"></i></span>
                             <div class="form-floating form-floating-outline">
-                                <input type="text" class="form-control" id="RackName" name="RackName" required>
-                                <label for="RackName">Rack Name</label>
+                                <input type="text" class="form-control" id="addRackName" name="RackName" required>
+                                <label for="addRackName">Rack Name <span class="text-danger">*</span></label>
                             </div>
                         </div>
                     </div>
@@ -72,10 +66,10 @@
                         <div class="input-group input-group-merge mb-3">
                             <span class="input-group-text"><i class="ri-building-4-line"></i></span>
                             <div class="form-floating form-floating-outline">
-                                <select class="form-select" id="WarehouseId" name="WarehouseId" required>
+                                <select class="form-select" id="addWarehouseId" name="WarehouseId" required>
                                     <option value="">-- Select Warehouse --</option>
                                 </select>
-                                <label for="WarehouseId">Warehouse</label>
+                                <label for="addWarehouseId">Warehouse <span class="text-danger">*</span></label>
                             </div>
                         </div>
                     </div>
@@ -85,10 +79,10 @@
                         <div class="input-group input-group-merge mb-3">
                             <span class="input-group-text"><i class="ri-layout-masonry-line"></i></span>
                             <div class="form-floating form-floating-outline">
-                                <select class="form-select" id="SectionId" name="SectionCode" required>
+                                <select class="form-select" id="addSectionId" name="SectionCode" required>
                                     <option value="">-- Select Section --</option>
                                 </select>
-                                <label for="SectionId">Section</label>
+                                <label for="addSectionId">Section <span class="text-danger">*</span></label>
                             </div>
                         </div>
                     </div>
@@ -98,19 +92,101 @@
                         <div class="input-group input-group-merge mb-3">
                             <span class="input-group-text"><i class="ri-file-text-line"></i></span>
                             <div class="form-floating form-floating-outline">
-                                <textarea class="form-control" id="Description" name="Description" rows="3"></textarea>
-                                <label for="Description">Description</label>
+                                <textarea class="form-control" id="addDescription" name="Description" rows="3"></textarea>
+                                <label for="addDescription">Description</label>
                             </div>
                         </div>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-outline-danger bg-danger text-white px-4" data-bs-dismiss="modal">
+                @*<button type="button" class="btn btn-outline-danger bg-danger text-white px-4" data-bs-dismiss="modal">
                     <i class="bi bi-x-circle me-2"></i>Close
-                </button>
-                <button type="submit" form="rackForm" class="btn btn-success px-4" id="rackModalSubmitBtn">
+                </button>*@
+                <button type="submit" form="addRackForm" class="btn btn-success px-4" id="addRackModalSubmitBtn">
                     <i class="bi bi-check-circle me-2 text-white"></i>Save
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Rack Modal -->
+<div class="modal fade" id="editRackModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white position-relative">
+                <h5 class="modal-title text-white mb-3 h3 w-100 text-center">Update Rack</h5>
+                <button type="button" class="btn-close mb-3 h3 btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editRackForm" class="row g-3">
+                    <input type="hidden" id="editRackId" name="RackId" />
+
+                    <!-- Rack Code -->
+                    <div class="col-md-6">
+                        <div class="input-group input-group-merge mb-3">
+                            <span class="input-group-text"><i class="ri-barcode-line"></i></span>
+                            <div class="form-floating form-floating-outline">
+                                <input type="text" class="form-control" id="editRackCode" name="RackCode" required readonly>
+                                <label for="editRackCode">Rack Code</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Rack Name -->
+                    <div class="col-md-6">
+                        <div class="input-group input-group-merge mb-3">
+                            <span class="input-group-text"><i class="ri-archive-drawer-line"></i></span>
+                            <div class="form-floating form-floating-outline">
+                                <input type="text" class="form-control" id="editRackName" name="RackName" required>
+                                <label for="editRackName">Rack Name <span class="text-danger">*</span></label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Warehouse (Readonly in Edit) -->
+                    <div class="col-md-6">
+                        <div class="input-group input-group-merge mb-3">
+                            <span class="input-group-text"><i class="ri-building-4-line"></i></span>
+                            <div class="form-floating form-floating-outline">
+                                <input type="text" class="form-control" id="editWarehouseName" readonly>
+                                <input type="hidden" id="editWarehouseId" name="WarehouseId">
+                                <label for="editWarehouseName">Warehouse</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section (Readonly in Edit) -->
+                    <div class="col-md-6">
+                        <div class="input-group input-group-merge mb-3">
+                            <span class="input-group-text"><i class="ri-layout-masonry-line"></i></span>
+                            <div class="form-floating form-floating-outline">
+                                <input type="text" class="form-control" id="editSectionName" readonly>
+                                <input type="hidden" id="editSectionId" name="SectionCode">
+                                <label for="editSectionName">Section</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="col-12">
+                        <div class="input-group input-group-merge mb-3">
+                            <span class="input-group-text"><i class="ri-file-text-line"></i></span>
+                            <div class="form-floating form-floating-outline">
+                                <textarea class="form-control" id="editDescription" name="Description" rows="3"></textarea>
+                                <label for="editDescription">Description</label>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                @*<button type="button" class="btn btn-outline-danger bg-danger text-white px-4" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-2"></i>Close
+                </button>*@
+                <button type="submit" form="editRackForm" class="btn btn-primary px-4" id="editRackModalSubmitBtn">
+                    <i class="bi bi-check-circle me-2 text-white"></i>Update
                 </button>
             </div>
         </div>
@@ -119,11 +195,11 @@
 
 <!-- View Rack Modal -->
 <div class="modal fade" id="viewRackModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header bg-primary text-white position-relative">
-                <h5 class="modal-title text-white w-100 text-center">Rack Details</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <h5 class="modal-title text-white mb-3 h3 w-100 text-center">Rack Details</h5>
+                <button type="button" class="btn-close mb-3 h3 btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <form class="row g-3">
@@ -237,7 +313,7 @@
         var table = $('#rackTable').DataTable({
             dom: '<"d-flex justify-content-between align-items-center mt-1 mb-2"Bf>rt<"d-flex justify-content-between mt-2"<"datatable-info"i><"datatable-pagination"p>>',
             paging: true,
-            pageLength: 25,
+            pageLength: 10,
             lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
             "ajax": {
                 "url": "/Inventory/GetRacksSK",
@@ -320,7 +396,8 @@
                 }
             ],
             columnDefs: [
-                { orderable: false, targets: "_all" }
+                { orderable: false, targets: "_all" },
+                { className: "text-center", targets: "_all" }
             ],
             buttons: [
                 {
@@ -573,11 +650,11 @@
             locale: { cancelLabel: 'Clear' },
             ranges: {
                 'Today': [moment(), moment()],
-                'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
                 'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-                'This Month': [moment().startOf('month'), moment().endOf('month')],
-                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                'Last 1 Month': [moment().subtract(1, 'months').startOf('day'), moment()],
+                'Last 3 Months': [moment().subtract(3, 'months').startOf('day'), moment()],
+                'Last 1 Year': [moment().subtract(12, 'months').startOf('day'), moment()]
+
             }
         });
 
@@ -611,40 +688,33 @@
 
         //  Add Rack
         $('#btnAddrack').on('click', function () {
-            $('#rackForm')[0].reset();
-            $('#RackId').val('');
-
-            // Set modal title and button text for Add
-            $('#rackModalTitle').text('Add Rack');
-            $('#rackModalSubmitBtn').html('<i class="bi bi-check-circle me-2 text-white"></i>Save');
-
+            $('#addRackForm')[0].reset();
             loadWarehouses();
 
             // Get Next Rack Code
             $.get("/Inventory/GetNextRackCodeSK", function (res) {
                 if (res && res.NextCode) {
-                    $('#RackCode').val(res.NextCode);
+                    $('#addRackCode').val(res.NextCode);
                 } else {
                     toastr.error("Failed to get next rack code");
                 }
             });
 
-            $('#rackModal').modal('show');
+            $('#addRackModal').modal('show');
         });
 
-        //  Save (Add/Edit) - 
-        $('#rackForm').on('submit', function (e) {
+        //  Save Add Rack
+        $('#addRackForm').on('submit', function (e) {
             e.preventDefault();
-
             var formData = $(this).serialize();
-            console.log(formData)
+
             $.ajax({
                 url: "/Inventory/SaveRackSK",
                 type: "POST",
                 data: formData,
                 success: function (res) {
                     if (res.success) {
-                        $("#rackModal").modal("hide");
+                        $("#addRackModal").modal("hide");
                         table.ajax.reload(null, false);
                         Swal.fire({
                             title: "Success",
@@ -678,34 +748,63 @@
             var rackId = $(this).data("id");
             $.get("/Inventory/GetRackByIdSKK/" + rackId, function (res) {
                 if (res) {
-                    $('#RackId').val(res.RackId);
-                    $('#RackCode').val(res.RackCode);
-                    $('#RackName').val(res.RackName);
-                    $('#Description').val(res.Description);
+                    $('#editRackId').val(res.RackId);
+                    $('#editRackCode').val(res.RackCode);
+                    $('#editRackName').val(res.RackName);
+                    $('#editDescription').val(res.Description);
 
-                    // Set modal title and button text for Edit
-                    $('#rackModalTitle').text('Update Rack');
-                    $('#rackModalSubmitBtn').html('<i class="bi bi-check-circle me-2 text-white"></i>Update');
+                    // Set readonly warehouse and section fields
+                    $('#editWarehouseName').val(res.WarehouseName);
+                    $('#editWarehouseId').val(res.WarehouseCode);
+                    $('#editSectionName').val(res.SectionName);
+                    $('#editSectionId').val(res.SectionCode);
 
-                    loadWarehouses(res.WarehouseCode);
-
-                    setTimeout(function () {
-                        $.get("/Inventory/GetSectionsSKK", { warehouseCode: res.WarehouseCode }, function (data) {
-                            var ddl = $("#SectionId");
-                            ddl.empty().append('<option value="">-- Select Section --</option>');
-                            $.each(data, function (i, item) {
-                                ddl.append(`<option value="${item.SectionCode}">${item.SectionName}</option>`);
-                            });
-                            ddl.val(res.SectionCode);
-                        });
-                    }, 300);
-
-                    $('#rackModal').modal('show');
+                    $('#editRackModal').modal('show');
                 } else {
                     Swal.fire("Error", "Rack not found!", "error");
                 }
             }).fail(function () {
                 Swal.fire("Error", "Error loading rack details.", "error");
+            });
+        });
+
+        //  Update Rack
+        $('#editRackForm').on('submit', function (e) {
+            e.preventDefault();
+            var formData = $(this).serialize();
+
+            $.ajax({
+                url: "/Inventory/SaveRackSK",
+                type: "POST",
+                data: formData,
+                success: function (res) {
+                    if (res.success) {
+                        $("#editRackModal").modal("hide");
+                        table.ajax.reload(null, false);
+                        Swal.fire({
+                            title: "Success",
+                            text: res.message || "Rack updated successfully!",
+                            icon: "success",
+                            showConfirmButton: false,
+                            timer: 2000
+                        });
+                    } else {
+                        Swal.fire({
+                            title: "Error",
+                            text: res.message || "Something went wrong",
+                            icon: "error",
+                            confirmButtonText: "OK"
+                        });
+                    }
+                },
+                error: function () {
+                    Swal.fire({
+                        title: "Error",
+                        text: "Server error while updating rack.",
+                        icon: "error",
+                        confirmButtonText: "OK"
+                    });
+                }
             });
         });
 
@@ -720,10 +819,10 @@
                 showCancelButton: true,
                 confirmButtonText: "Yes, delete it!",
                 cancelButtonText: "No, cancel!",
-                reverseButtons: true,
+                reverseButtons: false, 
                 customClass: {
-                    confirmButton: "btn btn-success me-2",
-                    cancelButton: "btn btn-danger"
+                    confirmButton: "btn btn-danger me-2", 
+                    cancelButton: "btn btn-primary" 
                 },
                 buttonsStyling: false
             }).then((result) => {
@@ -792,7 +891,7 @@
         //  Load Warehouses
         function loadWarehouses(selectedCode = "") {
             $.get("/Inventory/GetWarehousesListSK", function (data) {
-                var ddl = $("#WarehouseId");
+                var ddl = $("#addWarehouseId");
                 ddl.empty().append('<option value="">-- Select Warehouse --</option>');
                 $.each(data, function (i, item) {
                     ddl.append(`<option value="${item.WarehouseCode}">${item.WarehouseName}</option>`);
@@ -804,10 +903,9 @@
         }
 
         //  Load Sections on warehouse change
-        $('#WarehouseId').on('change', function () {
+        $('#addWarehouseId').on('change', function () {
             var warehouseCode = $(this).val();
-            var ddl = $("#SectionId");
-          //  console.log(ddl)
+            var ddl = $("#addSectionId");
             ddl.empty().append('<option value="">-- Select Section --</option>');
             if (warehouseCode) {
                 $.get("/Inventory/GetSectionsSKK", { warehouseCode: warehouseCode }, function (data) {

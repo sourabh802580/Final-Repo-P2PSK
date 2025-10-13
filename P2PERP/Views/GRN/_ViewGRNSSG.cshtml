@@ -90,6 +90,8 @@ $(document).ready(function () {
 
     // Initialize DataTable
     const tableUnique = $('#tblGRNItemsUnique').DataTable({
+          ordering: false,
+
         ajax: {
             url: '/GRN/GetGRNItemsSSG',
             type: 'GET',

@@ -39,17 +39,17 @@
         <!-- Transport Details Section -->
         <div class="row g-3 mb-4">
             <div class="col-md-6">
-                <label class="form-label fw-bold">Transport Name</label>
+                <label class="form-label fw-bold">Transport Name<span class="text-danger">*</span></label>
                 @Html.TextBoxFor(m => m.TransportName, new { @class = "form-control transport-name", placeholder = "Enter Transporter Name" })
                 <span class="text-danger error-msg"></span>
             </div>
             <div class="col-md-6">
-                <label class="form-label fw-bold">Transport Contact</label>
+                <label class="form-label fw-bold">Transport Contact<span class="text-danger">*</span></label>
                 @Html.TextBoxFor(m => m.TransportContact, new { @class = "form-control transport-contact", placeholder = "Enter Transport Contact" })
                 <span class="text-danger error-msg"></span>
             </div>
             <div class="col-md-6">
-                <label class="form-label fw-bold">Vehicle Type</label>
+                <label class="form-label fw-bold">Vehicle Type<span class="text-danger">*</span></label>
                 @Html.DropDownListFor(m => m.VehicleType,
                     Enumerable.Empty<SelectListItem>(),
                     "Select Vehicle Type",
@@ -57,7 +57,7 @@
                 <span class="text-danger error-msg"></span>
             </div>
             <div class="col-md-6">
-                <label class="form-label fw-bold">Vehicle No</label>
+                <label class="form-label fw-bold">Vehicle No<span class="text-danger">*</span></label>
                 @Html.TextBoxFor(m => m.VehicleNo, new { @class = "form-control vehicle-no", placeholder = "Enter Vehicle No" })
                 <span class="text-danger error-msg"></span>
             </div>
@@ -101,9 +101,7 @@
 
         <!-- Footer Buttons -->
         <div class="d-flex justify-content-end gap-2">
-            <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">
-                <i class="bi bi-x-circle"></i> Cancel
-            </button>
+           
             <button type="submit" class="btn btn-success px-4">
                 <i class="bi bi-check-circle"></i> Dispatch
             </button>
