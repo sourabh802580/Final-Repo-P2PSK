@@ -5648,10 +5648,10 @@
     <Content Include="Views\Purchase\_PendingPOsNAM.cshtml" />
     <Content Include="Views\Quality\QCheckDashboardNAM.cshtml" />
     <Content Include="Web.config.template" />
-    <Content Include="Web.config" />
     <Content Include="Views\GRN\_PendingItemsRHK.cshtml" />
     <Content Include="Views\Purchase\_ApprovedPOsPartialVNK.cshtml" />
     <Content Include="Views\Purchase\JustInTimeItemListOK.cshtml" />
+    <Content Include="Web.config" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

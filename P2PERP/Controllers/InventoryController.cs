@@ -837,8 +837,8 @@ namespace P2PERP.Controllers
             {
                 if (ModelState.IsValid)
                 {
-                    await bal.UpdateWarehouseAsyncSK(model);
-                    return Json(new { success = true, message = "Warehouse updated successfully" });
+                    var (Success, Message) = await bal.UpdateWarehouseAsyncSK(model);
+                    return Json(new { success = Success, message = Message });
                 }
                 return Json(new { success = false, message = "Invalid data" });
             }

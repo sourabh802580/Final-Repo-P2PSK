@@ -1393,31 +1393,44 @@ namespace P2PLibray.Inventory
         public async Task<(bool Success, string Message, int NewId)> AddWarehouseAsyncSK(InventorySK warehouse)
         {
             if (warehouse == null) return (false, "Warehouse data cannot be null.", 0);
-
             if (string.IsNullOrWhiteSpace(warehouse.WarehouseCode)) return (false, "Warehouse Code is required.", 0);
             if (string.IsNullOrWhiteSpace(warehouse.WarehouseName)) return (false, "Warehouse Name is required.", 0);
             if (warehouse.CityId <= 0) return (false, "Invalid City selected.", 0);
 
+            // Capacity validation - minimum 2000
+            if (warehouse.Capacity < 2000)
+                return (false, "Capacity must be at least 2000.", 0);
 
             try
             {
-                var parameters = new Dictionary<string, string>
-    {
-        { "@Flag", "AddWarehouseSK" },
-        { "@WarehouseCode", warehouse.WarehouseCode },
-        { "@WarehouseName", warehouse.WarehouseName },
-        { "@Address", warehouse.Address ?? "" },
-        { "@CityId", warehouse.CityId.ToString() },
-        { "@AddedBy", warehouse.AddedBy },
-        { "@Phone", warehouse.Phone ?? "" },
-        { "@Email", warehouse.Email ?? "" },
-        { "@Description", warehouse.Description ?? "" },
-        { "@Capacity", warehouse.Capacity.ToString() },
-                { "@StateCode", warehouse.StateCode.ToString() },
-                {"@CountryCode", warehouse.CountryCode.ToString() },
-                {"@AddedDate", warehouse.AddedDate.ToString("yyyy-MM-dd")  }
+                // Check if warehouse name already exists
+                var checkParameters = new Dictionary<string, string>
+        {
+            { "@Flag", "CheckWarehouseExists" },
+            { "@WarehouseName", warehouse.WarehouseName },
+            { "@WareHouseId", "0" } // 0 for new warehouse
+        };
 
-    };
+                var exists = await obj.ExecuteStoredProcedureReturnObject("InventoryProcedure", checkParameters);
+                if (exists != null && Convert.ToInt32(exists) > 0)
+                    return (false, "Warehouse name already exists. Please use a different name.", 0);
+
+                var parameters = new Dictionary<string, string>
+        {
+            { "@Flag", "AddWarehouseSK" },
+            { "@WarehouseCode", warehouse.WarehouseCode },
+            { "@WarehouseName", warehouse.WarehouseName },
+            { "@Address", warehouse.Address ?? "" },
+            { "@CityId", warehouse.CityId.ToString() },
+            { "@AddedBy", warehouse.AddedBy },
+            { "@Phone", warehouse.Phone ?? "" },
+            { "@Email", warehouse.Email ?? "" },
+            { "@Description", warehouse.Description ?? "" },
+            { "@Capacity", warehouse.Capacity.ToString() },
+            { "@StateCode", warehouse.StateCode.ToString() },
+            { "@CountryCode", warehouse.CountryCode.ToString() },
+            { "@AddedDate", warehouse.AddedDate.ToString("yyyy-MM-dd") }
+        };
 
                 object result = await obj.ExecuteStoredProcedureReturnObject("InventoryProcedure", parameters);
                 int newId = result != null ? Convert.ToInt32(result) : 0;
@@ -1439,9 +1452,27 @@ namespace P2PLibray.Inventory
         /// <param name="Update warehouse"></param>
         /// <returns></returns>
         //  Update Warehouse
-        public async Task<bool> UpdateWarehouseAsyncSK(InventorySK warehouse)
+        public async Task<(bool Success, string Message)> UpdateWarehouseAsyncSK(InventorySK warehouse)
         {
-            var parameters = new Dictionary<string, string>
+            // Capacity validation - minimum 2000
+            if (warehouse.Capacity < 2000)
+                return (false, "Capacity must be at least 2000.");
+
+            try
+            {
+                // Check if warehouse name already exists (excluding current warehouse)
+                var checkParameters = new Dictionary<string, string>
+        {
+            { "@Flag", "CheckWarehouseExists" },
+            { "@WarehouseName", warehouse.WarehouseName },
+            { "@WareHouseId", warehouse.WareHouseId.ToString() }
+        };
+
+                var exists = await obj.ExecuteStoredProcedureReturnObject("InventoryProcedure", checkParameters);
+                if (exists != null && Convert.ToInt32(exists) > 0)
+                    return (false, "Warehouse name already exists. Please use a different name.");
+
+                var parameters = new Dictionary<string, string>
         {
             { "@Flag", "UpdateWarehouseSK" },
             { "@WareHouseId", warehouse.WareHouseId.ToString() },
@@ -1451,11 +1482,18 @@ namespace P2PLibray.Inventory
             { "@Phone", warehouse.Phone ?? string.Empty },
             { "@Email", warehouse.Email ?? string.Empty },
             { "@Description", warehouse.Description ?? string.Empty },
-            { "@Capacity", warehouse.Capacity.ToString() }
+            { "@Capacity", warehouse.Capacity.ToString() },
+            { "@StateCode", warehouse.StateCode.ToString() },
+            { "@CountryCode", warehouse.CountryCode.ToString() }
         };
 
-            await obj.ExecuteStoredProcedure("InventoryProcedure", parameters);
-            return true;
+                await obj.ExecuteStoredProcedure("InventoryProcedure", parameters);
+                return (true, "Warehouse updated successfully.");
+            }
+            catch (Exception ex)
+            {
+                return (false, $"Error: {ex.Message}");
+            }
         }
         /// <summary>
         /// 
