@@ -1267,22 +1267,49 @@ namespace P2PERP.Controllers
             {
                 try
                 {
-                    bool isSaved = await bal.AddSectionAsyncSK(model);
-                    if (isSaved)
+                   
+                    var (success, message, newId) = await bal.AddSectionAsyncSK(model);
+
+                    if (success)
                     {
-                        return Json(new { success = true, message = "Section added successfully!" });
+                        return Json(new
+                        {
+                            success = true,
+                            message = message,
+                            sectionId = newId
+                        });
                     }
                     else
                     {
-                        return Json(new { success = false, message = "Failed to save section." });
+                        return Json(new
+                        {
+                            success = false,
+                            message = message
+                        });
                     }
                 }
                 catch (Exception ex)
                 {
-                    return Json(new { success = false, message = ex.Message });
+                    return Json(new
+                    {
+                        success = false,
+                        message = $"Error: {ex.Message}"
+                    });
                 }
             }
-            return Json(new { success = false, message = "Invalid data." });
+
+            // ModelState errors return करें
+            var errors = ModelState.Values
+                .SelectMany(v => v.Errors)
+                .Select(e => e.ErrorMessage)
+                .ToList();
+
+            return Json(new
+            {
+                success = false,
+                message = "Invalid data.",
+                errors = errors
+            });
         }
 
         //    THIS IS USED BY UPDATE AND VIEW BY USING ID 
@@ -1309,25 +1336,55 @@ namespace P2PERP.Controllers
 
 
         //  UPDATE SECTION
+        // UPDATE SECTION 
         [HttpPost]
         public async Task<ActionResult> UpdateSectionSK(InventorySK model)
         {
-            try
+            if (ModelState.IsValid)
             {
-                var result = await bal.UpdateSectionAsyncSK(model);
-                if (result)
+                try
                 {
-                    return Json(new { success = true, message = "Section updated successfully!" });
+                    var (success, message) = await bal.UpdateSectionAsyncSK(model);
+
+                    if (success)
+                    {
+                        return Json(new
+                        {
+                            success = true,
+                            message = message
+                        });
+                    }
+                    else
+                    {
+                        return Json(new
+                        {
+                            success = false,
+                            message = message
+                        });
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    return Json(new { success = false, message = "Failed to update section." });
+                    return Json(new
+                    {
+                        success = false,
+                        message = $"Error: {ex.Message}"
+                    });
                 }
             }
-            catch (Exception ex)
+
+            
+            var errors = ModelState.Values
+                .SelectMany(v => v.Errors)
+                .Select(e => e.ErrorMessage)
+                .ToList();
+
+            return Json(new
             {
-                return Json(new { success = false, message = ex.Message });
-            }
+                success = false,
+                message = "Invalid data.",
+                errors = errors
+            });
         }
 
         //  DELETE SECTION

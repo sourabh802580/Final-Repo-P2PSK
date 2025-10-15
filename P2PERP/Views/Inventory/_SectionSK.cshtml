@@ -56,7 +56,7 @@
                             <div class="input-group input-group-merge mb-3">
                                 <span class="input-group-text"><i class="ri-layout-masonry-line"></i></span>
                                 <div class="form-floating form-floating-outline">
-                                    <input type="text" name="SectionName" class="form-control" >
+                                    <input type="text" name="SectionName" class="form-control">
                                     <label for="SectionName">Section Name  <span class="text-danger">*</span></label>
                                 </div>
                             </div>
@@ -106,6 +106,7 @@
 </div>
 
 <!-- Edit Section Modal -->
+
 <div class="modal fade" id="editSectionModal" tabindex="-1" aria-labelledby="editSectionModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
@@ -130,7 +131,7 @@
                             <div class="input-group input-group-merge mb-3">
                                 <span class="input-group-text"><i class="ri-layout-masonry-line"></i></span>
                                 <div class="form-floating form-floating-outline">
-                                    <input type="text" id="EditSectionName" name="SectionName" class="form-control" required>
+                                    <input type="text" id="EditSectionName" name="SectionName" class="form-control" >
                                     <label for="EditSectionName">Section Name <span class="text-danger">*</span></label>
                                 </div>
                             </div>
@@ -146,13 +147,16 @@
                             <div class="input-group input-group-merge mb-3">
                                 <span class="input-group-text"><i class="ri-building-4-line"></i></span>
                                 <div class="form-floating form-floating-outline">
-                                    <select id="EditWarehouseCode" name="WarehouseCode" class="form-select" required></select>
+                                    <!-- Warehouse field ko readonly banaya hai -->
+                                    <select id="EditWarehouseCode" name="WarehouseCode" class="form-select" disabled>
+                                        <option value="">-- Select Warehouse --</option>
+                                    </select>
                                     <label for="EditWarehouseCode">Warehouse <span class="text-danger">*</span></label>
                                 </div>
                             </div>
-                            <!-- Error Message -->
-                            <div class="txt-small text-danger mt-1" id="editWarehouseCodeError" style="display: none;">
-                                Please select a warehouse
+                            <!-- Note show karein ki warehouse change nahi kar sakte -->
+                            <div class="txt-small text-muted mt-1">
+                                <i class="ri-information-line me-1"></i>Warehouse cannot be changed
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -653,6 +657,8 @@
                         // General error (like "Section name already exists")
                         if (res.message.includes("Section name")) {
                             showSectionError('sectionNameError', res.message);
+                        } else if (res.message.includes("Warehouse") || res.message.includes("warehouse")) {
+                            showSectionError('warehouseCodeError', res.message);
                         } else {
                             // Agar koi specific field identify nahi kar paaye, to general message show karein
                             Swal.fire({
@@ -674,7 +680,7 @@
             });
         });
 
-        // Section Form Validation Function
+        // Section Form Validation Function - CORRECTED
         function validateSectionForm() {
             let isValid = true;
 
@@ -685,8 +691,11 @@
                 isValid = false;
             }
 
-            // Warehouse validation
-            const warehouseCode = $('#WarehouseCodes').val();
+            // Warehouse validation - CORRECTED
+            const warehouseCode = $('select[name="WarehouseCode"]').val(); // Name se access karein
+            // Ya fir
+            // const warehouseCode = $('#WarehouseCodes').val(); // ID se access karein
+
             if (!warehouseCode) {
                 showSectionError('warehouseCodeError', 'Please select a warehouse');
                 isValid = false;
@@ -702,10 +711,14 @@
                 errorElement.textContent = message;
                 errorElement.style.display = 'block';
 
-                const inputField = errorElement.closest('.col-md-6').querySelector('input, select, textarea');
-                if (inputField) {
-                    inputField.classList.add('is-invalid');
-                    inputField.focus();
+                // Input field find karein - CORRECTED
+                const parentDiv = errorElement.closest('.row.mb-3');
+                if (parentDiv) {
+                    const inputField = parentDiv.querySelector('input, select, textarea');
+                    if (inputField) {
+                        inputField.classList.add('is-invalid');
+                        inputField.focus();
+                    }
                 }
             }
         }
@@ -715,9 +728,13 @@
             if (errorElement) {
                 errorElement.style.display = 'none';
 
-                const inputField = errorElement.closest('.col-md-6').querySelector('input, select, textarea');
-                if (inputField) {
-                    inputField.classList.remove('is-invalid');
+                // Input field find karein - CORRECTED
+                const parentDiv = errorElement.closest('.row.mb-3');
+                if (parentDiv) {
+                    const inputField = parentDiv.querySelector('input, select, textarea');
+                    if (inputField) {
+                        inputField.classList.remove('is-invalid');
+                    }
                 }
             }
         }
@@ -726,9 +743,12 @@
             const errorElements = document.querySelectorAll('#addSectionForm .txt-small.text-danger');
             errorElements.forEach(element => {
                 element.style.display = 'none';
-                const inputField = element.closest('.col-md-6').querySelector('input, select, textarea');
-                if (inputField) {
-                    inputField.classList.remove('is-invalid');
+                const parentDiv = element.closest('.row.mb-3');
+                if (parentDiv) {
+                    const inputField = parentDiv.querySelector('input, select, textarea');
+                    if (inputField) {
+                        inputField.classList.remove('is-invalid');
+                    }
                 }
             });
         }
@@ -787,7 +807,22 @@
         $("#editSectionForm").on("submit", function (e) {
             e.preventDefault();
 
+            // Pehle sab errors hide karein
+            hideAllEditSectionErrors();
+
+            // Client-side validation
+            if (!validateEditSectionForm()) {
+                return;
+            }
+
+            // Form data serialize karein aur manually warehouse code add karein
             let formData = $(this).serialize();
+
+            // Warehouse value ko manually add karein kyunki disabled field serialize nahi hoti
+            const warehouseCode = $('#EditWarehouseCode').val();
+            if (warehouseCode) {
+                formData += '&WarehouseCode=' + encodeURIComponent(warehouseCode);
+            }
 
             $.post("/Inventory/UpdateSectionSK", formData, function (res) {
                 if (res.success) {
@@ -798,14 +833,144 @@
                         title: "Updated!",
                         text: res.message,
                         icon: "success",
-                        timer: 2000, // 2 seconds
+                        timer: 2000,
                         showConfirmButton: false
                     });
                 } else {
-                    Swal.fire("Error", res.message, "error");
+                    // Server se specific field errors handle karein
+                    if (res.errors) {
+                        if (res.errors.SectionName) {
+                            showEditSectionError('editSectionNameError', res.errors.SectionName[0]);
+                        }
+                        if (res.errors.WarehouseCode) {
+                            showEditSectionError('editWarehouseCodeError', res.errors.WarehouseCode[0]);
+                        }
+                    } else if (res.message) {
+                        // General error (like "Section name already exists")
+                        if (res.message.includes("Section name")) {
+                            showEditSectionError('editSectionNameError', res.message);
+                        } else if (res.message.includes("Warehouse") || res.message.includes("warehouse")) {
+                            showEditSectionError('editWarehouseCodeError', res.message);
+                        } else {
+                            Swal.fire("Error", res.message, "error");
+                        }
+                    } else {
+                        Swal.fire("Error", res.message, "error");
+                    }
                 }
             }).fail(function () {
                 Swal.fire("Error", "Error updating section!", "error");
+            });
+        });
+
+        // Edit Section Form Validation Function
+        function validateEditSectionForm() {
+            let isValid = true;
+
+            // Section Name validation
+            const sectionName = $('#EditSectionName').val().trim();
+            if (!sectionName) {
+                showEditSectionError('editSectionNameError', 'Section name is required');
+                isValid = false;
+            }
+
+            // Warehouse validation - check karein ki value hai ya nahi
+            const warehouseCode = $('#EditWarehouseCode').val();
+            if (!warehouseCode) {
+                // Agar warehouse code nahi hai to error show karein
+                showEditSectionError('editWarehouseCodeError', 'Warehouse is required');
+                isValid = false;
+            }
+
+            return isValid;
+        }
+
+        // Edit Section Error Functions
+        function showEditSectionError(fieldId, message) {
+            const errorElement = document.getElementById(fieldId);
+            if (errorElement) {
+                errorElement.textContent = message;
+                errorElement.style.display = 'block';
+
+                const parentDiv = errorElement.closest('.row.mb-3');
+                if (parentDiv) {
+                    const inputField = parentDiv.querySelector('input, select, textarea');
+                    if (inputField) {
+                        inputField.classList.add('is-invalid');
+                        // Agar section name error hai to focus set karein
+                        if (fieldId === 'editSectionNameError') {
+                            inputField.focus();
+                        }
+                    }
+                }
+            }
+        }
+
+        function hideEditSectionError(fieldId) {
+            const errorElement = document.getElementById(fieldId);
+            if (errorElement) {
+                errorElement.style.display = 'none';
+
+                const parentDiv = errorElement.closest('.row.mb-3');
+                if (parentDiv) {
+                    const inputField = parentDiv.querySelector('input, select, textarea');
+                    if (inputField) {
+                        inputField.classList.remove('is-invalid');
+                    }
+                }
+            }
+        }
+
+        function hideAllEditSectionErrors() {
+            const errorElements = document.querySelectorAll('#editSectionForm .txt-small.text-danger');
+            errorElements.forEach(element => {
+                element.style.display = 'none';
+                const parentDiv = element.closest('.row.mb-3');
+                if (parentDiv) {
+                    const inputField = parentDiv.querySelector('input, select, textarea');
+                    if (inputField) {
+                        inputField.classList.remove('is-invalid');
+                    }
+                }
+            });
+        }
+
+        // Edit modal ke liye data populate function
+        function populateEditSectionForm(data) {
+            // Pehle errors hide karein
+            hideAllEditSectionErrors();
+
+            // Form fields populate karein
+            $('#EditSectionId').val(data.sectionId);
+            $('#EditSectionCode').val(data.sectionCode);
+            $('#EditSectionName').val(data.sectionName);
+            $('#EditDescription').val(data.description || '');
+
+            // Warehouse ko set karein lekin disabled rakhein
+            $('#EditWarehouseCode').html(`<option value="${data.warehouseCode}" selected>${data.warehouseName}</option>`);
+
+            // Warehouse field ko disabled rakhein
+            $('#EditWarehouseCode').prop('disabled', true);
+        }
+
+        // Input fields pe typing shuru hone pe error hide karein (Edit Form ke liye)
+        document.addEventListener('DOMContentLoaded', function () {
+            const editSectionInputs = document.querySelectorAll('#editSectionForm input, #editSectionForm textarea');
+
+            editSectionInputs.forEach(field => {
+                field.addEventListener('input', function () {
+                    const fieldName = this.name;
+                    if (fieldName === 'SectionName') {
+                        hideEditSectionError('editSectionNameError');
+                    }
+                });
+
+                field.addEventListener('change', function () {
+                    const fieldName = this.name;
+                    if (fieldName === 'SectionName') {
+                        hideEditSectionError('editSectionNameError');
+                    }
+                });
             });
         });
 

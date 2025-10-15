@@ -1406,7 +1406,7 @@ namespace P2PLibray.Inventory
                 // Check if warehouse name already exists
                 var checkParameters = new Dictionary<string, string>
         {
-            { "@Flag", "CheckWarehouseExists" },
+            { "@Flag", "CheckWarehouseExistsSK" },
             { "@WarehouseName", warehouse.WarehouseName },
             { "@WareHouseId", "0" } // 0 for new warehouse
         };
@@ -1582,7 +1582,7 @@ namespace P2PLibray.Inventory
         }
 
 
-        //_______________________________________________________________________________BINS BAL ____________________________________________________________________________________
+        //_______________________________________________________________________________Rack BAL ____________________________________________________________________________________
 
 
 
@@ -1724,31 +1724,68 @@ namespace P2PLibray.Inventory
         /// <param name="model"></param>
         /// <returns></returns>
 
-        //  Save Rack (Insert/Update)
+        // Save Rack (Insert/Update)
         public async Task<(bool Success, string Message)> SaveRackAsyncSK(InventorySK model)
         {
-            var parameters = new Dictionary<string, string>
-{
-    { "@Flag", "SaveRackSK" },
-    { "@RackId", model.RackId.ToString() },
-    { "@RackCode", model.RackCode ?? "" },
-    { "@RackName", model.RackName ?? "" },
-    { "@SectionCode", model.SectionCode ?? "" },
-    { "@WareHouseCode", model.WarehouseCode ?? "" },
-    { "@Description", model.Description ?? "" },
-    { "@AddedBy",model.AddedBy ?? "" },
-            {"@AddedDate", model.AddedDate.ToString("yyyy-MM-dd")  }
-};
+            // Input validation
+            if (model == null)
+                return (false, "Rack data cannot be null.");
 
-            DataSet ds = await obj.ExecuteStoredProcedureReturnDS("InventoryProcedure", parameters);
+            if (string.IsNullOrWhiteSpace(model.RackName))
+                return (false, "Rack Name is required.");
 
-            if (ds.Tables.Count > 0 && ds.Tables[0].Rows.Count > 0)
+            if (string.IsNullOrWhiteSpace(model.SectionCode))
+                return (false, "Section is required.");
+
+            if (string.IsNullOrWhiteSpace(model.WarehouseCode))
+                return (false, "Warehouse is required.");
+
+            try
             {
-                var row = ds.Tables[0].Rows[0];
-                return (true, row["Message"].ToString());
-            }
+                // Check if rack name already exists (for insert or update)
+                var checkParameters = new Dictionary<string, string>
+        {
+            { "@Flag", "CheckRackExistsSK" },
+            { "@RackName", model.RackName },
+            { "@RackId", model.RackId > 0 ? model.RackId.ToString() : "0" }
+        };
 
-            return (false, "Something went wrong while saving rack.");
+                var exists = await obj.ExecuteStoredProcedureReturnObject("InventoryProcedure", checkParameters);
+                if (exists != null && Convert.ToInt32(exists) > 0)
+                    return (false, "Rack name already exists. Please use a different name.");
+
+                // Main save operation
+                var parameters = new Dictionary<string, string>
+        {
+            { "@Flag", "SaveRackSK" },
+            { "@RackId", model.RackId.ToString() },
+            { "@RackCode", model.RackCode ?? "" },
+            { "@RackName", model.RackName ?? "" },
+            { "@SectionCode", model.SectionCode ?? "" },
+            { "@WareHouseCode", model.WarehouseCode ?? "" },
+            { "@Description", model.Description ?? "" },
+            { "@AddedBy", model.AddedBy ?? "" },
+            { "@AddedDate", model.AddedDate.ToString("yyyy-MM-dd") }
+        };
+
+                DataSet ds = await obj.ExecuteStoredProcedureReturnDS("InventoryProcedure", parameters);
+
+                if (ds.Tables.Count > 0 && ds.Tables[0].Rows.Count > 0)
+                {
+                    var row = ds.Tables[0].Rows[0];
+                    bool success = row["Result"] != DBNull.Value && Convert.ToInt32(row["Result"]) == 1;
+                    string message = row["Message"] != DBNull.Value ? row["Message"].ToString() :
+                                   success ? "Rack saved successfully." : "Failed to save rack.";
+
+                    return (success, message);
+                }
+
+                return (false, "No response from database.");
+            }
+            catch (Exception ex)
+            {
+                return (false, $"Error: {ex.Message}");
+            }
         }
         /// <summary>
         /// Update Rack 
@@ -2355,33 +2392,58 @@ namespace P2PLibray.Inventory
         /// <param name="model"></param>
         /// <returns></returns>
         // Save Section
-        public async Task<bool> AddSectionAsyncSK(InventorySK model)
+        // Save Section
+        public async Task<(bool Success, string Message, int NewId)> AddSectionAsyncSK(InventorySK model)
         {
+            // Input validation
+            if (model == null) return (false, "Section data cannot be null.", 0);
+            if (string.IsNullOrWhiteSpace(model.SectionCode)) return (false, "Section Code is required.", 0);
+            if (string.IsNullOrWhiteSpace(model.SectionName)) return (false, "Section Name is required.", 0);
+            if (string.IsNullOrWhiteSpace(model.WarehouseCode)) return (false, "Warehouse Code is required.", 0);
+
             try
             {
+                // Check if section already exists
+                var checkParameters = new Dictionary<string, string>
+        {
+            { "@Flag", "CheckSectionExistsSK" },
+            { "@SectionName", model.SectionName },
+            { "@SectionId", "0" } // 0 for new section
+        };
+
+                var exists = await obj.ExecuteStoredProcedureReturnObject("InventoryProcedure", checkParameters);
+                if (exists != null && Convert.ToInt32(exists) > 0)
+                    return (false, "Section name already exists. Please use a different name.", 0);
+
+                // Main insert operation
                 var parameters = new Dictionary<string, string>
-    {
-        { "@Flag", "InsertSectionSK" },
-        { "@SectionCode", model.SectionCode },
-        { "@SectionName", model.SectionName },
-        { "@WarehouseCode", model.WarehouseCode },
-        { "@Description", model.Description }
-    };
+        {
+            { "@Flag", "InsertSectionSK" },
+            { "@SectionCode", model.SectionCode },
+            { "@SectionName", model.SectionName },
+            { "@WarehouseCode", model.WarehouseCode },
+            { "@Description", model.Description ?? "" }
+        };
 
                 DataSet ds = await obj.ExecuteStoredProcedureReturnDS("InventoryProcedure", parameters);
 
                 if (ds.Tables.Count > 0 && ds.Tables[0].Rows.Count > 0)
                 {
                     string result = ds.Tables[0].Rows[0]["Result"].ToString();
-                    return result == "1";
+                    int newId = result == "1" && ds.Tables[0].Columns.Contains("NewId")
+                        ? Convert.ToInt32(ds.Tables[0].Rows[0]["NewId"])
+                        : 0;
+
+                    return result == "1"
+                        ? (true, "Section added successfully.", newId)
+                        : (false, "Section could not be added.", 0);
                 }
 
-                return false;
+                return (false, "No response from database.", 0);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-
-                return false;
+                return (false, $"Error: {ex.Message}", 0);
             }
         }
 
@@ -2431,26 +2493,56 @@ namespace P2PLibray.Inventory
         /// <param name="model"></param>
         /// <returns></returns>
         // Update 
-        public async Task<bool> UpdateSectionAsyncSK(InventorySK model)
+        // UPDATE SECTION 
+        public async Task<(bool Success, string Message)> UpdateSectionAsyncSK(InventorySK model)
         {
+            // Input validation
+            if (model == null) return (false, "Section data cannot be null.");
+            if (model.SectionId <= 0) return (false, "Invalid section ID.");
+            if (string.IsNullOrWhiteSpace(model.SectionName)) return (false, "Section Name is required.");
+            if (string.IsNullOrWhiteSpace(model.WarehouseCode)) return (false, "Warehouse Code is required.");
+
             try
             {
-                var parameters = new Dictionary<string, string>
-    {
-        { "@Flag", "UpdateSectionSK" },
-        { "@SectionId", model.SectionId.ToString() },
-        { "@SectionCode", model.SectionCode },
-        { "@SectionName", model.SectionName },
-        { "@WarehouseCode", model.WarehouseCode },
-        { "@Description", model.Description }
-    };
+                // Check if section name already exists (excluding current section)
+                var checkParameters = new Dictionary<string, string>
+        {
+            { "@Flag", "CheckSectionExistsSK" },
+            { "@SectionName", model.SectionName },
+            { "@SectionId", model.SectionId.ToString() } // Current section ID for update
+        };
 
-                await obj.ExecuteStoredProcedure("InventoryProcedure", parameters);
-                return true;
+                var exists = await obj.ExecuteStoredProcedureReturnObject("InventoryProcedure", checkParameters);
+                if (exists != null && Convert.ToInt32(exists) > 0)
+                    return (false, "Section name already exists. Please use a different name.");
+
+                // Main update operation
+                var parameters = new Dictionary<string, string>
+        {
+            { "@Flag", "UpdateSectionSK" },
+            { "@SectionId", model.SectionId.ToString() },
+            { "@SectionCode", model.SectionCode },
+            { "@SectionName", model.SectionName },
+            { "@WarehouseCode", model.WarehouseCode },
+            { "@Description", model.Description ?? "" }
+        };
+
+                // Execute stored procedure and check result
+                DataSet ds = await obj.ExecuteStoredProcedureReturnDS("InventoryProcedure", parameters);
+
+                if (ds.Tables.Count > 0 && ds.Tables[0].Rows.Count > 0)
+                {
+                    string result = ds.Tables[0].Rows[0]["Result"].ToString();
+                    return result == "1"
+                        ? (true, "Section updated successfully.")
+                        : (false, "Section could not be updated.");
+                }
+
+                return (false, "No response from database.");
             }
-            catch
+            catch (Exception ex)
             {
-                return false;
+                return (false, $"Error: {ex.Message}");
             }
         }
 
