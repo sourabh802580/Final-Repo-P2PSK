@@ -59,6 +59,8 @@
                                 <label for="addRackName">Rack Name <span class="text-danger">*</span></label>
                             </div>
                         </div>
+                        <small class="text-danger" id="addRackNameError"></small>
+
                     </div>
 
                     <!-- Warehouse -->
@@ -101,8 +103,8 @@
             </div>
             <div class="modal-footer">
                 @*<button type="button" class="btn btn-outline-danger bg-danger text-white px-4" data-bs-dismiss="modal">
-                    <i class="bi bi-x-circle me-2"></i>Close
-                </button>*@
+                        <i class="bi bi-x-circle me-2"></i>Close
+                    </button>*@
                 <button type="submit" form="addRackForm" class="btn btn-success px-4" id="addRackModalSubmitBtn">
                     <i class="bi bi-check-circle me-2 text-white"></i>Save
                 </button>
@@ -143,6 +145,8 @@
                                 <label for="editRackName">Rack Name <span class="text-danger">*</span></label>
                             </div>
                         </div>
+                        <small class="text-danger" id="editRackNameError"></small>
+
                     </div>
 
                     <!-- Warehouse (Readonly in Edit) -->
@@ -183,8 +187,8 @@
             </div>
             <div class="modal-footer">
                 @*<button type="button" class="btn btn-outline-danger bg-danger text-white px-4" data-bs-dismiss="modal">
-                    <i class="bi bi-x-circle me-2"></i>Close
-                </button>*@
+                        <i class="bi bi-x-circle me-2"></i>Close
+                    </button>*@
                 <button type="submit" form="editRackForm" class="btn btn-primary px-4" id="editRackModalSubmitBtn">
                     <i class="bi bi-check-circle me-2 text-white"></i>Update
                 </button>
@@ -296,88 +300,107 @@
     };
 
     $(document).ready(function () {
-        // Track selected racks
-        let selectedRackIds = new Set();
 
-        // Initialize tooltips
-        function initTooltips() {
-            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-                return new bootstrap.Tooltip(tooltipTriggerEl, {
-                    trigger: 'hover'
+
+        let isRackInitialized = false;
+        //initRackTab();
+        // -----------------------------
+        // Function to initialize Rack DataTable + Modals
+        // -----------------------------
+        window.initRackTab = function ()
+      
+        {
+            if (isRackInitialized) return; // prevent multiple init
+            isRackInitialized = true;
+
+            // Example: show loader if you have one
+            if (window.setLoaderTimeout) {
+                window.setLoaderTimeout(5000); // set max timeout
+            }
+
+
+            // Track selected racks
+            let selectedRackIds = new Set();
+
+            // Initialize tooltips
+            function initTooltips() {
+                var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+                var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                    return new bootstrap.Tooltip(tooltipTriggerEl, {
+                        trigger: 'hover'
+                    });
                 });
-            });
-        }
+            }
 
-        // Initialize DataTable WITHOUT scrolling
-        var table = $('#rackTable').DataTable({
-            dom: '<"d-flex justify-content-between align-items-center mt-1 mb-2"Bf>rt<"d-flex justify-content-between mt-2"<"datatable-info"i><"datatable-pagination"p>>',
-            paging: true,
-            pageLength: 10,
-            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
-            "ajax": {
-                "url": "/Inventory/GetRacksSK",
-                "type": "GET",
-                "dataSrc": "data"
-            },
-            "columns": [
-                {
-                    "data": "RackId",
-                    "render": function (data, type, row) {
-                        return `<input type="checkbox" class="rack-checkbox" value="${data}">`;
+            // Initialize DataTable WITHOUT scrolling
+            var table = $('#rackTable').DataTable({
+                dom: '<"d-flex justify-content-between align-items-center mt-1 mb-2"Bf>rt<"d-flex justify-content-between mt-2"<"datatable-info"i><"datatable-pagination"p>>',
+                paging: true,
+                pageLength: 10,
+                lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+                "ajax": {
+                    "url": "/Inventory/GetRacksSK",
+                    "type": "GET",
+                    "dataSrc": "data"
+                },
+                "columns": [
+                    {
+                        "data": "RackId",
+                        "render": function (data, type, row) {
+                            return `<input type="checkbox" class="rack-checkbox" value="${data}">`;
+                        },
+                        "orderable": false,
+                        "searchable": false
                     },
-                    "orderable": false,
-                    "searchable": false
-                },
-                {
-                    "data": null,
-                    "render": function (data, type, row, meta) {
-                        if (type === 'display' || type === 'export') {
-                            return meta.row + 1;
-                        }
-                        return data;
-                    }
-                },
-                { "data": "RackId", visible: false },
-                { "data": "RackCode" },
-                { "data": "RackName" },
-                { "data": "SectionName" },
-                { "data": "WarehouseName" },
-                {
-                    "data": "AddedDate",
-                    "render": function (data) {
-                        if (!data) return "";
-                        var match = /\/Date\((\d+)\)\//.exec(data);
-                        if (match) {
-                            var d = new Date(parseInt(match[1]));
-                            return d.toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" });
-                        }
-                        var d2 = new Date(data);
-                        return !isNaN(d2.getTime()) ?
-                            d2.toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" })
-                            : "";
-                    }
-                },
-                { "data": "AddedBy" },
-                {
-                    "data": "Description",
-                    "render": function (data, type, row) {
-                        if (!data) return "";
-
-                        if (type === "display") {
-                            if (data.length > 30) {
-                                return `<span class="description-tooltip" data-bs-toggle="tooltip" data-bs-placement="top" title="${data.replace(/"/g, '&quot;')}">${data.substr(0, 30)}...</span>`;
-                            } else {
-                                return `<span class="description-tooltip" data-bs-toggle="tooltip" data-bs-placement="top" title="${data.replace(/"/g, '&quot;')}">${data}</span>`;
+                    {
+                        "data": null,
+                        "render": function (data, type, row, meta) {
+                            if (type === 'display' || type === 'export') {
+                                return meta.row + 1;
                             }
+                            return data;
                         }
-                        return data;
-                    }
-                },
-                {
-                    "data": "RackId",
-                    "render": function (data, type, row) {
-                        return `
+                    },
+                    { "data": "RackId", visible: false },
+                    { "data": "RackCode" },
+                    { "data": "RackName" },
+                    { "data": "SectionName" },
+                    { "data": "WarehouseName" },
+                    {
+                        "data": "AddedDate",
+                        "render": function (data) {
+                            if (!data) return "";
+                            var match = /\/Date\((\d+)\)\//.exec(data);
+                            if (match) {
+                                var d = new Date(parseInt(match[1]));
+                                return d.toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" });
+                            }
+                            var d2 = new Date(data);
+                            return !isNaN(d2.getTime()) ?
+                                d2.toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" })
+                                : "";
+                        }
+                    },
+                    { "data": "AddedBy" },
+                    {
+                        "data": "Description",
+                        "render": function (data, type, row) {
+                            if (!data) return "";
+
+                            if (type === "display") {
+                                if (data.length > 30) {
+                                    return `<span class="description-tooltip" data-bs-toggle="tooltip" data-bs-placement="top" title="${data.replace(/"/g, '&quot;')}">${data.substr(0, 30)}...</span>`;
+                                } else {
+                                    return `<span class="description-tooltip" data-bs-toggle="tooltip" data-bs-placement="top" title="${data.replace(/"/g, '&quot;')}">${data}</span>`;
+                                }
+                            }
+                            return data;
+                        }
+                    },
+                    {
+                        "data": "RackId",
+                        "render": function (data, type, row) {
+                            return `
                         <div class="d-flex justify-content-center gap-1">
                             <button class="btn btn-sm btn-primary view-rack" data-id="${data}" data-bs-toggle="tooltip" title="View Rack">
                                 <i class="bi bi-eye"></i>
@@ -390,252 +413,253 @@
                             </button>
                         </div>
                         `;
-                    },
-                    "orderable": false,
-                    "searchable": false
-                }
-            ],
-            columnDefs: [
-                { orderable: false, targets: "_all" },
-                { className: "text-center", targets: "_all" }
-            ],
-            buttons: [
-                {
-                    extend: 'print',
-                    text: '<i class="bi bi-printer-fill text-dark fs-5" data-bs-toggle="tooltip" title="Print"></i>',
-                    title: '',
-                    exportOptions: {
-                        columns: ':visible:not(:first-child):not(:last-child)',
-                        rows: function (idx, data, node) {
-                            return selectedRackIds.has(data.RackId.toString());
-                        }
-                    },
-                    action: function (e, dt, button, config) {
-                        if (selectedRackIds.size === 0) {
-                            toastr.warning("Please select at least one rack before printing.", "No Selection");
-                            return;
-                        }
-                        $.fn.dataTable.ext.buttons.print.action.call(this, e, dt, button, config);
-                    },
-                    customize: function (win) {
-                        // Reset serial number for selected rows only
-                        let serialNumber = 1;
-
-                        // Update serial numbers in the printed table
-                        $(win.document.body).find('table tbody tr').each(function () {
-                            $(this).find('td:eq(0)').text(serialNumber++);
-                        });
-
-                        $(win.document.body).prepend(
-                            '<h2 style="text-align: center; margin-bottom: 10px;">Rack List</h2>' +
-                            '<p style="text-align: center; margin-bottom: 20px; color: #666;">Generated on: ' + new Date().toLocaleDateString("en-GB") + '</p>' +
-                            '<hr style="margin-bottom: 20px;">'
-                        );
-
-                        $(win.document.body).find('table')
-                            .css('border', '1px solid black')
-                            .css('border-collapse', 'collapse')
-                            .css('width', '100%')
-                            .find('th, td')
-                            .css('border', '1px solid black')
-                            .css('padding', '8px')
-                            .css('text-align', 'center');
-
-                        $(win.document.body).find('th')
-                            .css('background-color', 'black')
-                            .css('color', 'white')
-                            .css('font-weight', 'bold');
+                        },
+                        "orderable": false,
+                        "searchable": false
                     }
-                },
-                {
-                    extend: 'pdfHtml5',
-                    text: '<i class="bi bi-file-earmark-pdf text-danger fs-5" data-bs-toggle="tooltip" title="Export PDF"></i>',
-                    title: '',
-                    exportOptions: {
-                        columns: ':visible:not(:first-child):not(:last-child)',
-                        rows: function (idx, data, node) {
-                            return selectedRackIds.has(data.RackId.toString());
+                ],
+                columnDefs: [
+                    { orderable: false, targets: "_all" },
+                    { className: "text-center", targets: "_all" }
+                ],
+                buttons: [
+                    {
+                        extend: 'print',
+                        text: '<i class="bi bi-printer-fill text-dark fs-5" data-bs-toggle="tooltip" title="Print"></i>',
+                        title: '',
+                        exportOptions: {
+                            columns: ':visible:not(:first-child):not(:last-child)',
+                            rows: function (idx, data, node) {
+                                return selectedRackIds.has(data.RackId.toString());
+                            }
+                        },
+                        action: function (e, dt, button, config) {
+                            if (selectedRackIds.size === 0) {
+                                toastr.warning("Please select at least one rack before printing.", "No Selection");
+                                return;
+                            }
+                            $.fn.dataTable.ext.buttons.print.action.call(this, e, dt, button, config);
+                        },
+                        customize: function (win) {
+                            // Reset serial number for selected rows only
+                            let serialNumber = 1;
+
+                            // Update serial numbers in the printed table
+                            $(win.document.body).find('table tbody tr').each(function () {
+                                $(this).find('td:eq(0)').text(serialNumber++);
+                            });
+
+                            $(win.document.body).prepend(
+                                '<h2 style="text-align: center; margin-bottom: 10px;">Rack List</h2>' +
+                                '<p style="text-align: center; margin-bottom: 20px; color: #666;">Generated on: ' + new Date().toLocaleDateString("en-GB") + '</p>' +
+                                '<hr style="margin-bottom: 20px;">'
+                            );
+
+                            $(win.document.body).find('table')
+                                .css('border', '1px solid black')
+                                .css('border-collapse', 'collapse')
+                                .css('width', '100%')
+                                .find('th, td')
+                                .css('border', '1px solid black')
+                                .css('padding', '8px')
+                                .css('text-align', 'center');
+
+                            $(win.document.body).find('th')
+                                .css('background-color', 'black')
+                                .css('color', 'white')
+                                .css('font-weight', 'bold');
                         }
                     },
-                    action: function (e, dt, button, config) {
-                        if (selectedRackIds.size === 0) {
-                            toastr.warning("Please select at least one rack before exporting PDF.", "No Selection");
-                            return;
-                        }
-                        $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, button, config);
-                    },
-                    customize: function (doc) {
-                        // Get selected data manually to ensure correct serial numbers
-                        let selectedData = [];
-                        table.rows().every(function () {
-                            let rowData = this.data();
-                            if (selectedRackIds.has(rowData.RackId.toString())) {
-                                selectedData.push(rowData);
+                    {
+                        extend: 'pdfHtml5',
+                        text: '<i class="bi bi-file-earmark-pdf text-danger fs-5" data-bs-toggle="tooltip" title="Export PDF"></i>',
+                        title: '',
+                        exportOptions: {
+                            columns: ':visible:not(:first-child):not(:last-child)',
+                            rows: function (idx, data, node) {
+                                return selectedRackIds.has(data.RackId.toString());
                             }
-                        });
-
-                        // Clear default content and build custom PDF
-                        doc.content = [];
-
-                        // Add title and date
-                        doc.content.push(
-                            {
-                                text: 'Rack List',
-                                alignment: 'center',
-                                fontSize: 16,
-                                bold: true,
-                                margin: [0, 0, 0, 10]
-                            },
-                            {
-                                text: 'Generated on: ' + new Date().toLocaleDateString("en-GB"),
-                                alignment: 'center',
-                                fontSize: 10,
-                                color: '#666',
-                                margin: [0, 0, 0, 15]
+                        },
+                        action: function (e, dt, button, config) {
+                            if (selectedRackIds.size === 0) {
+                                toastr.warning("Please select at least one rack before exporting PDF.", "No Selection");
+                                return;
                             }
-                        );
+                            $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, button, config);
+                        },
+                        customize: function (doc) {
+                            // Get selected data manually to ensure correct serial numbers
+                            let selectedData = [];
+                            table.rows().every(function () {
+                                let rowData = this.data();
+                                if (selectedRackIds.has(rowData.RackId.toString())) {
+                                    selectedData.push(rowData);
+                                }
+                            });
 
-                        // Create table with proper serial numbers
-                        let tableBody = [];
+                            // Clear default content and build custom PDF
+                            doc.content = [];
 
-                        // Table headers
-                        tableBody.push([
-                            { text: 'Sr No', style: 'tableHeader', alignment: 'center' },
-                            { text: 'Rack Code', style: 'tableHeader', alignment: 'center' },
-                            { text: 'Rack Name', style: 'tableHeader', alignment: 'center' },
-                            { text: 'Section Name', style: 'tableHeader', alignment: 'center' },
-                            { text: 'Warehouse Name', style: 'tableHeader', alignment: 'center' },
-                            { text: 'Added Date', style: 'tableHeader', alignment: 'center' },
-                            { text: 'Added By', style: 'tableHeader', alignment: 'center' },
-                            { text: 'Description', style: 'tableHeader', alignment: 'center' }
-                        ]);
+                            // Add title and date
+                            doc.content.push(
+                                {
+                                    text: 'Rack List',
+                                    alignment: 'center',
+                                    fontSize: 16,
+                                    bold: true,
+                                    margin: [0, 0, 0, 10]
+                                },
+                                {
+                                    text: 'Generated on: ' + new Date().toLocaleDateString("en-GB"),
+                                    alignment: 'center',
+                                    fontSize: 10,
+                                    color: '#666',
+                                    margin: [0, 0, 0, 15]
+                                }
+                            );
 
-                        // Add selected rows with sequential serial numbers
-                        selectedData.forEach(function (row, index) {
+                            // Create table with proper serial numbers
+                            let tableBody = [];
+
+                            // Table headers
                             tableBody.push([
-                                { text: (index + 1).toString(), alignment: 'center', fontSize: 9 },
-                                { text: row.RackCode || '-', alignment: 'center', fontSize: 9 },
-                                { text: row.RackName || '-', alignment: 'center', fontSize: 9 },
-                                { text: row.SectionName || '-', alignment: 'center', fontSize: 9 },
-                                { text: row.WarehouseName || '-', alignment: 'center', fontSize: 9 },
-                                { text: row.AddedDate ? new Date(row.AddedDate).toLocaleDateString("en-GB") : '-', alignment: 'center', fontSize: 9 },
-                                { text: row.AddedBy || '-', alignment: 'center', fontSize: 9 },
-                                { text: row.Description || '-', alignment: 'center', fontSize: 9 }
+                                { text: 'Sr No', style: 'tableHeader', alignment: 'center' },
+                                { text: 'Rack Code', style: 'tableHeader', alignment: 'center' },
+                                { text: 'Rack Name', style: 'tableHeader', alignment: 'center' },
+                                { text: 'Section Name', style: 'tableHeader', alignment: 'center' },
+                                { text: 'Warehouse Name', style: 'tableHeader', alignment: 'center' },
+                                { text: 'Added Date', style: 'tableHeader', alignment: 'center' },
+                                { text: 'Added By', style: 'tableHeader', alignment: 'center' },
+                                { text: 'Description', style: 'tableHeader', alignment: 'center' }
                             ]);
-                        });
 
-                        // Add table to document
-                        doc.content.push({
-                            table: {
-                                headerRows: 1,
-                                widths: ['8%', '15%', '15%', '15%', '15%', '12%', '10%', '10%'],
-                                body: tableBody
-                            },
-                            layout: {
-                                hLineWidth: function (i, node) { return 0.5; },
-                                vLineWidth: function (i, node) { return 0.5; },
-                                hLineColor: function (i, node) { return '#000000'; },
-                                vLineColor: function (i, node) { return '#000000'; },
-                                paddingLeft: function (i, node) { return 5; },
-                                paddingRight: function (i, node) { return 5; }
-                            }
-                        });
+                            // Add selected rows with sequential serial numbers
+                            selectedData.forEach(function (row, index) {
+                                tableBody.push([
+                                    { text: (index + 1).toString(), alignment: 'center', fontSize: 9 },
+                                    { text: row.RackCode || '-', alignment: 'center', fontSize: 9 },
+                                    { text: row.RackName || '-', alignment: 'center', fontSize: 9 },
+                                    { text: row.SectionName || '-', alignment: 'center', fontSize: 9 },
+                                    { text: row.WarehouseName || '-', alignment: 'center', fontSize: 9 },
+                                    { text: row.AddedDate ? new Date(row.AddedDate).toLocaleDateString("en-GB") : '-', alignment: 'center', fontSize: 9 },
+                                    { text: row.AddedBy || '-', alignment: 'center', fontSize: 9 },
+                                    { text: row.Description || '-', alignment: 'center', fontSize: 9 }
+                                ]);
+                            });
 
-                        // Styles
-                        doc.styles = {
-                            tableHeader: {
-                                bold: true,
-                                fontSize: 10,
-                                color: 'white',
-                                fillColor: '#000000',
+                            // Add table to document
+                            doc.content.push({
+                                table: {
+                                    headerRows: 1,
+                                    widths: ['8%', '15%', '15%', '15%', '15%', '12%', '10%', '10%'],
+                                    body: tableBody
+                                },
+                                layout: {
+                                    hLineWidth: function (i, node) { return 0.5; },
+                                    vLineWidth: function (i, node) { return 0.5; },
+                                    hLineColor: function (i, node) { return '#000000'; },
+                                    vLineColor: function (i, node) { return '#000000'; },
+                                    paddingLeft: function (i, node) { return 5; },
+                                    paddingRight: function (i, node) { return 5; }
+                                }
+                            });
+
+                            // Styles
+                            doc.styles = {
+                                tableHeader: {
+                                    bold: true,
+                                    fontSize: 10,
+                                    color: 'white',
+                                    fillColor: '#000000',
+                                    alignment: 'center'
+                                }
+                            };
+
+                            doc.defaultStyle = {
+                                fontSize: 9,
                                 alignment: 'center'
+                            };
+                        }
+                    },
+                    {
+                        extend: 'excelHtml5',
+                        text: '<i class="bi bi-file-earmark-excel text-success fs-5" data-bs-toggle="tooltip" title="Export Excel"></i>',
+                        title: 'Rack List',
+                        message: 'Generated on: ' + new Date().toLocaleDateString("en-GB"),
+                        exportOptions: {
+                            columns: ':visible:not(:first-child):not(:last-child)',
+                            rows: function (idx, data, node) {
+                                return selectedRackIds.has(data.RackId.toString());
                             }
-                        };
-
-                        doc.defaultStyle = {
-                            fontSize: 9,
-                            alignment: 'center'
-                        };
-                    }
-                },
-                {
-                    extend: 'excelHtml5',
-                    text: '<i class="bi bi-file-earmark-excel text-success fs-5" data-bs-toggle="tooltip" title="Export Excel"></i>',
-                    title: 'Rack List',
-                    message: 'Generated on: ' + new Date().toLocaleDateString("en-GB"),
-                    exportOptions: {
-                        columns: ':visible:not(:first-child):not(:last-child)',
-                        rows: function (idx, data, node) {
-                            return selectedRackIds.has(data.RackId.toString());
+                        },
+                        action: function (e, dt, button, config) {
+                            if (selectedRackIds.size === 0) {
+                                toastr.warning("Please select at least one rack before exporting Excel.", "No Selection");
+                                return;
+                            }
+                            $.fn.dataTable.ext.buttons.excelHtml5.action.call(this, e, dt, button, config);
                         }
                     },
-                    action: function (e, dt, button, config) {
-                        if (selectedRackIds.size === 0) {
-                            toastr.warning("Please select at least one rack before exporting Excel.", "No Selection");
-                            return;
+                    {
+                        extend: 'csvHtml5',
+                        text: '<i class="bi bi-filetype-csv text-success fs-5" data-bs-toggle="tooltip" title="Export CSV"></i>',
+                        title: 'Rack List',
+                        message: 'Generated on: ' + new Date().toLocaleDateString("en-GB"),
+                        exportOptions: {
+                            columns: ':visible:not(:first-child):not(:last-child)',
+                            rows: function (idx, data, node) {
+                                return selectedRackIds.has(data.RackId.toString());
+                            }
+                        },
+                        action: function (e, dt, button, config) {
+                            if (selectedRackIds.size === 0) {
+                                toastr.warning("Please select at least one rack before exporting CSV.", "No Selection");
+                                return;
+                            }
+                            $.fn.dataTable.ext.buttons.csvHtml5.action.call(this, e, dt, button, config);
                         }
-                        $.fn.dataTable.ext.buttons.excelHtml5.action.call(this, e, dt, button, config);
                     }
+                ],
+                "drawCallback": function (settings) {
+                    setTimeout(function () {
+                        initTooltips();
+                    }, 100);
                 },
-                {
-                    extend: 'csvHtml5',
-                    text: '<i class="bi bi-filetype-csv text-success fs-5" data-bs-toggle="tooltip" title="Export CSV"></i>',
-                    title: 'Rack List',
-                    message: 'Generated on: ' + new Date().toLocaleDateString("en-GB"),
-                    exportOptions: {
-                        columns: ':visible:not(:first-child):not(:last-child)',
-                        rows: function (idx, data, node) {
-                            return selectedRackIds.has(data.RackId.toString());
-                        }
-                    },
-                    action: function (e, dt, button, config) {
-                        if (selectedRackIds.size === 0) {
-                            toastr.warning("Please select at least one rack before exporting CSV.", "No Selection");
-                            return;
-                        }
-                        $.fn.dataTable.ext.buttons.csvHtml5.action.call(this, e, dt, button, config);
-                    }
+                "initComplete": function (settings, json) {
+                    setTimeout(function () {
+                        initTooltips();
+                    }, 100);
                 }
-            ],
-            "drawCallback": function (settings) {
-                setTimeout(function () {
-                    initTooltips();
-                }, 100);
-            },
-            "initComplete": function (settings, json) {
-                setTimeout(function () {
-                    initTooltips();
-                }, 100);
-            }
-        });
+            });
 
-        // --- Checkbox Selection Tracking ---
-        $("#rackTable").on("change", ".rack-checkbox", function () {
-            let id = $(this).val();
-            if ($(this).prop("checked")) {
-                selectedRackIds.add(id);
-            } else {
-                selectedRackIds.delete(id);
-            }
+            // --- Checkbox Selection Tracking ---
+            $("#rackTable").on("change", ".rack-checkbox", function () {
+                let id = $(this).val();
+                if ($(this).prop("checked")) {
+                    selectedRackIds.add(id);
+                } else {
 
-            let total = $(".rack-checkbox").length;
-            let checked = $(".rack-checkbox:checked").length;
+                    selectedRackIds.delete(id);
+                }
 
-            if (total > 0 && total === checked) {
-                $("#selectAllRack").prop("checked", true);
-            } else {
-                $("#selectAllRack").prop("checked", false);
-            }
-        });
+                let total = $(".rack-checkbox").length;
+                let checked = $(".rack-checkbox:checked").length;
 
-        // --- Select All functionality ---
-        $("#selectAllRack").on("change", function () {
-            let isChecked = $(this).prop("checked");
-            $(".rack-checkbox").prop("checked", isChecked).trigger("change");
-        });
+                if (total > 0 && total === checked) {
+                    $("#selectAllRack").prop("checked", true);
+                } else {
+                    $("#selectAllRack").prop("checked", false);
+                }
+            });
 
-        // --- Add date range picker above Rack table ---
-        $("#rackTable_wrapper").prepend(`
+            // --- Select All functionality ---
+            $("#selectAllRack").on("change", function () {
+                let isChecked = $(this).prop("checked");
+                $(".rack-checkbox").prop("checked", isChecked).trigger("change");
+            });
+
+            // --- Add date range picker above Rack table ---
+            $("#rackTable_wrapper").prepend(`
             <div class="input-group mb-2 mt-3" style="max-width: 280px;">
                 <span class="input-group-text bg-primary text-white">
                     <i class="bi bi-calendar-date"></i>
@@ -644,283 +668,420 @@
             </div>
         `);
 
-        // Initialize date range picker
-        $('#rackDateRange').daterangepicker({
-            autoUpdateInput: false,
-            locale: { cancelLabel: 'Clear' },
-            ranges: {
-                'Today': [moment(), moment()],
-                'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-                'Last 1 Month': [moment().subtract(1, 'months').startOf('day'), moment()],
-                'Last 3 Months': [moment().subtract(3, 'months').startOf('day'), moment()],
-                'Last 1 Year': [moment().subtract(12, 'months').startOf('day'), moment()]
+            // Initialize date range picker
+            $('#rackDateRange').daterangepicker({
+                autoUpdateInput: false,
+                locale: { cancelLabel: 'Clear' },
+                ranges: {
+                    'Today': [moment(), moment()],
+                    'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                    'Last 1 Month': [moment().subtract(1, 'months').startOf('day'), moment()],
+                    'Last 3 Months': [moment().subtract(3, 'months').startOf('day'), moment()],
+                    'Last 1 Year': [moment().subtract(12, 'months').startOf('day'), moment()]
 
-            }
-        });
-
-        // Custom filter function for DataTable
-        $.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
-            if (settings.nTable.id !== "rackTable") return true;
-
-            var dateRange = $('#rackDateRange').val();
-            if (!dateRange) return true;
-
-            var minMax = dateRange.split(' to ');
-            var min = moment(minMax[0], 'YYYY-MM-DD');
-            var max = moment(minMax[1], 'YYYY-MM-DD');
-
-            // Added Date column index = 7 (0-based)
-            var date = moment(data[7], 'DD/MM/YYYY');
-            return date.isBetween(min, max, 'day', '[]');
-        });
-
-        // Apply filter on selection
-        $('#rackDateRange').on('apply.daterangepicker', function (ev, picker) {
-            $(this).val(picker.startDate.format('YYYY-MM-DD') + ' to ' + picker.endDate.format('YYYY-MM-DD'));
-            table.draw();
-        });
-
-        // Clear filter
-        $('#rackDateRange').on('cancel.daterangepicker', function () {
-            $(this).val('');
-            table.draw();
-        });
-
-        //  Add Rack
-        $('#btnAddrack').on('click', function () {
-            $('#addRackForm')[0].reset();
-            loadWarehouses();
-
-            // Get Next Rack Code
-            $.get("/Inventory/GetNextRackCodeSK", function (res) {
-                if (res && res.NextCode) {
-                    $('#addRackCode').val(res.NextCode);
-                } else {
-                    toastr.error("Failed to get next rack code");
                 }
             });
 
-            $('#addRackModal').modal('show');
-        });
+            // Custom filter function for DataTable
+            $.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
+                if (settings.nTable.id !== "rackTable") return true;
 
-        //  Save Add Rack
-        $('#addRackForm').on('submit', function (e) {
-            e.preventDefault();
-            var formData = $(this).serialize();
+                var dateRange = $('#rackDateRange').val();
+                if (!dateRange) return true;
 
-            $.ajax({
-                url: "/Inventory/SaveRackSK",
-                type: "POST",
-                data: formData,
-                success: function (res) {
-                    if (res.success) {
-                        $("#addRackModal").modal("hide");
-                        table.ajax.reload(null, false);
-                        Swal.fire({
-                            title: "Success",
-                            text: res.message || "Rack saved successfully!",
-                            icon: "success",
-                            showConfirmButton: false,
-                            timer: 2000
-                        });
-                    } else {
-                        Swal.fire({
-                            title: "Error",
-                            text: res.message || "Something went wrong",
-                            icon: "error",
-                            confirmButtonText: "OK"
-                        });
-                    }
-                },
-                error: function () {
-                    Swal.fire({
-                        title: "Error",
-                        text: "Server error while saving rack.",
-                        icon: "error",
-                        confirmButtonText: "OK"
-                    });
-                }
+                var minMax = dateRange.split(' to ');
+                var min = moment(minMax[0], 'YYYY-MM-DD');
+                var max = moment(minMax[1], 'YYYY-MM-DD');
+
+                // Added Date column index = 7 (0-based)
+                var date = moment(data[7], 'DD/MM/YYYY');
+                return date.isBetween(min, max, 'day', '[]');
             });
-        });
 
-        //  Edit Rack
-        $('#rackTable').on('click', '.edit-rack', function () {
-            var rackId = $(this).data("id");
-            $.get("/Inventory/GetRackByIdSKK/" + rackId, function (res) {
-                if (res) {
-                    $('#editRackId').val(res.RackId);
-                    $('#editRackCode').val(res.RackCode);
-                    $('#editRackName').val(res.RackName);
-                    $('#editDescription').val(res.Description);
-
-                    // Set readonly warehouse and section fields
-                    $('#editWarehouseName').val(res.WarehouseName);
-                    $('#editWarehouseId').val(res.WarehouseCode);
-                    $('#editSectionName').val(res.SectionName);
-                    $('#editSectionId').val(res.SectionCode);
-
-                    $('#editRackModal').modal('show');
-                } else {
-                    Swal.fire("Error", "Rack not found!", "error");
-                }
-            }).fail(function () {
-                Swal.fire("Error", "Error loading rack details.", "error");
+            // Apply filter on selection
+            $('#rackDateRange').on('apply.daterangepicker', function (ev, picker) {
+                $(this).val(picker.startDate.format('YYYY-MM-DD') + ' to ' + picker.endDate.format('YYYY-MM-DD'));
+                table.draw();
             });
-        });
 
-        //  Update Rack
-        $('#editRackForm').on('submit', function (e) {
-            e.preventDefault();
-            var formData = $(this).serialize();
-
-            $.ajax({
-                url: "/Inventory/SaveRackSK",
-                type: "POST",
-                data: formData,
-                success: function (res) {
-                    if (res.success) {
-                        $("#editRackModal").modal("hide");
-                        table.ajax.reload(null, false);
-                        Swal.fire({
-                            title: "Success",
-                            text: res.message || "Rack updated successfully!",
-                            icon: "success",
-                            showConfirmButton: false,
-                            timer: 2000
-                        });
-                    } else {
-                        Swal.fire({
-                            title: "Error",
-                            text: res.message || "Something went wrong",
-                            icon: "error",
-                            confirmButtonText: "OK"
-                        });
-                    }
-                },
-                error: function () {
-                    Swal.fire({
-                        title: "Error",
-                        text: "Server error while updating rack.",
-                        icon: "error",
-                        confirmButtonText: "OK"
-                    });
-                }
+            // Clear filter
+            $('#rackDateRange').on('cancel.daterangepicker', function () {
+                $(this).val('');
+                table.draw();
             });
-        });
 
-        // Delete Rack
-        $('#rackTable').on('click', '.delete-rack', function () {
-            var rackId = $(this).data("id");
+            // --- Duplicate Rack Validation Functions ---
 
-            Swal.fire({
-                title: "Are you sure?",
-                text: "You won't be able to revert this!",
-                icon: "warning",
-                showCancelButton: true,
-                confirmButtonText: "Yes, delete it!",
-                cancelButtonText: "No, cancel!",
-                reverseButtons: false, 
-                customClass: {
-                    confirmButton: "btn btn-danger me-2", 
-                    cancelButton: "btn btn-primary" 
-                },
-                buttonsStyling: false
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    $.post("/Inventory/DeleteRackSK/" + rackId, function (res) {
-                        if (res.success) {
-                            table.ajax.reload();
-                            Swal.fire({
-                                title: "Deleted!",
-                                text: res.message || "Rack has been deleted.",
-                                icon: "success",
-                                showConfirmButton: false,
-                                timer: 2000
-                            });
-                        } else {
-                            Swal.fire("Error", res.message || "Error deleting rack!", "error");
+            // Client-side validation for duplicate rack names in same section
+            function validateRackDuplicate(rackName, sectionCode, rackId, isEdit = false) {
+                var allData = table.rows().data();
+                var isDuplicate = false;
+                var duplicateRack = null;
+
+                $.each(allData, function (index, rack) {
+                    // For add operation, check all records
+                    // For edit operation, exclude current rack
+                    if (!isEdit || rack.RackId != rackId) {
+                        if (rack.RackName.toLowerCase() === rackName.toLowerCase() &&
+                            rack.SectionCode === sectionCode) {
+                            isDuplicate = true;
+                            duplicateRack = rack;
+                            return false; // break loop
                         }
-                    }).fail(function () {
-                        Swal.fire("Error", "Server error while deleting.", "error");
+                    }
+                });
+
+                if (isDuplicate) {
+                    Swal.fire({
+                        title: "Already Exist",
+                        html: `A rack with the name "<strong>${rackName}</strong>" already exists in the section "<strong>${duplicateRack.SectionName}</strong>".<br><br>
+                          Please use a different rack name for this section.`,
+                        icon: "error",
+                        confirmButtonText: "OK",
+                        confirmButtonColor: "#d33"
                     });
+                    return false;
                 }
+
+                return true;
+            }
+
+            // Real-time validation on rack name and section change
+            function setupRealTimeValidation() {
+                $('#addRackName, #editRackName').on('blur', function () {
+                    var rackName = $(this).val().trim();
+                    var form = $(this).closest('form');
+                    var sectionSelect = form.find('select[name="SectionCode"]');
+                    var sectionCode = sectionSelect.val();
+                    var rackId = form.find('input[name="RackId"]').val() || 0;
+                    var isEdit = rackId > 0;
+
+                    if (rackName && sectionCode) {
+                        validateRackDuplicateRealTime(rackName, sectionCode, rackId, isEdit, $(this));
+                    }
+                });
+
+                $('#addSectionId, #editSectionId').on('change', function () {
+                    var sectionCode = $(this).val();
+                    var form = $(this).closest('form');
+                    var rackNameInput = form.find('input[name="RackName"]');
+                    var rackName = rackNameInput.val().trim();
+                    var rackId = form.find('input[name="RackId"]').val() || 0;
+                    var isEdit = rackId > 0;
+
+                    if (rackName && sectionCode) {
+                        validateRackDuplicateRealTime(rackName, sectionCode, rackId, isEdit, rackNameInput);
+                    }
+                });
+            }
+
+            function validateRackDuplicateRealTime(rackName, sectionCode, rackId, isEdit, inputElement) {
+                var allData = table.rows().data();
+                var isDuplicate = false;
+
+                $.each(allData, function (index, rack) {
+                    if (!isEdit || rack.RackId != rackId) {
+                        if (rack.RackName.toLowerCase() === rackName.toLowerCase() &&
+                            rack.SectionCode === sectionCode) {
+                            isDuplicate = true;
+                            return false;
+                        }
+                    }
+                });
+
+                if (isDuplicate) {
+                    inputElement.addClass('is-invalid');
+                    if (!inputElement.next('.invalid-feedback').length) {
+                        inputElement.after('<div class="invalid-feedback">A rack with this name already exists in the selected section.</div>');
+                    }
+                } else {
+                    inputElement.removeClass('is-invalid');
+                    inputElement.next('.invalid-feedback').remove();
+                }
+            }
+
+            // Show Already Exist Error Popup
+            function showAlreadyExistError(message) {
+                Swal.fire({
+                    title: "Already Exist",
+                    text: message,
+                    icon: "error",
+                    confirmButtonText: "OK",
+                    confirmButtonColor: "#d33"
+                });
+            }
+
+            //  Add Rack
+            $('#btnAddrack').on('click', function () {
+                $('#addRackForm')[0].reset();
+                // Remove any existing validation messages
+                $('#addRackName').removeClass('is-invalid').next('.invalid-feedback').remove();
+                loadWarehouses();
+
+                // Get Next Rack Code
+                $.get("/Inventory/GetNextRackCodeSK", function (res) {
+                    if (res && res.NextCode) {
+                        $('#addRackCode').val(res.NextCode);
+                    } else {
+                        toastr.error("Failed to get next rack code");
+                    }
+                });
+
+                $('#addRackModal').modal('show');
             });
-        });
+            function showError(inputId, errorId, message) {
+                $('#' + inputId).addClass('is-invalid');
+                $('#' + errorId).text(message);
+            }
 
-        //  View Rack
-        $('#rackTable').on('click', '.view-rack', function () {
-            var rackId = $(this).data("id");
-            $.get("/Inventory/GetRackByIdSKK/" + rackId, function (res) {
-                if (res) {
-                    $('#viewRackCode').val(res.RackCode);
-                    $('#viewRackName').val(res.RackName);
-                    $('#viewWarehouseName').val(res.WarehouseName);
-                    $('#viewSectionName').val(res.SectionName);
-                    $('#viewDescription').val(res.Description);
-                    $('#viewAddedBy').val(res.AddedBy);
+            function clearError(inputId, errorId) {
+                $('#' + inputId).removeClass('is-invalid');
+                $('#' + errorId).text('');
+            }
 
-                    // Date parsing
-                    let formattedDate = "";
-                    if (res.AddedDate) {
-                        var match = /\/Date\((\d+)\)\//.exec(res.AddedDate);
-                        if (match) {
-                            var d = new Date(parseInt(match[1]));
-                            formattedDate = d.toLocaleDateString("en-GB", {
-                                day: "2-digit", month: "2-digit", year: "numeric"
-                            });
+            // Clear error when typing
+            $('#addRackName').on('input', function () { clearError('addRackName', 'addRackNameError'); });
+            $('#editRackName').on('input', function () { clearError('editRackName', 'editRackNameError'); });
+
+            //  Save Add Rack
+            $('#addRackForm').on('submit', function (e) {
+                e.preventDefault();
+
+                var rackName = $('#addRackName').val().trim();
+                var sectionCode = $('#addSectionId').val();
+
+                clearError('addRackName', 'addRackNameError');
+
+                if (!rackName) {
+                    showError('addRackName', 'addRackNameError', 'Please enter rack name.');
+                    return;
+                }
+
+                if (!sectionCode) {
+                    Swal.fire('Validation Error', 'Please select section.', 'warning');
+                    return;
+                }
+
+                // AJAX call
+                var formData = $(this).serialize();
+                $.ajax({
+                    url: '/Inventory/SaveRackSK',
+                    type: 'POST',
+                    data: formData,
+                    success: function (res) {
+                        if (res.success) {
+                            $('#addRackModal').modal('hide');
+                            table.ajax.reload(null, false);
+                            Swal.fire({ title: 'Success', text: res.message, icon: 'success', timer: 2000, showConfirmButton: false });
                         } else {
-                            var d2 = new Date(res.AddedDate);
-                            if (!isNaN(d2.getTime())) {
-                                formattedDate = d2.toLocaleDateString("en-GB", {
-                                    day: "2-digit", month: "2-digit", year: "numeric"
-                                });
+                            if (res.message.toLowerCase().includes('already exists')) {
+                                showError('addRackName', 'addRackNameError', res.message);
+                            } else {
+                                Swal.fire('Error', res.message, 'error');
                             }
                         }
+                    },
+                    error: function () {
+                        Swal.fire('Error', 'Server error while saving rack.', 'error');
                     }
-                    $('#viewAddedDate').val(formattedDate || "N/A");
-
-                    $('#viewRackModal').modal('show');
-                } else {
-                    Swal.fire("Error", "Rack details not found.", "error");
-                }
-            }).fail(function () {
-                Swal.fire("Error", "Server error while loading rack details.", "error");
-            });
-        });
-
-        //  Load Warehouses
-        function loadWarehouses(selectedCode = "") {
-            $.get("/Inventory/GetWarehousesListSK", function (data) {
-                var ddl = $("#addWarehouseId");
-                ddl.empty().append('<option value="">-- Select Warehouse --</option>');
-                $.each(data, function (i, item) {
-                    ddl.append(`<option value="${item.WarehouseCode}">${item.WarehouseName}</option>`);
                 });
-                if (selectedCode) ddl.val(selectedCode).trigger('change');
-            }).fail(function () {
-                Swal.fire("Error", "Error loading warehouses.", "error");
             });
-        }
 
-        //  Load Sections on warehouse change
-        $('#addWarehouseId').on('change', function () {
-            var warehouseCode = $(this).val();
-            var ddl = $("#addSectionId");
-            ddl.empty().append('<option value="">-- Select Section --</option>');
-            if (warehouseCode) {
-                $.get("/Inventory/GetSectionsSKK", { warehouseCode: warehouseCode }, function (data) {
-                    $.each(data, function (i, item) {
-                        ddl.append(`<option value="${item.SectionCode}">${item.SectionName}</option>`);
-                    });
+            //  Edit Rack
+            $('#editRackForm').on('submit', function (e) {
+                e.preventDefault();
+
+                var rackName = $('#editRackName').val().trim();
+                var sectionCode = $('#editSectionId').val();
+                var rackId = $('#editRackId').val();
+
+                clearError('editRackName', 'editRackNameError');
+
+                if (!rackName) {
+                    showError('editRackName', 'editRackNameError', 'Please enter rack name.');
+                    return;
+                }
+
+                var formData = $(this).serialize();
+                $.ajax({
+                    url: '/Inventory/SaveRackSK',
+                    type: 'POST',
+                    data: formData,
+                    success: function (res) {
+                        if (res.success) {
+                            $('#editRackModal').modal('hide');
+                            table.ajax.reload(null, false);
+                            Swal.fire({ title: 'Success', text: res.message, icon: 'success', timer: 2000, showConfirmButton: false });
+                        } else {
+                            if (res.message.toLowerCase().includes('already exists')) {
+                                showError('editRackName', 'editRackNameError', res.message);
+                            } else {
+                                Swal.fire('Error', res.message, 'error');
+                            }
+                        }
+                    },
+                    error: function () {
+                        Swal.fire('Error', 'Server error while updating rack.', 'error');
+                    }
+                });
+            });
+
+            // Delete Rack
+            $('#rackTable').on('click', '.delete-rack', function () {
+                var rackId = $(this).data("id");
+
+                Swal.fire({
+                    title: "Are you sure?",
+                    text: "You won't be able to revert this!",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Yes, delete it!",
+                    cancelButtonText: "No, cancel!",
+                    reverseButtons: false,
+                    customClass: {
+                        confirmButton: "btn btn-danger me-2",
+                        cancelButton: "btn btn-primary"
+                    },
+                    buttonsStyling: false
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.post("/Inventory/DeleteRackSK/" + rackId, function (res) {
+                            if (res.success) {
+                                table.ajax.reload();
+                                Swal.fire({
+                                    title: "Deleted!",
+                                    text: res.message || "Rack has been deleted.",
+                                    icon: "success",
+                                    showConfirmButton: false,
+                                    timer: 2000
+                                });
+                            } else {
+                                Swal.fire("Error", res.message || "Error deleting rack!", "error");
+                            }
+                        }).fail(function () {
+                            Swal.fire("Error", "Server error while deleting.", "error");
+                        });
+                    }
+                });
+            });
+            // --- Edit Rack Button Click ---
+            // --- Edit Rack Button Click ---
+            $('#rackTable').on('click', '.edit-rack', function () {
+                var rackId = $(this).data('id');
+
+                // Clear previous errors and reset form
+                $('#editRackForm')[0].reset();
+                clearError('editRackName', 'editRackNameError');
+
+                // Fetch rack details via AJAX
+                $.get("/Inventory/GetRackByIdSKK/" + rackId, function (res) {
+                    if (res) {
+                        $('#editRackId').val(res.RackId);
+                        $('#editRackCode').val(res.RackCode);
+                        $('#editRackName').val(res.RackName);
+                        $('#editDescription').val(res.Description || '');
+
+                        // Set Warehouse
+                        $('#editWarehouseId').val(res.WarehouseCode); // hidden value
+                        $('#editWarehouseName').val(res.WarehouseName); // readonly visible value
+
+                        // Set Section
+                        $('#editSectionId').val(res.SectionCode); // hidden value
+                        $('#editSectionName').val(res.SectionName); // readonly visible value
+
+                        // Show edit modal
+                        $('#editRackModal').modal('show');
+                    } else {
+                        Swal.fire("Error", "Rack details not found.", "error");
+                    }
                 }).fail(function () {
-                    Swal.fire("Error", "Error loading sections.", "error");
+                    Swal.fire("Error", "Server error while fetching rack details.", "error");
+                });
+            });
+
+
+
+            //  View Rack
+            $('#rackTable').on('click', '.view-rack', function () {
+                var rackId = $(this).data("id");
+                $.get("/Inventory/GetRackByIdSKK/" + rackId, function (res) {
+                    if (res) {
+                        $('#viewRackCode').val(res.RackCode);
+                        $('#viewRackName').val(res.RackName);
+                        $('#viewWarehouseName').val(res.WarehouseName);
+                        $('#viewSectionName').val(res.SectionName);
+                        $('#viewDescription').val(res.Description);
+                        $('#viewAddedBy').val(res.AddedBy);
+
+                        // Date parsing
+                        let formattedDate = "";
+                        if (res.AddedDate) {
+                            var match = /\/Date\((\d+)\)\//.exec(res.AddedDate);
+                            if (match) {
+                                var d = new Date(parseInt(match[1]));
+                                formattedDate = d.toLocaleDateString("en-GB", {
+                                    day: "2-digit", month: "2-digit", year: "numeric"
+                                });
+                            } else {
+                                var d2 = new Date(res.AddedDate);
+                                if (!isNaN(d2.getTime())) {
+                                    formattedDate = d2.toLocaleDateString("en-GB", {
+                                        day: "2-digit", month: "2-digit", year: "numeric"
+                                    });
+                                }
+                            }
+                        }
+                        $('#viewAddedDate').val(formattedDate || "N/A");
+
+                        $('#viewRackModal').modal('show');
+                    } else {
+                        Swal.fire("Error", "Rack details not found.", "error");
+                    }
+                }).fail(function () {
+                    Swal.fire("Error", "Server error while loading rack details.", "error");
+                });
+            });
+
+            //  Load Warehouses
+            function loadWarehouses(selectedCode = "") {
+                $.get("/Inventory/GetWarehousesListSK", function (data) {
+                    var ddl = $("#addWarehouseId");
+                    ddl.empty().append('<option value="">-- Select Warehouse --</option>');
+                    $.each(data, function (i, item) {
+                        ddl.append(`<option value="${item.WarehouseCode}">${item.WarehouseName}</option>`);
+                    });
+                    if (selectedCode) ddl.val(selectedCode).trigger('change');
+                }).fail(function () {
+                    Swal.fire("Error", "Error loading warehouses.", "error");
                 });
             }
-        });
 
-        // Initial tooltip initialization
-        setTimeout(function () {
-            initTooltips();
-        }, 500);
-    });
+            //  Load Sections on warehouse change
+            $('#addWarehouseId').on('change', function () {
+                var warehouseCode = $(this).val();
+                var ddl = $("#addSectionId");
+                ddl.empty().append('<option value="">-- Select Section --</option>');
+                if (warehouseCode) {
+                    $.get("/Inventory/GetSectionsSKK", { warehouseCode: warehouseCode }, function (data) {
+                        $.each(data, function (i, item) {
+                            ddl.append(`<option value="${item.SectionCode}">${item.SectionName}</option>`);
+                        });
+                    }).fail(function () {
+                        Swal.fire("Error", "Error loading sections.", "error");
+                    });
+                }
+            });
+
+            // Setup real-time validation
+            setupRealTimeValidation();
+
+            // Initial tooltip initialization
+            setTimeout(function () {
+                initTooltips();
+            }, 500);
+           // initRackTab();
+        }
+        });
+        
+    
 </script>

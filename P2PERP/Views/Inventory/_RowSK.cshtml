@@ -60,6 +60,8 @@
                                 <label for="addRowName">Row Name <span class="text-danger">*</span></label>
                             </div>
                         </div>
+                        <small class="text-danger" id="addRowNameError"></small>
+
                     </div>
 
                     <!-- Warehouse -->
@@ -106,7 +108,7 @@
                         <div class="input-group input-group-merge mb-3">
                             <span class="input-group-text"><i class="ri-file-text-line"></i></span>
                             <div class="form-floating form-floating-outline">
-                                <textarea class="form-control" id="addDescription" name="Description" rows="3"></textarea>
+                                <textarea class="form-control" id="addDescriptionForRow" name="Description" rows="3"></textarea>
                                 <label for="addDescription">Description</label>
                             </div>
                         </div>
@@ -157,6 +159,8 @@
                                 <label for="editRowName">Row Name <span class="text-danger">*</span></label>
                             </div>
                         </div>
+                        <small class="text-danger" id="editRowNameError"></small>
+
                     </div>
 
                     <!-- Warehouse (Readonly in Edit) -->
@@ -695,9 +699,26 @@
             $("#addRackDropdown").empty().append('<option value="">-- Select Rack --</option>');
         });
 
+
+        function showError(inputId, errorId, message) {
+            $('#' + inputId).addClass('is-invalid');
+            $('#' + errorId).text(message);
+        }
+
+        function clearError(inputId, errorId) {
+            $('#' + inputId).removeClass('is-invalid');
+            $('#' + errorId).text('');
+        }
+
+
+
+
         // Save Add Row
         $('#addRowForm').on('submit', function (e) {
             e.preventDefault();
+
+            // Clear previous errors
+            clearError('addRowName', 'addRowNameError');
 
             var formData = {
                 RowId: 0,
@@ -706,9 +727,9 @@
                 WarehouseCode: $('#addWarehouseDropdown').val(),
                 SectionCode: $('#addSectionDropdown').val(),
                 RackCode: $('#addRackDropdown').val(),
-                Description: $('#addDescription').val() || ""
+                Description: $('#addDescriptionForRow').val()
             };
-
+            console.log(formData)
             $.ajax({
                 url: "/Inventory/SaveRowSBK",
                 type: "POST",
@@ -726,13 +747,17 @@
                             showConfirmButton: false
                         });
                     } else {
-                        Swal.fire({
-                            title: "Error",
-                            text: res.message || "Something went wrong",
-                            icon: "error",
-                            timer: 2500,
-                            showConfirmButton: false
-                        });
+                        if (res.message.includes("already exists")) {
+                            showError('addRowName', 'addRowNameError', res.message);
+                        } else {
+                            Swal.fire({
+                                title: "Error",
+                                text: res.message || "Something went wrong",
+                                icon: "error",
+                                timer: 2500,
+                                showConfirmButton: false
+                            });
+                        }
                     }
                 },
                 error: function () {
@@ -746,6 +771,7 @@
                 }
             });
         });
+
 
         // Edit Row - FIXED BINDING ISSUE
         $(document).on("click", ".editRow", function () {
@@ -789,6 +815,9 @@
         $('#editRowForm').on('submit', function (e) {
             e.preventDefault();
 
+            // Clear previous errors
+            clearError('editRowName', 'editRowNameError');
+
             var formData = {
                 RowId: $('#editRowId').val(),
                 RowCode: $('#editRowCode').val(),
@@ -798,8 +827,6 @@
                 RackCode: $('#editRackCode').val(),
                 Description: $('#editRowDescription').val() || ""
             };
-
-            console.log("Update Data:", formData); // Debug log
 
             $.ajax({
                 url: "/Inventory/SaveRowSBK",
@@ -818,26 +845,45 @@
                             showConfirmButton: false
                         });
                     } else {
-                        Swal.fire({
-                            title: "Error",
-                            text: res.message || "Something went wrong",
-                            icon: "error",
-                            timer: 2500,
-                            showConfirmButton: false
-                        });
+                        if (res.message.includes("already exists")) {
+                            showError('editRowName', 'editRowNameError', res.message);
+                        } else {
+                            Swal.fire({
+                                title: "Error",
+                                text: res.message || "Something went wrong",
+                                icon: "error",
+                                timer: 2500,
+                                showConfirmButton: false
+                            });
+                        }
                     }
                 },
-                error: function (xhr, status, error) {
-                    console.error("Error updating row:", error);
+                error: function () {
                     Swal.fire({
                         title: "Error",
-                        text: "Server error while updating row: " + error,
+                        text: "Server error while updating row.",
                         icon: "error",
                         timer: 2500,
                         showConfirmButton: false
                     });
                 }
             });
+        });
+        $('#addRowName').on('input', function () {
+            clearError('addRowName', 'addRowNameError');
+        });
+
+        $('#editRowName').on('input', function () {
+            clearError('editRowName', 'editRowNameError');
+        });
+        $('#addRowModal').on('hidden.bs.modal', function () {
+            clearError('addRowName', 'addRowNameError');
+            $('#addRowForm')[0].reset();
+        });
+
+        $('#editRowModal').on('hidden.bs.modal', function () {
+            clearError('editRowName', 'editRowNameError');
+            $('#editRowForm')[0].reset();
         });
 
         // View Row

@@ -791,8 +791,12 @@ namespace P2PERP.Controllers
 
                     if (Success)
                         return Json(new { success = true, message = Message, newId = NewId });
-                    else
-                        return Json(new { success = false, message = Message });
+
+                    // ✅ If duplicate name detected
+                    if (Message.Contains("already"))
+                        return Json(new { success = false, message = Message, field = "WarehouseName" });
+
+                    return Json(new { success = false, message = Message });
                 }
                 return Json(new { success = false, message = "Invalid data" });
             }
@@ -801,6 +805,7 @@ namespace P2PERP.Controllers
                 return Json(new { success = false, message = ex.Message });
             }
         }
+
 
 
 
@@ -829,8 +834,12 @@ namespace P2PERP.Controllers
             {
                 if (ModelState.IsValid)
                 {
-                    await bal.UpdateWarehouseAsyncSK(model);
-                    return Json(new { success = true, message = "Warehouse updated successfully" });
+                    var (Success, Message) = await bal.UpdateWarehouseAsyncSK(model);
+
+                    if (Success)
+                        return Json(new { success = true, message = Message });
+
+                    return Json(new { success = false, message = Message, field = "WarehouseName" });
                 }
                 return Json(new { success = false, message = "Invalid data" });
             }
@@ -839,6 +848,7 @@ namespace P2PERP.Controllers
                 return Json(new { success = false, message = ex.Message });
             }
         }
+
         //        View Warehouse Details
         [HttpGet]
         public async Task<ActionResult> ViewWarehouseSK(int id)
@@ -962,6 +972,7 @@ namespace P2PERP.Controllers
         {
             model.AddedBy = Session["StaffCode"].ToString();
             model.AddedDate = DateTime.Now;
+
             try
             {
                 var result = await bal.SaveRackAsyncSK(model);
@@ -981,6 +992,7 @@ namespace P2PERP.Controllers
                 }, JsonRequestBehavior.AllowGet);
             }
         }
+
         //    THIS IS USED FOR VIEW AND UPDATE USING ID    RACK
         public async Task<ActionResult> GetRackByIdSKK(int id)
         {
@@ -1183,9 +1195,23 @@ namespace P2PERP.Controllers
             model.AddedDate = DateTime.Now;
 
             System.Diagnostics.Debug.WriteLine("Description from UI: " + model.Descriptions);
+
             var (success, message) = await bal.SaveBinAsyncSK(model);
-            return Json(new { success, message });
+
+            // ✅ If message indicates validation or constraint issue, mark as failure
+            if (message.Contains("Bin with same name") ||
+                message.Contains("Max Quantity") ||
+                message.Contains("Cannot update") ||
+                message.Contains("required") ||
+                !success)
+            {
+                return Json(new { success = false, message });
+            }
+
+            // ✅ Otherwise treat as success
+            return Json(new { success = true, message });
         }
+
 
 
         //   THIS IS USED BY UPDATE AND VIEW FOR BIN 
@@ -1259,15 +1285,12 @@ namespace P2PERP.Controllers
             {
                 try
                 {
-                    bool isSaved = await bal.AddSectionAsyncSK(model);
-                    if (isSaved)
-                    {
-                        return Json(new { success = true, message = "Section added successfully!" });
-                    }
-                    else
-                    {
-                        return Json(new { success = false, message = "Failed to save section." });
-                    }
+                    var (Success, Message) = await bal.AddSectionAsyncSK(model);
+
+                    if (Success)
+                        return Json(new { success = true, message = Message });
+
+                    return Json(new { success = false, message = Message, field = "SectionName" });
                 }
                 catch (Exception ex)
                 {
@@ -1276,6 +1299,7 @@ namespace P2PERP.Controllers
             }
             return Json(new { success = false, message = "Invalid data." });
         }
+
 
         //    THIS IS USED BY UPDATE AND VIEW BY USING ID 
         [HttpGet]
@@ -1306,21 +1330,19 @@ namespace P2PERP.Controllers
         {
             try
             {
-                var result = await bal.UpdateSectionAsyncSK(model);
-                if (result)
-                {
-                    return Json(new { success = true, message = "Section updated successfully!" });
-                }
-                else
-                {
-                    return Json(new { success = false, message = "Failed to update section." });
-                }
+                var (Success, Message) = await bal.UpdateSectionAsyncSK(model);
+
+                if (Success)
+                    return Json(new { success = true, message = Message });
+
+                return Json(new { success = false, message = Message, field = "SectionName" });
             }
             catch (Exception ex)
             {
                 return Json(new { success = false, message = ex.Message });
             }
         }
+
 
         //  DELETE SECTION
 

@@ -1,4 +1,44 @@
-﻿<div class="d-flex justify-content-between align-items-center mb-3">
+﻿
+<style>
+    /* Fix double border for input-group-merge */
+    .input-group-merge .form-control,
+    .input-group-merge .form-select {
+        border-left: 0 !important;
+        border-radius: 0 0.375rem 0.375rem 0 !important;
+    }
+
+    .input-group-merge .input-group-text {
+        border-right: 0 !important;
+        border-radius: 0.375rem 0 0 0.375rem !important;
+    }
+
+    /* For invalid state */
+    .input-group-merge .form-control.is-invalid,
+    .input-group-merge .form-select.is-invalid {
+        border-left: 1px solid #dc3545 !important;
+    }
+
+        .input-group-merge .form-control.is-invalid ~ .input-group-text,
+        .input-group-merge .form-select.is-invalid ~ .input-group-text {
+            border-color: #dc3545 !important;
+            background-color: #f8d7da;
+        }
+
+    button.dt-button.processing,
+    div.dt-button.processing {
+        pointer-events: auto !important;
+        opacity: 1 !important;
+        background: none !important;
+    }
+
+        button.dt-button.processing:after {
+            content: none !important;
+
+        }
+</style>
+
+
+<div class="d-flex justify-content-between align-items-center mb-3">
 
     <div class="flex-grow-1 text-center">
         <h4 class="mb-0 h3 text-primary">Warehouse List</h4>
@@ -68,6 +108,8 @@
                                 <label for="WarehouseName">Warehouse Name <span class="text-danger">*</span></label>
                             </div>
                         </div>
+                        <div id="WarehouseNameError" class="text-danger" style="font-size: 0.9rem;"></div>
+
                     </div>
 
                     <!-- Address -->
@@ -894,6 +936,23 @@
                 });
             });
         });
+        // ✅ Remove error when user starts typing in WarehouseName
+$(document).on("input", "[name='WarehouseName']", function () {
+    $(this).removeClass("is-invalid");
+    $("#WarehouseNameError").html(""); // Clear the message
+});
+
+        $('#addWarehouseModal').on('hidden.bs.modal', function () {
+            // Clear all input/select values
+            $('#addWarehouseForm')[0].reset();
+
+            // Remove error messages
+            $('#WarehouseNameError').html('');
+            $(".text-danger.field-error").remove();
+
+            // Remove red border
+            $("input, select").removeClass("is-invalid");
+        });
 
         // ================= Form Submit =================
         $("#addWarehouseForm").on("submit", function (e) {
@@ -909,7 +968,6 @@
                 success: function (res) {
                     if (res.success) {
                         $("#addWarehouseModal").modal("hide");
-                        // ✅ Refresh table and maintain latest entries on top
                         $('#warehouseTable').DataTable().ajax.reload(null, false);
                         Swal.fire({
                             title: "Success",
@@ -919,14 +977,35 @@
                             timer: 2000
                         });
                     } else {
-                        Swal.fire({
-                            title: "Error",
-                            text: res.message,
-                            icon: "error",
-                            confirmButtonText: "OK"
-                        });
+                        // ✅ Clear previous errors
+                        $(".text-danger.field-error").remove();
+                        $("input, select").removeClass("is-invalid");
+
+                        if (res.field) {
+                            // ✅ Locate the input box
+                            let input = $(`[name=${res.field}]`);
+                            input.addClass("is-invalid");
+
+                            // ✅ Show error message in the specific div
+                            $("#WarehouseNameError").html(res.message);
+
+                            // ✅ Scroll & focus to the invalid field
+                            input.focus();
+                            $('html, body').animate({
+                                scrollTop: input.offset().top - 100  // Adjusts position slightly above
+                            }, 300);
+                        } else {
+                            Swal.fire({
+                                title: "Error",
+                                text: res.message,
+                                icon: "error",
+                                confirmButtonText: "OK"
+                            });
+                        }
                     }
                 },
+
+
                 error: function () {
                     Swal.fire({
                         title: "Error",

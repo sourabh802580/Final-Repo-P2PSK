@@ -52,48 +52,50 @@
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <div class="input-group input-group-merge mb-3">
+                            <div class="input-group input-group-merge mb-1">
                                 <span class="input-group-text"><i class="ri-layout-masonry-line"></i></span>
                                 <div class="form-floating form-floating-outline">
                                     <input type="text" name="SectionName" class="form-control" required>
-                                    <label for="SectionName">Section Name  <span class="text-danger">*</span></label>
+                                    <label for="SectionName">Section Name <span class="text-danger">*</span></label>
                                 </div>
                             </div>
+                            <div id="SectionNameError" class="text-danger" style="font-size: 0.9rem;"></div>
                         </div>
-                    </div>
 
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <div class="input-group input-group-merge mb-3">
-                                <span class="input-group-text"><i class="ri-building-4-line"></i></span>
-                                <div class="form-floating form-floating-outline">
-                                    <select id="WarehouseCodes" name="WarehouseCode" class="form-select" required>
-                                        <option value="">-- Select Warehouse --</option>
-                                    </select>
-                                    <label for="WarehouseCodes">Warehouse <span class="text-danger">*</span></label>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="input-group input-group-merge mb-3">
-                                <span class="input-group-text"><i class="ri-file-text-line"></i></span>
-                                <div class="form-floating form-floating-outline">
-                                    <textarea name="Description" class="form-control" style="height: 80px;"></textarea>
-                                    <label for="Description">Description</label>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
 
-                    <div class="d-flex justify-content-end gap-2 mt-4">
-                        @*<button type="button" class="btn btn-outline-danger bg-danger text-white px-4" data-bs-dismiss="modal">
-                            <i class="bi bi-x-circle me-2"></i>Close
-                        </button>*@
-                        <button type="submit" class="btn btn-success px-4">
-                            <i class="bi bi-check-circle me-2 text-white"></i>Save
-                        </button>
-                    </div>
-                </form>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="input-group input-group-merge mb-3">
+                                    <span class="input-group-text"><i class="ri-building-4-line"></i></span>
+                                    <div class="form-floating form-floating-outline">
+                                        <select id="WarehouseCodes" name="WarehouseCode" class="form-select" required>
+                                            <option value="">-- Select Warehouse --</option>
+                                        </select>
+                                        <label for="WarehouseCodes">Warehouse <span class="text-danger">*</span></label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="input-group input-group-merge mb-3">
+                                    <span class="input-group-text"><i class="ri-file-text-line"></i></span>
+                                    <div class="form-floating form-floating-outline">
+                                        <textarea name="Description" class="form-control" style="height: 80px;"></textarea>
+                                        <label for="Description">Description</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            @*<button type="button" class="btn btn-outline-danger bg-danger text-white px-4" data-bs-dismiss="modal">
+                <i class="bi bi-x-circle me-2"></i>Close
+            </button>*@
+                            <button type="submit" class="btn btn-success px-4">
+                                <i class="bi bi-check-circle me-2 text-white"></i>Save
+                            </button>
+                        </div>
+                        </div>
+</form>
             </div>
         </div>
     </div>
@@ -128,7 +130,10 @@
                                     <label for="EditSectionName">Section Name <span class="text-danger">*</span></label>
                                 </div>
                             </div>
+                            <div id="EditSectionNameError" class="text-danger" style="font-size: 0.9rem;"></div>
+
                         </div>
+
                     </div>
 
                     <div class="row mb-3">
@@ -601,6 +606,17 @@
                 }
             });
         });
+        // When modal is closed, reset form and clear errors
+        $("#addSectionModal").on("hidden.bs.modal", function () {
+            // ✅ Reset all form fields
+            $("#addSectionForm")[0].reset();
+
+            // ✅ Remove validation styling
+            $("#addSectionForm .is-invalid").removeClass("is-invalid");
+
+            // ✅ Clear all custom error message divs
+            $("#SectionNameError").html("");
+        });
 
         // --- Save Section ---
         $("#addSectionForm").on("submit", function (e) {
@@ -621,12 +637,34 @@
                         timer: 2000
                     });
                 } else {
-                    Swal.fire({
-                        title: "Error",
-                        text: res.message,
-                        icon: "error",
-                        confirmButtonText: "OK"
-                    });
+                    // ✅ Clear previous errors
+                    $("#SectionNameError").html("");
+                    $("[name='SectionName']").removeClass("is-invalid");
+
+                    if (res.field === "SectionName") {
+                        let input = $(`[name=${res.field}]`);
+                        input.addClass("is-invalid");
+                        $("#SectionNameError").html(res.message);
+
+                        // ✅ Focus + Scroll
+                        input.focus();
+                        $('html, body').animate({
+                            scrollTop: input.offset().top - 100
+                        }, 300);
+
+                        // ✅ Clear error when typing
+                        input.on("input", function () {
+                            $(this).removeClass("is-invalid");
+                            $("#SectionNameError").html("");
+                        });
+                    } else {
+                        Swal.fire({
+                            title: "Error",
+                            text: res.message,
+                            icon: "error",
+                            confirmButtonText: "OK"
+                        });
+                    }
                 }
             }).fail(function () {
                 Swal.fire({
@@ -660,13 +698,32 @@
                 Swal.fire("Error", "Error loading section details.", "error");
             });
         });
+        $('#editSectionModal').on('hidden.bs.modal', function () {
+            $('#editSectionForm')[0].reset();     // Clear all inputs
+            $('.text-danger').remove();           // Remove error messages
+            $('.is-invalid').removeClass('is-invalid'); // Remove invalid styles if any
+        });
 
         // --- Update Section Submit ---
         $("#editSectionForm").on("submit", function (e) {
             e.preventDefault();
 
             let formData = $(this).serialize();
+            let nameField = $('#EditSectionName');
+            let nameValue = nameField.val().trim();
 
+            // Remove old error
+            nameField.removeClass('is-invalid');
+            nameField.next('.error-msg').remove();
+
+            // Validate
+            if (nameValue === "") {
+                nameField.addClass('is-invalid');
+                nameField.closest('.col-md-6').append(
+                    '<div class="text-danger mt-1">Section Name is required</div>'
+                );                nameField.focus();  // ✅ Focus stays on the same textbox (no scrolling)
+                return;
+            }
             $.post("/Inventory/UpdateSectionSK", formData, function (res) {
                 if (res.success) {
                     $("#editSectionModal").modal("hide");
@@ -676,11 +733,31 @@
                         title: "Updated!",
                         text: res.message,
                         icon: "success",
-                        timer: 2000, // 2 seconds
+                        timer: 2000,
                         showConfirmButton: false
                     });
                 } else {
-                    Swal.fire("Error", res.message, "error");
+                    if (res.field === "SectionName") {
+                        let input = $(`[name=${res.field}]`);
+                        input.addClass("is-invalid");
+
+                        // ✅ Put error below the field
+                        $("#EditSectionNameError").html(res.message);
+
+                        // ✅ Focus and scroll
+                        input.focus();
+                        $('html, body').animate({
+                            scrollTop: input.offset().top - 100
+                        }, 300);
+
+                        // ✅ Remove error when typing
+                        input.on("input", function () {
+                            $(this).removeClass("is-invalid");
+                            $("#EditSectionNameError").html("");
+                        });
+                    } else {
+                        Swal.fire("Error", res.message, "error");
+                    }
                 }
             }).fail(function () {
                 Swal.fire("Error", "Error updating section!", "error");
