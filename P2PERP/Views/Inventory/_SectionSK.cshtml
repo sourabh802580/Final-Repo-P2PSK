@@ -18,6 +18,9 @@
         button.dt-button.processing:after {
             content: none !important;
         }
+        .text-red{
+            color:red;
+        }
 </style>
 
 <div class="table-responsive">
@@ -54,45 +57,40 @@
                 <form id="addSectionForm">
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <div class="input-group input-group-merge mb-3">
-                                <span class="input-group-text"><i class="ri-barcode-line"></i></span>
-                                <div class="form-floating form-floating-outline">
-                                    <input type="text" id="SectionCodeSk" name="SectionCode" class="form-control" required readonly>
-                                    <label for="SectionCodeSk">Section Code</label>
-                                </div>
+                            <label for="SectionCodeSk">Section Code <span class="text-red">*</span></label>
+                            <div class="form-floating form-floating-outline mb-3">
+                                <input type="text" id="SectionCodeSk" name="SectionCode" class="form-control bg-gray" required readonly>
+
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <div class="input-group input-group-merge mb-1">
-                                <span class="input-group-text"><i class="ri-layout-masonry-line"></i></span>
-                                <div class="form-floating form-floating-outline">
+                            <div>
+                                <label for="SectionName">Section Name <span class="text-red">*</span></label>
+                                <div class="form-floating form-floating-outline mb-1">
                                     <input type="text" name="SectionName" class="form-control">
-                                    <label for="SectionName">Section Name <span class="text-danger">*</span></label>
+
                                 </div>
                             </div>
                             <span id="SectionNameError" class="text-danger"></span>
                         </div>
                         <div class="row mb-3">
                             <div class="col-md-6">
-                                <div class="input-group input-group-merge mb-3">
-                                    <span class="input-group-text"><i class="ri-building-4-line"></i></span>
-                                    <div class="form-floating form-floating-outline">
-                                        <select id="WarehouseCodes" name="WarehouseCode" class="form-select">
-                                            <option value="">-- Select Warehouse --</option>
-                                        </select>
-                                        <label for="WarehouseCodes">Warehouse <span class="text-danger">*</span></label>
-                                    </div>
+                                <label for="WarehouseCodes">Warehouse <span class="text-red">*</span></label>
+                                <div class="form-floating form-floating-outline mb-3">
+                                    <select id="WarehouseCodes" name="WarehouseCode" class="form-select">
+                                        <option value="">-- Select Warehouse --</option>
+                                    </select>
+
                                 </div>
                                 <span id="addSectionWhError" class="text-danger"></span>
                             </div>
                             <div class="col-md-6">
-                                <div class="input-group input-group-merge mb-3">
-                                    <span class="input-group-text"><i class="ri-file-text-line"></i></span>
-                                    <div class="form-floating form-floating-outline">
-                                        <textarea name="Descriptionk" class="form-control" style="height: 80px;"></textarea>
-                                        <label for="Description">Description</label>
-                                    </div>
+                                <label for="Description">Description <span class="text-red">*</span></label>
+                                <div class="form-floating form-floating-outline mb-3">
+                                    <textarea name="Descriptionk" id="Description" class="form-control" style="height: 80px;" placeholder="Enter at least 5 words"></textarea>
+                                   
                                 </div>
+                                <span id="DescriptionError" class="text-danger d-none"></span>
                             </div>
                         </div>
                         <div class="d-flex justify-content-end gap-2 mt-4">
@@ -123,43 +121,36 @@
                     <input type="hidden" name="SectionId" id="EditSectionId" />
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <div class="input-group input-group-merge mb-3">
-                                <span class="input-group-text"><i class="ri-barcode-line"></i></span>
-                                <div class="form-floating form-floating-outline">
-                                    <input type="text" id="EditSectionCode" name="SectionCode" class="form-control" readonly>
-                                    <label for="EditSectionCode">Section Code</label>
-                                </div>
+                            <label for="EditSectionCode">Section Code</label>
+                            <div class="form-floating form-floating-outline mb-3">
+                                <input type="text" id="EditSectionCode" name="SectionCode" class="form-control bg-gray" readonly>
+
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <div class="input-group input-group-merge mb-3">
-                                <span class="input-group-text"><i class="ri-layout-masonry-line"></i></span>
-                                <div class="form-floating form-floating-outline">
-                                    <input type="text" id="EditSectionName" name="SectionName" class="form-control" required>
-                                    <label for="EditSectionName">Section Name <span class="text-danger">*</span></label>
-                                </div>
+                            <label for="EditSectionName">Section Name  <span class="text-red">*</span></label>
+                            <div class="form-floating form-floating-outline mb-3">
+                                <input type="text" id="EditSectionName" name="SectionName" class="form-control" required>
+
                             </div>
                             <div id="EditSectionNameError" class="text-danger" style="font-size: 0.9rem;"></div>
                         </div>
                     </div>
                     <div class="row mb-3">
-                        <div class="col-md-6">
-                            <div class="input-group input-group-merge mb-3">
-                                <span class="input-group-text"><i class="ri-building-4-line"></i></span>
-                                <div class="form-floating form-floating-outline" readonly>
-                                    <select id="EditWarehouseCode" name="WarehouseCode" class="form-select" required></select>
-                                    <label for="EditWarehouseCode">Warehouse <span class="text-danger">*</span></label>
-                                </div>
+                        <div class="col-md-6" >
+                            <label for="EditWarehouseCode">Warehouse <span class="text-red">*</span></label>
+                            <div class="form-floating form-floating-outline mb-3" readonly>
+                                <select id="EditWarehouseCode" name="WarehouseCode" class="form-select" required ></select>
+
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <div class="input-group input-group-merge mb-3">
-                                <span class="input-group-text"><i class="ri-file-text-line"></i></span>
-                                <div class="form-floating form-floating-outline">
-                                    <textarea id="EditDescription" name="Description" class="form-control" style="height: 80px;"></textarea>
-                                    <label for="EditDescription">Description</label>
-                                </div>
+                            <label for="EditDescription">Description <span class="text-red">*</span></label>
+                            <div class="form-floating form-floating-outline mb-3">
+                                <textarea id="EditDescription" name="Description" class="form-control" style="height: 80px;" placeholder="Enter at least 5 words"></textarea>
+                               
                             </div>
+                            <span id="EditDescriptionError" class="text-danger d-none"></span>
                         </div>
                     </div>
                     <div class="d-flex justify-content-end gap-2 mt-4">
@@ -187,39 +178,31 @@
             <div class="modal-body">
                 <form class="row g-3">
                     <div class="col-md-6">
-                        <div class="input-group input-group-merge mb-3">
-                            <span class="input-group-text"><i class="ri-barcode-line"></i></span>
-                            <div class="form-floating form-floating-outline">
-                                <input type="text" class="form-control" id="ViewSectionCode" readonly>
-                                <label for="ViewSectionCode">Section Code</label>
-                            </div>
+                        <label for="ViewSectionCode">Section Code</label>
+                        <div class="form-floating form-floating-outline mb-3">
+                            <input type="text" class="form-control" id="ViewSectionCode" readonly>
+
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="input-group input-group-merge mb-3">
-                            <span class="input-group-text"><i class="ri-layout-masonry-line"></i></span>
-                            <div class="form-floating form-floating-outline">
-                                <input type="text" class="form-control" id="ViewSectionName" readonly>
-                                <label for="ViewSectionName">Section Name</label>
-                            </div>
+                        <label for="ViewSectionName">Section Name</label>
+                        <div class="form-floating form-floating-outline mb-3">
+                            <input type="text" class="form-control" id="ViewSectionName" readonly>
+
                         </div>
                     </div>
                     <div class="col-12">
-                        <div class="input-group input-group-merge mb-3">
-                            <span class="input-group-text"><i class="ri-building-4-line"></i></span>
-                            <div class="form-floating form-floating-outline">
-                                <input type="text" class="form-control" id="ViewWarehouseName" readonly>
-                                <label for="ViewWarehouseName">Warehouse</label>
-                            </div>
+                        <label for="ViewWarehouseName">Warehouse</label>
+                        <div class="form-floating form-floating-outline mb-3">
+                            <input type="text" class="form-control" id="ViewWarehouseName" readonly>
+
                         </div>
                     </div>
                     <div class="col-12">
-                        <div class="input-group input-group-merge mb-3">
-                            <span class="input-group-text"><i class="ri-file-text-line"></i></span>
-                            <div class="form-floating form-floating-outline">
-                                <textarea class="form-control" id="ViewDescription" rows="3" readonly></textarea>
-                                <label for="ViewDescription">Description</label>
-                            </div>
+                        <label for="ViewDescription">Description</label>
+                        <div class="form-floating form-floating-outline mb-3">
+                            <textarea class="form-control" id="ViewDescription" rows="3" readonly></textarea>
+
                         </div>
                     </div>
                 </form>
@@ -227,6 +210,7 @@
         </div>
     </div>
 </div>
+
 
 <script>
     $(document).ready(function () {
@@ -295,8 +279,9 @@
         };
 
         // ================= VALIDATION FUNCTIONS =================
+        // ================= VALIDATION FUNCTIONS =================
         const validators = {
-            sectionForm: function(formSelector) {
+            sectionForm: function (formSelector) {
                 let isValid = true;
                 const $form = $(formSelector);
 
@@ -310,29 +295,73 @@
                         value: $form.find("#WarehouseCodes").val(),
                         required: true,
                         errorId: 'addSectionWhError'
+                    },
+                    Description: {
+                        value: $form.find("#Description").val().trim(),
+                        required: true,
+                        minWords: 5,
+                        errorId: 'DescriptionError',
+                        message: 'Description is required.',
+                        minWordsMessage: 'Description must contain at least 5 words.'
                     }
                 };
 
                 Object.keys(fields).forEach(field => {
                     const config = fields[field];
                     if (!config.value) {
-                        const fieldName = field === 'SectionName' ? 'Section Name' : 'Warehouse';
+                        const fieldName = field === 'SectionName' ? 'Section Name' :
+                            field === 'WarehouseCodes' ? 'Warehouse' : 'Description';
                         utils.showFieldError(field, config.errorId, `${fieldName} is required.`);
                         isValid = false;
+                    } else if (config.minWords) {
+                        const wordCount = config.value.split(/\s+/).filter(word => word.length > 0).length;
+                        if (wordCount < config.minWords) {
+                            utils.showFieldError(field, config.errorId, config.minWordsMessage);
+                            isValid = false;
+                        } else {
+                            utils.clearFieldError(field, config.errorId);
+                        }
+                    } else {
+                        utils.clearFieldError(field, config.errorId);
                     }
                 });
 
                 return isValid;
             },
 
-            editSectionForm: function() {
+            editSectionForm: function () {
+                let isValid = true;
+
+                // Section Name validation
                 const nameValue = $('#EditSectionName').val().trim();
                 if (!nameValue) {
                     $('#EditSectionName').addClass('is-invalid');
                     $('#EditSectionNameError').text('Section Name is required').removeClass('d-none');
-                    return false;
+                    isValid = false;
+                } else {
+                    $('#EditSectionName').removeClass('is-invalid');
+                    $('#EditSectionNameError').text('').addClass('d-none');
                 }
-                return true;
+
+                // Description validation
+                const descValue = $('#EditDescription').val().trim();
+                if (!descValue) {
+                    $('#EditDescription').addClass('is-invalid');
+                    $('#EditDescriptionError').text('Description is required').removeClass('d-none');
+                    isValid = false;
+                } else {
+                    const wordCount = descValue.split(/\s+/).filter(word => word.length > 0).length;
+                    if (wordCount < 5) {
+                        $('#EditDescription').addClass('is-invalid');
+                        $('#EditDescriptionError').text('Description must contain at least 5 words').removeClass('d-none');
+                        isValid = false;
+                    } else {
+                        $('#EditDescription').removeClass('is-invalid');
+                        $('#EditDescriptionError').text('').addClass('d-none');
+                    }
+                }
+
+                return isValid;
             }
         };
 
@@ -672,11 +701,29 @@
             });
 
             // Live validation
-            $(document).on("input change", "[name='SectionName'], #WarehouseCodes", function() {
+            $(document).on("input change", "[name='SectionName'], #WarehouseCodes, #Description, #EditDescription", function () {
                 const id = $(this).attr("id") || $(this).attr("name");
-                if ($(this).val().trim()) {
-                    const errorMap = { SectionName: "SectionNameError", WarehouseCodes: "addSectionWhError" };
-                    if (errorMap[id]) utils.clearFieldError(id, errorMap[id]);
+                const value = $(this).val().trim();
+
+                if (value) {
+                    const errorMap = {
+                        SectionName: "SectionNameError",
+                        WarehouseCodes: "addSectionWhError",
+                        Description: "DescriptionError",
+                        EditDescription: "EditDescriptionError"
+                    };
+
+                    if (errorMap[id]) {
+                        // For description fields, check word count
+                        if (id === 'Description' || id === 'EditDescription') {
+                            const wordCount = value.split(/\s+/).filter(word => word.length > 0).length;
+                            if (wordCount >= 5) {
+                                utils.clearFieldError(id, errorMap[id]);
+                            }
+                        } else {
+                            utils.clearFieldError(id, errorMap[id]);
+                        }
+                    }
                 }
             });
 
@@ -769,7 +816,7 @@
                 utils.showFieldError("SectionName", "SectionNameError", message || "Something went wrong while saving section.");
             }
         }
-
+         
         function editSection(id) {
             $.get(CONFIG.urls.getSectionById, { id }, function(res) {
                 if (res.success) {
@@ -803,19 +850,54 @@
         }
 
         function handleEditSectionError(res) {
+            // Clear previous errors first
+            utils.clearFieldError("SectionName", "EditSectionNameError");
+            utils.clearFieldError("Description", "EditDescriptionError");
+
+            // Check if it's a field-specific error
             if (res.field === "SectionName") {
                 const $input = $(`[name=${res.field}]`);
                 $input.addClass("is-invalid");
-                $("#EditSectionNameError").html(res.message);
+                $("#EditSectionNameError").html(res.message).removeClass("d-none");
 
                 $input.focus();
                 $('html, body').animate({ scrollTop: $input.offset().top - 100 }, 300);
 
-                $input.on("input", function() {
+                $input.on("input", function () {
                     $(this).removeClass("is-invalid");
-                    $("#EditSectionNameError").html("");
+                    $("#EditSectionNameError").html("").addClass("d-none");
+                });
+            } else if (res.field === "Description") {
+                const $input = $("#EditDescription");
+                $input.addClass("is-invalid");
+                $("#EditDescriptionError").html(res.message).removeClass("d-none");
+
+                $input.focus();
+                $('html, body').animate({ scrollTop: $input.offset().top - 100 }, 300);
+
+                $input.on("input", function () {
+                    $(this).removeClass("is-invalid");
+                    $("#EditDescriptionError").html("").addClass("d-none");
+                });
+            }
+            // Handle "already exists" error
+            else if (res.message && (res.message.toLowerCase().includes("already exist") ||
+                res.message.toLowerCase().includes("duplicate") ||
+                res.message.toLowerCase().includes("exists"))) {
+                // Show error on SectionName field for "already exists"
+                const $input = $("#EditSectionName");
+                $input.addClass("is-invalid");
+                $("#EditSectionNameError").html("Section Name already exists.").removeClass("d-none");
+
+                $input.focus();
+                $('html, body').animate({ scrollTop: $input.offset().top - 100 }, 300);
+
+                $input.on("input", function () {
+                    $(this).removeClass("is-invalid");
+                    $("#EditSectionNameError").html("").addClass("d-none");
                 });
             } else {
+                // General error
                 utils.handleError(res.message);
             }
         }

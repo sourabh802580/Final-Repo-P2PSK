@@ -28,6 +28,7 @@
     </table>
 </div>
 
+
 <!-- Add Rack Modal -->
 <div class="modal fade" id="addRackModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
@@ -39,70 +40,60 @@
                 <button type="button" class="btn-close btn-close-white position-absolute end-0 me-3"
                         data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
+
             <div class="modal-body">
                 <form id="addRackForm" class="row g-3">
-                    <div class="col-md-6">
-                        <div class="input-group input-group-merge mb-3">
-                            <span class="input-group-text"><i class="ri-barcode-line"></i></span>
-                            <div class="form-floating form-floating-outline">
-                                <input type="text" class="form-control" id="addRackCode" name="RackCode" required readonly>
-                                <label for="addRackCode">Rack Code</label>
-                            </div>
-                        </div>
+
+                    <!-- Rack Code -->
+                    <div class="col-md-6 mb-3">
+                        <label for="addRackCode" class="form-label">Rack Code</label>
+                        <input type="text" class="form-control bg-gray" id="addRackCode" name="RackCode" required readonly>
                     </div>
-                    <div class="col-md-6">
-                        <div class="input-group input-group-merge mb-3">
-                            <span class="input-group-text"><i class="ri-archive-drawer-line"></i></span>
-                            <div class="form-floating form-floating-outline">
-                                <input type="text" class="form-control" id="addRackName" name="RackName">
-                                <label for="addRackName">Rack Name <span class="text-danger">*</span></label>
-                            </div>
-                        </div>
+
+                    <!-- Rack Name -->
+                    <div class="col-md-6 mb-3">
+                        <label for="addRackName" class="form-label">Rack Name <span class="text-red">*</span></label>
+                        <input type="text" class="form-control" id="addRackName" name="RackName">
                         <span id="addRackNameError" class="text-danger"></span>
                     </div>
-                    <div class="col-md-6">
-                        <div class="input-group input-group-merge mb-3">
-                            <span class="input-group-text"><i class="ri-building-4-line"></i></span>
-                            <div class="form-floating form-floating-outline">
-                                <select class="form-select" id="addWarehouseId" name="WarehouseId">
-                                    <option value="">-- Select Warehouse --</option>
-                                </select>
-                                <label for="addWarehouseId">Warehouse <span class="text-danger">*</span></label>
-                            </div>
-                        </div>
+
+                    <!-- Warehouse -->
+                    <div class="col-md-6 mb-3">
+                        <label for="addWarehouseId" class="form-label">Warehouse <span class="text-red">*</span></label>
+                        <select class="form-select" id="addWarehouseId" name="WarehouseId">
+                            <option value="">-- Select Warehouse --</option>
+                        </select>
                         <span id="addRackWhNameError" class="text-danger"></span>
                     </div>
-                    <div class="col-md-6">
-                        <div class="input-group input-group-merge mb-3">
-                            <span class="input-group-text"><i class="ri-layout-masonry-line"></i></span>
-                            <div class="form-floating form-floating-outline">
-                                <select class="form-select" id="addSectionId" name="SectionCode">
-                                    <option value="">-- Select Section --</option>
-                                </select>
-                                <label for="addSectionId">Section <span class="text-danger">*</span></label>
-                            </div>
-                        </div>
+
+                    <!-- Section -->
+                    <div class="col-md-6 mb-3">
+                        <label for="addSectionId" class="form-label">Section <span class="text-red">*</span></label>
+                        <select class="form-select" id="addSectionId" name="SectionCode">
+                            <option value="">-- Select Section --</option>
+                        </select>
                         <span id="addRackSectinError" class="text-danger"></span>
                     </div>
-                    <div class="col-12">
-                        <div class="input-group input-group-merge mb-3">
-                            <span class="input-group-text"><i class="ri-file-text-line"></i></span>
-                            <div class="form-floating form-floating-outline">
-                                <textarea class="form-control" id="addDescription" name="Description" rows="3"></textarea>
-                                <label for="addDescription">Description</label>
-                            </div>
-                        </div>
+
+                    <!-- Description -->
+                    <div class="col-12 mb-3">
+                        <label for="addDescription" class="form-label">Description <span class="text-red">*</span></label>
+                        <textarea class="form-control" id="addDescription" name="Description" rows="3" placeholder="Enter at least 5 words"></textarea>
+                        <span id="addDescriptionError" class="text-danger d-none"></span>
                     </div>
+
                 </form>
             </div>
+
             <div class="modal-footer">
                 <button type="submit" form="addRackForm" class="btn btn-success px-4" id="addRackModalSubmitBtn">
-                    <i class="bi bi-check-circle me-2 text-white"></i>Save
+                    Save
                 </button>
             </div>
         </div>
     </div>
 </div>
+
 
 <!-- Edit Rack Modal -->
 <div class="modal fade" id="editRackModal" tabindex="-1" aria-hidden="true">
@@ -118,53 +109,50 @@
             <div class="modal-body">
                 <form id="editRackForm" class="row g-3">
                     <input type="hidden" id="editRackId" name="RackId" />
+                    <!--  Rack Code  -->
                     <div class="col-md-6">
-                        <div class="input-group input-group-merge mb-3">
-                            <span class="input-group-text"><i class="ri-barcode-line"></i></span>
-                            <div class="form-floating form-floating-outline">
-                                <input type="text" class="form-control" id="editRackCode" name="RackCode" required readonly>
-                                <label for="editRackCode">Rack Code</label>
-                            </div>
+                        <label for="editRackCode">Rack Code</label>
+
+                        <div class="form-floating form-floating-outline">
+                            <input type="text" class="form-control bg-gray" id="editRackCode" name="RackCode" required readonly>
                         </div>
+
                     </div>
+                    <!-- Rack Name -->
                     <div class="col-md-6">
-                        <div class="input-group input-group-merge mb-3">
-                            <span class="input-group-text"><i class="ri-archive-drawer-line"></i></span>
-                            <div class="form-floating form-floating-outline">
-                                <input type="text" class="form-control" id="editRackName" name="RackName" required>
-                                <label for="editRackName">Rack Name <span class="text-danger">*</span></label>
-                            </div>
+                        <label for="editRackName">Rack Name <span class="text-red">*</span></label>
+
+                        <div class="form-floating form-floating-outline">
+                            <input type="text" class="form-control" id="editRackName" name="RackName" required>
                         </div>
+
                         <small class="text-danger" id="editRackNameError"></small>
                     </div>
+                    <!--  warehouse name  -->
                     <div class="col-md-6">
-                        <div class="input-group input-group-merge mb-3">
-                            <span class="input-group-text"><i class="ri-building-4-line"></i></span>
-                            <div class="form-floating form-floating-outline">
-                                <input type="text" class="form-control" id="editWarehouseName" readonly>
-                                <input type="hidden" id="editWarehouseId" name="WarehouseId">
-                                <label for="editWarehouseName">Warehouse</label>
-                            </div>
+                        <label for="editWarehouseName">Warehouse</label>
+
+                        <div class="form-floating form-floating-outline">
+                            <input type="text" class="form-control bg-gray" id="editWarehouseName" readonly>
+                            <input type="hidden" id="editWarehouseId" name="WarehouseId">
                         </div>
+
                     </div>
+                    <!-- Section name  -->
                     <div class="col-md-6">
-                        <div class="input-group input-group-merge mb-3">
-                            <span class="input-group-text"><i class="ri-layout-masonry-line"></i></span>
+                        <label for="editSectionName">Section</label>
+                        
                             <div class="form-floating form-floating-outline">
-                                <input type="text" class="form-control" id="editSectionName" readonly>
+                                <input type="text" class="form-control bg-gray" id="editSectionName" readonly>
                                 <input type="hidden" id="editSectionId" name="SectionCode">
-                                <label for="editSectionName">Section</label>
+                                
                             </div>
                         </div>
-                    </div>
+                    <!-- Description -->
                     <div class="col-12">
-                        <div class="input-group input-group-merge mb-3">
-                            <span class="input-group-text"><i class="ri-file-text-line"></i></span>
-                            <div class="form-floating form-floating-outline">
-                                <textarea class="form-control" id="editDescription" name="Description" rows="3"></textarea>
-                                <label for="editDescription">Description</label>
-                            </div>
-                        </div>
+                        <label for="editDescription" class="form-label">Description <span class="text-red">*</span></label>
+                        <textarea class="form-control" id="editDescription" name="Description" rows="3" placeholder="Enter at least 5 words"></textarea>
+                        <span id="editDescriptionError" class="text-danger d-none"></span>
                     </div>
                 </form>
             </div>
@@ -188,69 +176,55 @@
                 <button type="button" class="btn-close btn-close-white position-absolute end-0 me-3"
                         data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
+
             <div class="modal-body">
                 <form class="row g-3">
                     <div class="col-md-6">
-                        <div class="input-group input-group-merge mb-3">
-                            <span class="input-group-text"><i class="ri-barcode-line"></i></span>
-                            <div class="form-floating form-floating-outline">
-                                <input type="text" class="form-control" id="viewRackCode" readonly>
-                                <label for="viewRackCode">Rack Code</label>
-                            </div>
+                        <label for="viewRackCode">Rack Code</label>
+                        <div class="form-floating form-floating-outline">
+                            <input type="text" class="form-control" id="viewRackCode" readonly>
                         </div>
                     </div>
+
                     <div class="col-md-6">
-                        <div class="input-group input-group-merge mb-3">
-                            <span class="input-group-text"><i class="ri-archive-drawer-line"></i></span>
-                            <div class="form-floating form-floating-outline">
-                                <input type="text" class="form-control" id="viewRackName" readonly>
-                                <label for="viewRackName">Rack Name</label>
-                            </div>
+                        <label for="viewRackName">Rack Name</label>
+                        <div class="form-floating form-floating-outline">
+                            <input type="text" class="form-control" id="viewRackName" readonly>
                         </div>
                     </div>
+
                     <div class="col-md-6">
-                        <div class="input-group input-group-merge mb-3">
-                            <span class="input-group-text"><i class="ri-building-4-line"></i></span>
-                            <div class="form-floating form-floating-outline">
-                                <input type="text" class="form-control" id="viewWarehouseName" readonly>
-                                <label for="viewWarehouseName">Warehouse</label>
-                            </div>
+                        <label for="viewWarehouseName">Warehouse</label>
+                        <div class="form-floating form-floating-outline">
+                            <input type="text" class="form-control" id="viewWarehouseName" readonly>
                         </div>
                     </div>
+
                     <div class="col-md-6">
-                        <div class="input-group input-group-merge mb-3">
-                            <span class="input-group-text"><i class="ri-layout-masonry-line"></i></span>
-                            <div class="form-floating form-floating-outline">
-                                <input type="text" class="form-control" id="viewSectionName" readonly>
-                                <label for="viewSectionName">Section</label>
-                            </div>
+                        <label for="viewSectionName">Section</label>
+                        <div class="form-floating form-floating-outline">
+                            <input type="text" class="form-control" id="viewSectionName" readonly>
                         </div>
                     </div>
+
                     <div class="col-12">
-                        <div class="input-group input-group-merge mb-3">
-                            <span class="input-group-text"><i class="ri-file-text-line"></i></span>
-                            <div class="form-floating form-floating-outline">
-                                <textarea class="form-control" id="viewDescription" rows="2" readonly></textarea>
-                                <label for="viewDescription">Description</label>
-                            </div>
+                        <label for="viewDescription">Description</label>
+                        <div class="form-floating form-floating-outline">
+                            <textarea class="form-control" id="viewDescription" rows="2" readonly></textarea>
                         </div>
                     </div>
+
                     <div class="col-md-6">
-                        <div class="input-group input-group-merge mb-3">
-                            <span class="input-group-text"><i class="ri-calendar-line"></i></span>
-                            <div class="form-floating form-floating-outline">
-                                <input type="text" class="form-control" id="viewAddedDate" readonly>
-                                <label for="viewAddedDate">Added Date</label>
-                            </div>
+                        <label for="viewAddedDate">Added Date</label>
+                        <div class="form-floating form-floating-outline">
+                            <input type="text" class="form-control" id="viewAddedDate" readonly>
                         </div>
                     </div>
+
                     <div class="col-md-6">
-                        <div class="input-group input-group-merge mb-3">
-                            <span class="input-group-text"><i class="ri-user-3-line"></i></span>
-                            <div class="form-floating form-floating-outline">
-                                <input type="text" class="form-control" id="viewAddedBy" readonly>
-                                <label for="viewAddedBy">Added By</label>
-                            </div>
+                        <label for="viewAddedBy">Added By</label>
+                        <div class="form-floating form-floating-outline">
+                            <input type="text" class="form-control" id="viewAddedBy" readonly>
                         </div>
                     </div>
                 </form>
@@ -258,6 +232,8 @@
         </div>
     </div>
 </div>
+
+
 
 <style>
     button.dt-button.processing,
@@ -270,6 +246,10 @@
         button.dt-button.processing:after {
             content: none !important;
         }
+
+    .text-red {
+        color: red;
+    }
 </style>
 
 <script>
@@ -372,6 +352,13 @@
                         value: $form.find("#addSectionId").val(),
                         errorId: 'addRackSectinError',
                         message: 'Please select a Section.'
+                    },
+                    addDescription: {
+                        value: $form.find("#addDescription").val().trim(),
+                        errorId: 'addDescriptionError',
+                        message: 'Description is required.',
+                        minWords: 5,
+                        minWordsMessage: 'Description must contain at least 5 words.'
                     }
                 };
 
@@ -380,6 +367,16 @@
                     if (!config.value) {
                         utils.showFieldError(field, config.errorId, config.message);
                         isValid = false;
+                    } else if (config.minWords) {
+                        const wordCount = config.value.split(/\s+/).filter(word => word.length > 0).length;
+                        if (wordCount < config.minWords) {
+                            utils.showFieldError(field, config.errorId, config.minWordsMessage);
+                            isValid = false;
+                        } else {
+                            utils.clearFieldError(field, config.errorId);
+                        }
+                    } else {
+                        utils.clearFieldError(field, config.errorId);
                     }
                 });
 
@@ -387,13 +384,38 @@
             },
 
             editRackForm: function () {
+                let isValid = true;
+
+                // Rack Name validation
                 const nameValue = $('#editRackName').val().trim();
                 if (!nameValue) {
                     $('#editRackName').addClass('is-invalid');
                     $('#editRackNameError').text('Rack Name is required').removeClass('d-none');
-                    return false;
+                    isValid = false;
+                } else {
+                    $('#editRackName').removeClass('is-invalid');
+                    $('#editRackNameError').text('').addClass('d-none');
                 }
-                return true;
+
+                // Description validation
+                const descValue = $('#editDescription').val().trim();
+                if (!descValue) {
+                    $('#editDescription').addClass('is-invalid');
+                    $('#editDescriptionError').text('Description is required').removeClass('d-none');
+                    isValid = false;
+                } else {
+                    const wordCount = descValue.split(/\s+/).filter(word => word.length > 0).length;
+                    if (wordCount < 5) {
+                        $('#editDescription').addClass('is-invalid');
+                        $('#editDescriptionError').text('Description must contain at least 5 words').removeClass('d-none');
+                        isValid = false;
+                    } else {
+                        $('#editDescription').removeClass('is-invalid');
+                        $('#editDescriptionError').text('').addClass('d-none');
+                    }
+                }
+
+                return isValid;
             }
         };
 
@@ -820,20 +842,33 @@
                 deleteRack($(this).data("id"));
             });
 
+           
             // Live validation
-            $(document).on("input change", "#addRackName, #addWarehouseId, #addSectionId, #editRackName", function () {
+            $(document).on("input change", "#addRackName, #addWarehouseId, #addSectionId, #editRackName, #addDescription, #editDescription", function () {
                 const id = $(this).attr("id");
+                const value = $(this).val().trim();
+
                 const errorMap = {
                     addRackName: "addRackNameError",
                     addWarehouseId: "addRackWhNameError",
                     addSectionId: "addRackSectinError",
-                    editRackName: "editRackNameError"
+                    editRackName: "editRackNameError",
+                    addDescription: "addDescriptionError",
+                    editDescription: "editDescriptionError"
                 };
-                if (errorMap[id] && $(this).val()) {
-                    utils.clearFieldError(id, errorMap[id]);
+
+                if (errorMap[id] && value) {
+                    // For description fields, check word count
+                    if (id === 'addDescription' || id === 'editDescription') {
+                        const wordCount = value.split(/\s+/).filter(word => word.length > 0).length;
+                        if (wordCount >= 5) {
+                            utils.clearFieldError(id, errorMap[id]);
+                        }
+                    } else {
+                        utils.clearFieldError(id, errorMap[id]);
+                    }
                 }
             });
-
             // Warehouse change handler
             $('#addWarehouseId').on('change', function () {
                 const warehouseCode = $(this).val();
@@ -920,6 +955,13 @@
         function handleRackError(message, inputId, errorId) {
             if (message && message.toLowerCase().includes("already exists")) {
                 utils.showFieldError(inputId, errorId, message);
+            } else if (message && (message.toLowerCase().includes("description") || message.toLowerCase().includes("5 words"))) {
+                // Handle description validation errors
+                if (inputId === "addRackName") {
+                    utils.showFieldError("addDescription", "addDescriptionError", message);
+                } else if (inputId === "editRackName") {
+                    utils.showFieldError("editDescription", "editDescriptionError", message);
+                }
             } else {
                 utils.handleError(message || "Something went wrong");
             }
@@ -959,13 +1001,39 @@
                         table.ajax.reload(null, false);
                         utils.showAlert("Success", res.message, "success");
                     } else {
-                        handleRackError(res.message, "editRackName", "editRackNameError");
+                        handleEditRackError(res);
                     }
                 },
                 error: function () {
                     utils.handleError("Server error while updating rack.");
                 }
             });
+        }
+
+        function handleEditRackError(res) {
+            // Clear all errors first
+            utils.clearFieldError("editRackName", "editRackNameError");
+            utils.clearFieldError("editDescription", "editDescriptionError");
+
+            if (res.field && res.message) {
+                // Field-specific errors
+                if (res.field === "RackName") {
+                    utils.showFieldError("editRackName", "editRackNameError", res.message);
+                } else if (res.field === "Description") {
+                    utils.showFieldError("editDescription", "editDescriptionError", res.message);
+                }
+            } else if (res.message) {
+                const msg = res.message.toLowerCase();
+                if (msg.includes("already exist") || msg.includes("duplicate") || msg.includes("exists")) {
+                    utils.showFieldError("editRackName", "editRackNameError", "Rack Name already exists.");
+                } else if (msg.includes("description") || msg.includes("5 words")) {
+                    utils.showFieldError("editDescription", "editDescriptionError", res.message);
+                } else {
+                    utils.handleError(res.message);
+                }
+            } else {
+                utils.handleError("An unknown error occurred");
+            }
         }
 
         function viewRack(id) {

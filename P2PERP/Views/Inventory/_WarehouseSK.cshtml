@@ -19,7 +19,7 @@
             content: none !important;
         }
 
-  
+
     /* Fix double border for input-group-merge */
     .input-group-merge .form-control,
     .input-group-merge .form-select {
@@ -54,6 +54,9 @@
         button.dt-button.processing:after {
             content: none !important;
         }
+    .text-red {
+        color: red;
+    }
 </style>
 
 <div class="table-responsive">
@@ -93,98 +96,81 @@
             <div class="modal-body">
                 <form id="addWarehouseForm" class="row g-3">
                     <div class="col-md-6">
-                        <div class="input-group input-group-merge mb-3">
-                            <span class="input-group-text"><i class="ri-barcode-line"></i></span>
-                            <div class="form-floating form-floating-outline">
-                                <input type="text" class="form-control" id="WarehouseCode" name="WarehouseCode" readonly>
-                                <label for="WarehouseCode">Warehouse Code <span class="text-danger">*</span></label>
-                            </div>
+                        <label for="WarehouseCode">Warehouse Code <span class="text-red">*</span></label>
+                        <div class="form-floating form-floating-outline  mb-3">
+                            <input type="text" class="form-control bg-gray " id="WarehouseCode" name="WarehouseCode" readonly>
+
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="input-group input-group-merge mb-3">
-                            <span class="input-group-text"><i class="ri-building-4-line"></i></span>
-                            <div class="form-floating form-floating-outline">
-                                <input type="text" class="form-control" name="WarehouseName">
-                                <label for="WarehouseName">Warehouse Name <span class="text-danger">*</span></label>
-                            </div>
+                        <label for="WarehouseName">Warehouse Name <span class="text-red">*</span></label>
+                        <div class="form-floating form-floating-outline mb-3">
+                            <input type="text" class="form-control" id="WarehouseName" name="WarehouseName">
+
                         </div>
-                        <span id="WarehouseNameError" class="text-danger"></span>
+                        <span id="WarehouseNameError" name="WarehouseName" class="text-danger d-none"></span>
                     </div>
                     <div class="col-12">
-                        <div class="input-group input-group-merge mb-3">
-                            <span class="input-group-text"><i class="ri-map-pin-line"></i></span>
-                            <div class="form-floating form-floating-outline">
-                                <input type="text" class="form-control" name="Address">
-                                <label for="Address">Address <span class="text-danger">*</span></label>
-                            </div>
+                        <label for="Address">Address <span class="text-red">*</span></label>
+                        <div class="form-floating form-floating-outline mb-3">
+                            <input type="text" class="form-control" id="Address" name="Address">
+
                         </div>
-                        <span id="WarehouseAddressError" class="text-danger"></span>
+                        <span id="WarehouseAddressError" class="text-danger d-none"></span>
                     </div>
                     <div class="col-md-4">
-                        <div class="input-group input-group-merge mb-3">
-                            <span class="input-group-text"><i class="ri-earth-line"></i></span>
-                            <div class="form-floating form-floating-outline">
-                                <select class="form-select h-auto" id="CountryId" name="CountryCode">
-                                    <option value="">-- Select Country --</option>
-                                </select>
-                                <label for="CountryId">Country <span class="text-danger">*</span></label>
-                            </div>
+                        <label for="CountryId">Country <span class="text-red">*</span></label>
+                        <div class="form-floating form-floating-outline mb-3">
+                            <select class="form-select h-auto" id="CountryId" name="CountryCode">
+                                <option value="">-- Select Country --</option>
+                            </select>
+
                         </div>
-                        <span id="WarehouseCountryError" class="text-danger"></span>
+                        <span id="WarehouseCountryError" class="text-danger d-none"></span>
                     </div>
                     <div class="col-md-4">
-                        <div class="input-group input-group-merge mb-3">
-                            <span class="input-group-text"><i class="ri-government-line"></i></span>
-                            <div class="form-floating form-floating-outline">
-                                <select class="form-select" id="StateId" name="StateCode">
-                                    <option value="">-- Select State --</option>
-                                </select>
-                                <label for="StateId">State <span class="text-danger">*</span></label>
-                            </div>
+                        <label for="StateId">State <span class="text-red">*</span></label>
+                        <div class="form-floating form-floating-outline mb-3">
+                            <select class="form-select" id="StateId" name="StateCode">
+                                <option value="">-- Select State --</option>
+                            </select>
+
                         </div>
-                        <span id="WarehouseStateError" class="text-danger"></span>
+                        <span id="WarehouseStateError" class="text-danger d-none"></span>
                     </div>
                     <div class="col-md-4">
-                        <div class="input-group input-group-merge mb-3">
-                            <span class="input-group-text"><i class="ri-building-fill"></i></span>
-                            <div class="form-floating form-floating-outline">
-                                <select class="form-select" id="CityId" name="CityId">
-                                    <option value="">-- Select City --</option>
-                                </select>
-                                <label for="CityId">City <span class="text-danger">*</span></label>
-                            </div>
+                        <label for="CityId">City <span class="text-red">*</span></label>
+                        <div class="form-floating form-floating-outline mb-3">
+                            <select class="form-select" id="CityId" name="CityId">
+                                <option value="">-- Select City --</option>
+                            </select>
+
                         </div>
-                        <span id="WarehouseCityError" class="text-danger"></span>
+                        <span id="WarehouseCityError" class="text-danger d-none"></span>
                     </div>
                     <div class="col-md-6">
-                        <div class="input-group input-group-merge mb-3">
-                            <span class="input-group-text"><i class="ri-phone-fill"></i></span>
-                            <div class="form-floating form-floating-outline">
-                                <input type="number" class="form-control" name="Phone" pattern="[0-9]{10}" placeholder="Enter 10-digit phone">
-                                <label for="Phone">Phone <span class="text-danger">*</span></label>
-                            </div>
+                        <label for="Phone">Phone <span class="text-red">*</span></label>
+                        <div class="form-floating form-floating-outline mb-3">
+                            <input type="number" class="form-control" id="Phone" name="Phone" pattern="[0-9]{10}" placeholder="Enter 10-digit phone">
+
                         </div>
-                        <span id="WarehousePhoneError" class="text-danger"></span>
+                        <span id="WarehousePhoneError" class="text-danger d-none"></span>
                     </div>
                     <div class="col-md-6">
-                        <div class="input-group input-group-merge mb-3">
-                            <span class="input-group-text"><i class="ri-mail-line"></i></span>
-                            <div class="form-floating form-floating-outline">
-                                <input type="email" class="form-control" name="Email">
-                                <label for="Email">Email <span class="text-danger">*</span></label>
-                            </div>
+                        <label for="Email">Email <span class="text-red">*</span></label>
+                        <div class="form-floating form-floating-outline mb-3">
+                            <input type="email" class="form-control" id="Email" name="Email">
+
                         </div>
-                        <span id="WarehouseEmailError" class="text-danger"></span>
+                        <span id="WarehouseEmailError" class="text-danger d-none"></span>
                     </div>
                     <div class="col-12">
-                        <div class="input-group input-group-merge mb-3">
-                            <span class="input-group-text"><i class="ri-file-text-line"></i></span>
-                            <div class="form-floating form-floating-outline">
-                                <textarea class="form-control" name="Description" rows="3"></textarea>
-                                <label for="Description">Description</label>
-                            </div>
+                        <label for="Description">Description <span class="text-red">*</span></label>
+                        <div class="form-floating form-floating-outline mb-3">
+                            <textarea class="form-control" id="Description" name="Description" rows="3" placeholder="Enter at least 5 words"></textarea>
+                            
                         </div>
+                        <span id="WarehouseDescriptionError" class="text-danger d-none"></span>
                     </div>
                 </form>
             </div>
@@ -210,84 +196,66 @@
             <div class="modal-body">
                 <form class="row g-3">
                     <div class="col-md-6">
-                        <div class="input-group input-group-merge mb-3">
-                            <span class="input-group-text"><i class="ri-barcode-line"></i></span>
-                            <div class="form-floating form-floating-outline">
-                                <input type="text" class="form-control" id="vwCode" readonly>
-                                <label for="vwCode">Warehouse Code</label>
-                            </div>
+                        <label for="vwCode">Warehouse Code</label>
+                        <div class="form-floating form-floating-outline mb-3">
+                            <input type="text" class="form-control" id="vwCode" readonly>
+
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="input-group input-group-merge mb-3">
-                            <span class="input-group-text"><i class="ri-building-4-line"></i></span>
-                            <div class="form-floating form-floating-outline">
-                                <input type="text" class="form-control" id="vwName" readonly>
-                                <label for="vwName">Warehouse Name</label>
-                            </div>
+                        <label for="vwName">Warehouse Name</label>
+                        <div class="form-floating form-floating-outline mb-3">
+                            <input type="text" class="form-control" id="vwName" readonly>
+
                         </div>
                     </div>
                     <div class="col-12">
-                        <div class="input-group input-group-merge mb-3">
-                            <span class="input-group-text"><i class="ri-map-pin-line"></i></span>
-                            <div class="form-floating form-floating-outline">
-                                <textarea class="form-control" id="vwAddress" rows="2" readonly></textarea>
-                                <label for="vwAddress">Address</label>
-                            </div>
+                        <label for="vwAddress">Address</label>
+                        <div class="form-floating form-floating-outline mb-3">
+                            <textarea class="form-control" id="vwAddress" rows="2" readonly></textarea>
+
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="input-group input-group-merge mb-3">
-                            <span class="input-group-text"><i class="ri-building-fill"></i></span>
-                            <div class="form-floating form-floating-outline">
-                                <input type="text" class="form-control" id="vwCity" readonly>
-                                <label for="vwCity">City</label>
-                            </div>
+                        <label for="vwCity">City</label>
+                        <div class="form-floating form-floating-outline mb-3">
+                            <input type="text" class="form-control" id="vwCity" readonly>
+
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="input-group input-group-merge mb-3">
-                            <span class="input-group-text"><i class="ri-phone-fill"></i></span>
-                            <div class="form-floating form-floating-outline">
-                                <input type="text" class="form-control" id="vwPhone" readonly>
-                                <label for="vwPhone">Phone</label>
-                            </div>
+                        <label for="vwPhone">Phone</label>
+                        <div class="form-floating form-floating-outline mb-3">
+                            <input type="text" class="form-control" id="vwPhone" readonly>
+
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="input-group input-group-merge mb-3">
-                            <span class="input-group-text"><i class="ri-mail-line"></i></span>
-                            <div class="form-floating form-floating-outline">
-                                <input type="text" class="form-control" id="vwEmail" readonly>
-                                <label for="vwEmail">Email</label>
-                            </div>
+                        <label for="vwEmail">Email</label>
+                        <div class="form-floating form-floating-outline mb-3">
+                            <input type="text" class="form-control" id="vwEmail" readonly>
+
                         </div>
                     </div>
                     <div class="col-12">
-                        <div class="input-group input-group-merge mb-3">
-                            <span class="input-group-text"><i class="ri-file-text-line"></i></span>
-                            <div class="form-floating form-floating-outline">
-                                <textarea class="form-control" id="vwDesc" rows="2" readonly></textarea>
-                                <label for="vwDesc">Description</label>
-                            </div>
+                        <label for="vwDesc">Description</label>
+                        <div class="form-floating form-floating-outline mb-3">
+                            <textarea class="form-control" id="vwDesc" rows="2" readonly></textarea>
+
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="input-group input-group-merge mb-3">
-                            <span class="input-group-text"><i class="ri-calendar-line"></i></span>
-                            <div class="form-floating form-floating-outline">
-                                <input type="text" class="form-control" id="vwAddedDates" readonly>
-                                <label for="vwAddedDates">Added Date</label>
-                            </div>
+                        <label for="vwAddedDates">Added Date</label>
+                        <div class="form-floating form-floating-outline mb-3">
+                            <input type="text" class="form-control" id="vwAddedDates" readonly>
+
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="input-group input-group-merge mb-3">
-                            <span class="input-group-text"><i class="ri-user-3-line"></i></span>
-                            <div class="form-floating form-floating-outline">
-                                <input type="text" class="form-control" id="vwAddedBy" readonly>
-                                <label for="vwAddedBy">Added By</label>
-                            </div>
+                        <label for="vwAddedBy">Added By</label>
+                        <div class="form-floating form-floating-outline mb-3">
+                            <input type="text" class="form-control" id="vwAddedBy" readonly>
+
                         </div>
                     </div>
                 </form>
@@ -295,6 +263,7 @@
         </div>
     </div>
 </div>
+
 
 <script>
     $(document).ready(function () {
@@ -349,15 +318,17 @@
 
             // Validation helpers
             showFieldError: function (inputId, errorId, message) {
-                const $input = $(`#${inputId}`).length ? $(`#${inputId}`) : $(`[name='${inputId}']`);
+                const $input = $(`#${inputId}`);
                 $input.addClass("is-invalid");
                 $(`#${errorId}`).text(message).removeClass("d-none");
             },
 
             clearFieldError: function (inputId, errorId) {
-                const $input = $(`#${inputId}`).length ? $(`#${inputId}`) : $(`[name='${inputId}']`);
+                const $input = $(`#${inputId}`);
                 $input.removeClass("is-invalid");
-                $(`#${errorId}`).text("").addClass("d-none");
+                if (errorId) {
+                    $(`#${errorId}`).text("").addClass("d-none");
+                }
             },
 
             clearAllErrors: function (formSelector) {
@@ -380,36 +351,96 @@
                 let isValid = true;
                 const $form = $(formSelector);
 
-                const fields = {
-                    WarehouseName: { value: $form.find("[name='WarehouseName']").val().trim(), required: true },
-                    Address: { value: $form.find("[name='Address']").val().trim(), required: true },
-                    CountryId: { value: $form.find("#CountryId").val(), required: true },
-                    StateId: { value: $form.find("#StateId").val(), required: true },
-                    CityId: { value: $form.find("#CityId").val(), required: true },
-                    Phone: {
-                        value: $form.find("[name='Phone']").val().trim(),
+                // Define validation rules for each field
+                const fields = [
+                    {
+                        id: 'WarehouseName',
+                        errorId: 'WarehouseNameError',
+                        value: $form.find("#WarehouseName").val().trim(),
+                        required: true,
+                        message: 'Warehouse Name is required.'
+                    },
+                    {
+                        id: 'Address',
+                        errorId: 'WarehouseAddressError',
+                        value: $form.find("#Address").val().trim(),
+                        required: true,
+                        message: 'Address is required.'
+                    },
+                    {
+                        id: 'CountryId',
+                        errorId: 'WarehouseCountryError',
+                        value: $form.find("#CountryId").val(),
+                        required: true,
+                        message: 'Country is required.'
+                    },
+                    {
+                        id: 'StateId',
+                        errorId: 'WarehouseStateError',
+                        value: $form.find("#StateId").val(),
+                        required: true,
+                        message: 'State is required.'
+                    },
+                    {
+                        id: 'CityId',
+                        errorId: 'WarehouseCityError',
+                        value: $form.find("#CityId").val(),
+                        required: true,
+                        message: 'City is required.'
+                    },
+                    {
+                        id: 'Phone',
+                        errorId: 'WarehousePhoneError',
+                        value: $form.find("#Phone").val().trim(),
                         required: true,
                         pattern: /^\d{10}$/,
-                        patternMessage: "Enter a valid 10-digit phone number."
+                        message: 'Phone number is required.',
+                        patternMessage: 'Please enter a valid 10-digit phone number.'
                     },
-                    Email: { value: $form.find("[name='Email']").val().trim(), required: true }
-                };
+                    {
+                        id: 'Email',
+                        errorId: 'WarehouseEmailError',
+                        value: $form.find("#Email").val().trim(),
+                        required: true,
 
-                Object.keys(fields).forEach(field => {
-                    const config = fields[field];
-                    const errorId = `Warehouse${field}Error`;
+                        message: 'Email is required.'
 
-                    if (!config.value) {
-                        utils.showFieldError(field, errorId, `${field.replace(/([A-Z])/g, ' $1').trim()} is required.`);
+                    },
+                    {
+                        id: 'Description',
+                        errorId: 'WarehouseDescriptionError',
+                        value: $form.find("#Description").val().trim(),
+                        required: true,
+                        minWords: 5,
+                        message: 'Description is required.',
+                        minWordsMessage: 'Description must contain at least 5 words.'
+                    }
+                ];
+
+                // Validate each field
+                fields.forEach(field => {
+                    if (!field.value) {
+                        utils.showFieldError(field.id, field.errorId, field.message);
                         isValid = false;
-                    } else if (config.pattern && !config.pattern.test(config.value)) {
-                        utils.showFieldError(field, errorId, config.patternMessage);
+                    } else if (field.pattern && !field.pattern.test(field.value)) {
+                        utils.showFieldError(field.id, field.errorId, field.patternMessage);
                         isValid = false;
+                    } else if (field.minWords) {
+                        const wordCount = field.value.split(/\s+/).filter(word => word.length > 0).length;
+                        if (wordCount < field.minWords) {
+                            utils.showFieldError(field.id, field.errorId, field.minWordsMessage);
+                            isValid = false;
+                        } else {
+                            utils.clearFieldError(field.id, field.errorId);
+                        }
+                    } else {
+                        utils.clearFieldError(field.id, field.errorId);
                     }
                 });
 
                 return isValid;
             }
+       
         };
 
         // ================= DATA TABLE INITIALIZATION =================
@@ -840,6 +871,7 @@
         }
 
         // ================= EVENT HANDLERS =================
+        // ================= EVENT HANDLERS =================
         function setupEventHandlers() {
             // Checkbox selection
             $("#WHselectAll").on("change", function () {
@@ -852,9 +884,12 @@
                 $("#WHselectAll").prop("checked", selectedWarehouseIds.size === $(".row-select").length);
             });
 
-            // Location dropdowns
+            // Location dropdowns with proper error clearing
             $('#CountryId').change(function () {
                 const countryCode = $(this).val();
+                // Clear country error
+                utils.clearFieldError('CountryId', 'WarehouseCountryError');
+
                 if (!countryCode) {
                     $("#StateId, #CityId").empty().append('<option value="">-- Select --</option>');
                     return;
@@ -872,6 +907,9 @@
                 const countryCode = $('#CountryId').val();
                 const stateCode = $(this).val();
 
+                // Clear state error
+                utils.clearFieldError('StateId', 'WarehouseStateError');
+
                 $.getJSON(CONFIG.urls.getCities, { countryCode, stateCode }, function (data) {
                     const cities = typeof data === "string" ? JSON.parse(data) : data;
                     $('#CityId').empty().append('<option value="">Select City</option>');
@@ -881,10 +919,32 @@
                 });
             });
 
-            // Form interactions
+            $('#CityId').change(function () {
+                // Clear city error
+                utils.clearFieldError('CityId', 'WarehouseCityError');
+            });
+
+            // Form interactions - Clear errors when user starts typing
             $(document).on("input change", "#addWarehouseForm .form-control, #addWarehouseForm .form-select", function () {
-                const fieldName = $(this).attr("name") || $(this).attr("id");
-                utils.clearFieldError(fieldName, `Warehouse${fieldName}Error`);
+                const fieldId = $(this).attr("id");
+                const fieldName = $(this).attr("name");
+
+                if (fieldId) {
+                    // Handle different field types and their error IDs
+                    let errorId;
+
+                    if (fieldName === 'CountryCode') {
+                        errorId = 'WarehouseCountryError';
+                    } else if (fieldName === 'StateCode') {
+                        errorId = 'WarehouseStateError';
+                    } else if (fieldName === 'CityId') {
+                        errorId = 'WarehouseCityError';
+                    } else {
+                        errorId = `Warehouse${fieldId}Error`;
+                    }
+
+                    utils.clearFieldError(fieldId, errorId);
+                }
             });
 
             $('#addWarehouseModal').on('hidden.bs.modal', function () {
@@ -921,6 +981,7 @@
         // ================= MODAL OPERATIONS =================
         function openAddWarehouseModal() {
             $(CONFIG.selectors.form)[0].reset();
+            utils.clearAllErrors(CONFIG.selectors.form);
             $("#warehouseModalTitle").text("Add Warehouse");
             $("#warehouseModalSubmitBtn").html('<i class="bi bi-check-circle me-2 text-white"></i>Save');
 
@@ -943,9 +1004,18 @@
         }
 
         function submitWarehouseForm() {
+            // Clear previous errors
             utils.clearAllErrors(CONFIG.selectors.form);
 
+            // Validate form
             if (!validators.warehouseForm(CONFIG.selectors.form)) {
+                // Scroll to first error
+                const firstError = $(CONFIG.selectors.form).find('.is-invalid').first();
+                if (firstError.length) {
+                    $('html, body').animate({
+                        scrollTop: firstError.offset().top - 100
+                    }, 500);
+                }
                 return;
             }
 
@@ -972,19 +1042,51 @@
             });
         }
 
+        //function handleFormError(res) {
+        //    utils.clearFieldError("WarehouseName", "WarehouseNameError");
+        //    const msg = (res || "").toLowerCase();
+        //    if (msg.includes("already exist") || msg.includes("duplicate") || msg.includes("exists")) {
+        //        utils.showFieldError("WarehouseName", "WarehouseNameError", "Warehouse Name already exists.");
+        //    } else {
+        //        utils.showFieldError("WarehouseName", "WarehouseNameError", message || "Something went wrong while saving Warehouse.");
+        //    }
+        //}
+
         function handleFormError(res) {
-            $(".text-danger.field-error").remove();
-            $("input, select").removeClass("is-invalid");
+            utils.clearAllErrors(CONFIG.selectors.form);
 
             if (res.field) {
-                const $input = $(`[name=${res.field}]`);
-                $input.addClass("is-invalid");
-                $(`#WarehouseNameError`).html(res.message || "Warehouse name already exists.").removeClass("d-none");
+                let fieldId = res.field;
+                let errorId = `Warehouse${fieldId}Error`;
 
-                $input.focus();
+                // Special field mappings
+                if (res.field === 'WarehouseName') {
+                    fieldId = 'WarehouseName';
+                    errorId = 'WarehouseNameError';
+                } else if (res.field === 'CountryCode') {
+                    fieldId = 'CountryId';
+                    errorId = 'WarehouseCountryError';
+                } else if (res.field === 'StateCode') {
+                    fieldId = 'StateId';
+                    errorId = 'WarehouseStateError';
+                } else if (res.field === 'Description') {
+                    fieldId = 'Description';
+                    errorId = 'WarehouseDescriptionError';
+                }
+
+                // Show error with hardcoded message
+                utils.showFieldError(fieldId, errorId, "This Name Is Already Exists!.");
+
+                // Scroll to the error field
+                const $input = $(`#${fieldId}`);
                 $('html, body').animate({ scrollTop: $input.offset().top - 100 }, 300);
             } else {
-                Swal.fire({ title: "Error", text: res.message, icon: "error", confirmButtonText: "OK" });
+                Swal.fire({
+                    title: "Error",
+                    text: "Something went wrong while saving Warehouse.",
+                    icon: "error",
+                    confirmButtonText: "OK"
+                });
             }
         }
 
@@ -1034,11 +1136,11 @@
 
         function populateEditModal(data) {
             $("#WarehouseCode").val(data.WarehouseCode);
-            $("[name='WarehouseName']").val(data.WarehouseName);
-            $("[name='Address']").val(data.Address);
-            $("[name='Phone']").val(data.Phone);
-            $("[name='Email']").val(data.Email);
-            $("[name='Description']").val(data.Description);
+            $("#WarehouseName").val(data.WarehouseName);
+            $("#Address").val(data.Address);
+            $("#Phone").val(data.Phone);
+            $("#Email").val(data.Email);
+            $("#Description").val(data.Description);
 
             if (!$("#WareHouseId").length) {
                 $("<input>").attr({ type: "hidden", id: "WareHouseId", name: "WareHouseId", value: data.WareHouseId }).appendTo(CONFIG.selectors.form);
@@ -1095,7 +1197,7 @@
 
             swalWithBootstrapButtons.fire({
                 title: "Are you sure?",
-                text: "You won't be able to revert this!",
+                text: "You Delete Warehouse!",
                 icon: "warning",
                 showCancelButton: true,
                 confirmButtonText: "Yes",
