@@ -3,7 +3,7 @@
 <!-- ===================== Main Container ===================== -->
 <div class="container mt-4">
     <div class="table-responsive">
-        <h3 class="text-center fw-bold">Pending Purchase Requisition</h3>
+        <h3 class="text-center fw-bold text-primary">Pending Purchase Requisition</h3>
 
         <!-- Date Filters -->
         <div class="mb-3 d-flex gap-2">
@@ -20,7 +20,7 @@
         <table id="TablePending" class="table table-striped TablePending table-bordered text-center" style="width:100%">
             <thead class="table-dark">
                 <tr>
-                    <th><input type="checkbox" id="selectAll2" /></th> 
+                    <th><input type="checkbox" id="selectAll2" /></th> <!-- Select All -->
                     <th>SR NO</th>
                     <th>PR CODE</th>
                     <th>ADDED DATE</th>
@@ -42,8 +42,7 @@
             <!-- Modal Header -->
             <div class="modal-header bg-primary text-white d-flex justify-content-center position-relative p-0">
                 <h4 class="modal-title m-0 fw-bold text-white flex-grow-1 text-center py-3">Purchase Requisition Details</h4>
-                <button type="button" class="btn-close btn-close-white position-absolute end-0 top-0 m-0 p-3 h-100"
-                        data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn btn-close btn-close-white position-absolute top-0 end-0 m-3 fs-4" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
 
             <!-- Modal Body -->
@@ -120,8 +119,7 @@
         <div class="modal-content">
             <div class="modal-header bg-primary text-white d-flex justify-content-center position-relative p-0">
                 <h4 class="modal-title m-0 text-white fw-bold flex-grow-1 text-center py-3">Update Purchase Requisition</h4>
-                <button type="button" class="btn-close btn-close-white position-absolute end-0 top-0 m-0 p-3 h-100"
-                        data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn btn-close btn-close-white position-absolute top-0 end-0 m-3 fs-4" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <!-- Requisition Info -->
@@ -286,7 +284,7 @@
                     render: function (data) {
                         if (data === "Hot") return '<span class="badge bg-danger">Hot</span>';
                         if (data === "Warm") return '<span class="badge bg-warning">Warm</span>';
-                        if (data === "Cold") return '<span class="badge bg-info">Cold</span>';
+                        if (data === "Cold") return '<span class="badge bg-success">Cold</span>';
                         return '<span class="badge bg-secondary">Unknown</span>';
                     }
                 },
@@ -344,6 +342,10 @@
                 }
 
             ],
+            columnDefs: [
+                { className: "text-center", targets: "_all" }
+            ],
+            ordering: false,
             dom: '<"d-flex justify-content-between align-items-center mb-2"Bf>rt<"d-flex justify-content-between align-items-center mt-2"ip>',
             buttons: [
                 {
@@ -363,7 +365,7 @@
                     action: function (e, dt, button, config) {
                         if (!selectedRows || selectedRows.length === 0) {
                             toastr.warning(" Please select at least one PR before printing!");
-                            return;
+                            return; // Stop print
                         }
                         $.fn.dataTable.ext.buttons.print.action.call(this, e, dt, button, config);
                     },
@@ -576,11 +578,10 @@
             },
             ranges: {
                 'Today': [moment(), moment()],
-                'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
                 'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-                'This Month': [moment().startOf('month'), moment().endOf('month')],
-                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                'Last 1 Month': [moment().subtract(1, 'months').startOf('day'), moment()],
+                'Last 3 Months': [moment().subtract(3, 'months').startOf('day'), moment()],
+                'Last 1 Year': [moment().subtract(12, 'months').startOf('day'), moment()]
             }
         });
 
@@ -664,7 +665,7 @@
 
                     let statusText = response.data.Status;
                     let statusDiv = $("#Status2");
-                    statusDiv.removeClass("text-success text-danger text-warning text-dark"); 
+                    statusDiv.removeClass("text-success text-danger text-warning text-dark"); // old classes remove
                     statusDiv.text(statusText);
 
                     if (statusText === "Approved") {
@@ -722,12 +723,19 @@
                 { data: "ItemCode", title: "ITEM CODE" },
                 { data: "ItemName", title: "ITEM NAME" },
                 {
-                    data: "Description",
-                    title: "DESCRIPTION",
-                    render: function (data, type, row) {
-                        return '<span data-bs-toggle="tooltip" data-bs-placement="top" title="' + data + '">' + data + '</span>';
+                    data: "Description", title: "DESCRIPTION",
+                    createdCell: function (td, cellData) {
+                        if (cellData) {
+                            // truncate text if too long
+                            let shortText = cellData.length > 25 ? cellData.substring(0, 25) + "..." : cellData;
+                            $(td)
+                                .text(shortText)
+                                .attr("title", cellData)
+                                .attr("data-bs-toggle", "tooltip")
+                                .attr("data-bs-placement", "top");
+                        }
                     }
-                },
+},
                 { data: "RequiredQuantity", title: "QTY" },
                 {
                     data: "UnitRate",
@@ -752,6 +760,10 @@
                     }
                 }
             ],
+            columnDefs: [
+                { className: "text-center", targets: "_all" }
+            ],
+            ordering: false,
             dom: '<"d-flex justify-content-between align-items-center mb-2"Bf>rt<"d-flex justify-content-between align-items-center mt-2"ip>',
 
             buttons: [
@@ -760,36 +772,56 @@
                     text: '<i class="bi bi-printer-fill text-dark fs-5"></i>',
                     title: '',
                     customize: function (win) {
+                        // Info (DetailsPartialSP values)
                         let prCode = $("#PRCODE2").text();
                         let reqDate = $("#RequiredDate2").text();
                         let fullName = $("#FullName2").text();
                         let status = $("#Status2").text();
 
-
+                        // Custom Header HTML
                         let headerHtml = `
-      <h2 class="text-center mb-3">Purchase Requisition Details</h2>
-      <table class="table table-borderless mb-3">
-          <tr>
-              <td><b>PR CODE :</b> ${prCode}</td>
-              <td><b>Required Date :</b> ${reqDate}</td>
-          </tr>
-          <tr>
-              <td><b>Created By :</b> ${fullName}</td>
-              <td><b>Status :</b> ${status}</td>
-          </tr>
-      </table>
-  `;
+        <h2 style="text-align:center; margin-bottom:5px;">Purchase Requisition Details</h2>
+        <div style="text-align:center; margin-bottom:10px; font-size:11pt; font-style:italic;">
+            Generated on: ${moment().format("YYYY-MM-DD")}
+        </div>
+        <table style="width:100%; margin-bottom:15px; border-collapse: collapse;" border="0">
+            <tr>
+                <td><b>PR CODE :</b> ${prCode}</td>
+                <td><b>Required Date :</b> ${reqDate}</td>
+            </tr>
+            <tr>
+                <td><b>Created By :</b> ${fullName}</td>
+                <td><b>Status :</b> ${status}</td>
+            </tr>
+        </table>
+    `;
 
+                        // Prepend header
                         $(win.document.body).prepend(headerHtml);
 
+                        // DataTable formatting
                         let table = $(win.document.body).find('table.dataTable');
 
-                        table.addClass('table table-bordered'); 
-                        table.find('thead').addClass('table-dark'); 
+                        // Force table borders
+                        table.css('border-collapse', 'collapse');
+                        table.find('thead th, tbody td').each(function () {
+                            $(this).css({
+                                'border': '1px solid #000',
+                                'padding': '5px',
+                                'border-collapse': 'collapse'
+                            });
+                        });
 
-                       
-                        table.find('thead th').removeAttr('style');
-                        table.find('tbody td').css('border', '1px solid #000'); 
+                        // Style header
+                        table.find('thead').css({
+                            'background-color': '#343a40',
+                            'color': '#fff'
+                        });
+
+                        // Optional: center-align first column (SR NO)
+                        table.find('tbody tr').each(function (i) {
+                            $(this).find('td:first').css('text-align', 'center');
+                        });
                     }
                 }
             ],
@@ -808,6 +840,7 @@
 
     // Load Update Modal Function
     function loadUpdateModal2(prCode) {
+        // Load PR Info
         $.ajax({
             url: '/Purchase/DetailsPartialSP',
             type: 'POST',
@@ -820,7 +853,7 @@
                     $("#FullNameUpdate2").text(response.data.FullName);
                     $("#StatusUpdate2").text(response.data.Status);
 
-
+                    // Status color
                     let statusDiv = $("#StatusUpdate2");
                     statusDiv.removeClass("text-success text-danger text-warning text-dark");
                     if (response.data.Status === "Approved") statusDiv.addClass("text-success");
@@ -833,6 +866,7 @@
             }
         });
 
+        // Load Item Details (Editable)
         $.ajax({
             url: '/Purchase/ItemPartialSP',
             type: 'POST',
@@ -847,18 +881,36 @@
                             <td>${i + 1}</td>
                             <td>${item.ItemCode}</td>
                             <td>${item.ItemName}</td>
-<td data-bs-toggle="tooltip" data-bs-placement="top" title="${item.Description}">
+                            <td title="${item.Description}" data-bs-toggle="tooltip" data-bs-placement="top" 
+    style="max-width:180px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
     ${item.Description}
-</td>                            <td>
+</td>
+                            <td>
                                 <input type="number" class="form-control qty-input"
                                     value="${item.RequiredQuantity}" min="1" />
                             </td>
                             <td>₹ ${parseFloat(item.UnitRate).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                            <td>₹ ${parseFloat(item.Amount).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>                            <td>
+                            <td>₹ ${parseFloat(item.Amount).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>                            
+                            <td>
                                 <button class="btn btn-sm btn-success save-item-btn2">Save</button>
                             </td>
                         </tr>`;
                         $("#ItemTableBodyUpdate2").append(row);
+                    });
+
+                    // Initialize DataTable or re-initialize safely
+                    $("#ItemTableUpdate2").DataTable({
+                        ordering: false,
+                        paging: true,
+                        language: {
+                            lengthMenu: ""
+                        },
+                        searching: true,
+                        info: true,
+                        columnDefs: [
+                            { className: "text-center", targets: "_all" }
+                        ],
+                        destroy: true  // Important to allow re-initialization
                     });
                 }
             },
@@ -907,6 +959,4 @@
             }
         });
     });
-
-
 </script>

@@ -37,22 +37,22 @@
         <!-- Approved PO List -->
         <h5 class="text-primary fw-bold text-center mb-3">Approved Purchase Orders</h5>
         <div class="table-responsive">
-            <table id="approvedPOListTablePSM" class="table table-striped table-bordered w-100">
-                <thead class="table-dark">
+            <table id="approvedPOListTablePSM" class="table table-striped text-center table-bordered w-100">
+                <thead class="table-dark text-center">
                     <tr>
                         <th><input type="checkbox" id="selectAll" /></th>
-                        <th>S.No</th>
-                        <th>PO Code</th>
-                        <th>RQ Code</th>
-                        <th>Vendor Name</th>
-                        <th>Company Name</th>
-                        <th>Approved Date</th>
-                        <th>Total Amount</th>
-                        <th>Status</th>
-                        <th>Action</th>
+                        <th class="text-center">S.No</th>
+                        <th class="text-center">PO Code</th>
+                        <th class="text-center">RQ Code</th>
+                        <th class="text-center">Vendor Name</th>
+                        <th class="text-center">Company Name</th>
+                        <th class="text-center">Approved Date</th>
+                        <th class="text-center">Total Amount</th>
+                        <th class="text-center">Status</th>
+                        <th class="text-center">Action</th>
                     </tr>
                 </thead>
-                <tbody></tbody>
+                <tbody class="text-center"></tbody>
             </table>
         </div>
     </div>
@@ -70,8 +70,8 @@
                         aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <table id="poItemsTablePSM" class="table table-striped table-bordered w-100">
-                    <thead class="table-dark">
+                <table id="poItemsTablePSM" class="table table-striped text-center table-bordered w-100">
+                    <thead class="table-dark text-center">
                         <tr>
                             <th><input type="checkbox" id="selectAllChild" /></th>
                             <th>S.No</th>
@@ -223,31 +223,42 @@ function makeChildExportButton(type, text, selector, title) {
     return btn;
 }
 
-// ------------------- DATE PICKER -------------------
-$(document).ready(function () {
-    $('#FirstreportrangePSM').daterangepicker({
-        autoUpdateInput: false,
-        opens: "right",
-        drops: "down",
-        locale: { cancelLabel: 'Clear' },
-        ranges: {
-            'Today': [moment(), moment()],
-            'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-            'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-            'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-            'This Month': [moment().startOf('month'), moment().endOf('month')],
-            'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
-        }
-    },
-        function (start, end) {
-            $('#FirstreportrangePSM').val(start.format('YYYY-MM-DD') + ' - ' + end.format('YYYY-MM-DD'));
-            initPOTablePSM(start.format('YYYY-MM-DD'), end.format('YYYY-MM-DD'));
-            loadPOChartPSM(start.format('YYYY-MM-DD'), end.format('YYYY-MM-DD'));
+    // ------------------- DATE PICKER -------------------
+    $(document).ready(function () {
+        $('#FirstreportrangePSM').daterangepicker({
+            autoUpdateInput: false,
+            opens: "right",
+            drops: "down",
+            locale: {
+                format: 'DD/MM/YYYY', // 👈 display format
+                cancelLabel: 'Clear'
+            },
+            ranges: {
+                'Today': [moment(), moment()],
+                'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                'Last 1 Month': [moment().subtract(1, 'months').startOf('day'), moment()],
+                'Last 3 Months': [moment().subtract(3, 'months').startOf('day'), moment()],
+                'Last 1 Year': [moment().subtract(12, 'months').startOf('day'), moment()]
+            }
+        },
+            function (start, end) {
+                // Show dd/MM/yyyy format in input
+                $('#FirstreportrangePSM').val(start.format('DD/MM/YYYY') + ' - ' + end.format('DD/MM/YYYY'));
+
+                // Pass yyyy-MM-dd format internally
+                initPOTablePSM(start.format('YYYY-MM-DD'), end.format('YYYY-MM-DD'));
+                loadPOChartPSM(start.format('YYYY-MM-DD'), end.format('YYYY-MM-DD'));
+            });
+
+        $('#FirstreportrangePSM').on('cancel.daterangepicker', function () {
+            $(this).val('');
+            initPOTablePSM();
+            loadPOChartPSM();
         });
-    $('#FirstreportrangePSM').on('cancel.daterangepicker', function () { $(this).val(''); initPOTablePSM(); loadPOChartPSM(); });
-    initPOTablePSM();
-    loadPOChartPSM();
-});
+
+        initPOTablePSM();
+        loadPOChartPSM();
+    });
 
 // ------------------- PARENT DATATABLE -------------------
 function initPOTablePSM(fromDate, toDate) {
@@ -269,6 +280,7 @@ function initPOTablePSM(fromDate, toDate) {
             { data: 'StatusName', render: d => d ? `<span class="badge bg-success">${d}</span>` : "" },
             { data: null, render: d => `<button class="btn btn-sm btn-primary btnViewPO" data-pocode="${d.POCode}"><i class="bi bi-eye"></i></button>` }
         ],
+        ordering: false,
         buttons: [
             makeExportButton('print', '<i class="bi bi-printer-fill text-dark fs-5"></i>', ".rowCheckbox", "Approved PO List"),
             makeExportButton('pdfHtml5', '<i class="bi bi-file-earmark-pdf-fill text-danger fs-5"></i>', ".rowCheckbox", "Approved PO List"),
@@ -303,6 +315,7 @@ function loadPOItems(poCode) {
             { data: 'IsQuality', render: d => d === 'Yes' ? '<span class="badge bg-success">Yes</span>' : '<span class="badge bg-danger">No</span>' },
             { data: 'FinalAmount', render: d => d ? `<i class="bi bi-currency-rupee"></i> ${parseFloat(d).toLocaleString("en-IN", { minimumFractionDigits: 2 })}` : "-" }
         ],
+        ordering: false,
         buttons: [
             makeChildExportButton('print', '<i class="bi bi-printer-fill text-dark fs-5"></i>', ".rowCheckboxChild", "Approved PO Items"),
             makeChildExportButton('pdfHtml5', '<i class="bi bi-file-earmark-pdf-fill text-danger fs-5"></i>', ".rowCheckboxChild", "Approved PO Items"),

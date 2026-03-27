@@ -118,6 +118,7 @@
                     tblApproved = $("#approvedTable").DataTable({
                         destroy: true,
                         data: data,
+                        ordering: false,
                         // dom: 'Bfrtip',
                         dom: '<"d-flex justify-content-between align-items-center mt-1 mb-2"Bf>rt<"d-flex justify-content-between mt-2"<"datatable-info"i><"datatable-pagination"p>>', pageLength: 10,
 
@@ -321,24 +322,51 @@
                             { data: null, render: (data, type, row, meta) => meta.row + 1 },
                             { data: "RFQCode" },
                             { data: "RegisterQuotationCode" },
-                            {
-                                data: "AddedDate", type: "string",   // ✅ override datetime detection
-                                render: function (data, type, row) {
-                                    
+                            //{
+                            //    data: "AddedDate", type: "string",   // ✅ override datetime detection
+                            //    render: function (data, type, row) {
 
+
+                            //        if (!data) return "";
+
+                            //        // Ensure format like "2025-08-06"
+                            //        let parts = data.split(" ")[0].split("-"); // ["2025","08","06"]
+                            //        if (parts.length !== 3) return data;
+
+                            //        let yyyy = parts[0];
+                            //        let mm = parts[1];
+                            //        let dd = parts[2];
+
+                            //        return `${dd}/${mm}/${yyyy}`;
+                            //    }
+                            //},
+
+
+                            {
+                                data: "AddedDate", title: "Approved Date",
+                                "render": function (data) {
                                     if (!data) return "";
 
-                                    // Ensure format like "2025-08-06"
-                                    let parts = data.split(" ")[0].split("-"); // ["2025","08","06"]
-                                    if (parts.length !== 3) return data;
+                                    // .NET JSON format: /Date(1736985600000)/
+                                    var match = /Date\((\d+)\)/.exec(data);
+                                    if (match) {
+                                        var dt = new Date(parseInt(match[1], 10));
+                                        return dt.toLocaleDateString("en-GB"); // dd/mm/yyyy
+                                    }
 
-                                    let yyyy = parts[0];
-                                    let mm = parts[1];
-                                    let dd = parts[2];
+                                    // Agar normal ISO string hai to
+                                    var dt2 = new Date(data);
+                                    if (!isNaN(dt2.getTime())) {
+                                        return dt2.toLocaleDateString("en-GB");
+                                    }
 
-                                    return `${dd}/${mm}/${yyyy}`;
+                                    return data; // fallback
                                 }
-                            }, { data: "VenderName" },
+                            },
+
+
+
+                            { data: "VenderName" },
                             { data: "CompanyName" },
                             { data: "TotalAmount", render: data => parseFloat(data || 0).toLocaleString('en-IN', { style: 'currency', currency: 'INR' }) },
                             {
@@ -380,11 +408,10 @@
             locale: { cancelLabel: 'Clear' },
             ranges: {
                 'Today': [moment(), moment()],
-                'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
                 'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-                'This Month': [moment().startOf('month'), moment().endOf('month')],
-                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                'Last 1 Month': [moment().subtract(1, 'months').startOf('day'), moment()],
+                'Last 3 Months': [moment().subtract(3, 'months').startOf('day'), moment()],
+                'Last 1 Year': [moment().subtract(12, 'months').startOf('day'), moment()]
             }
         }, function (start, end) {
             $('#Purchasedatepicker').val(start.format('DD-MM-YYYY') + ' - ' + end.format('DD-MM-YYYY'));

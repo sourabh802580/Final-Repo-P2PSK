@@ -98,7 +98,6 @@ namespace P2PERP.Controllers
                     ReturnGoodsClass ReturnGoods = new ReturnGoodsClass
                     {
                         GRNCode = dr["GRNCode"].ToString(),
-                        StatusName = dr["StatusName"].ToString(),
                         AddedDate = Convert.ToDateTime(dr["AddedDate"]).ToString("yyyy-MM-dd"),
                         FullName = dr["FullName"].ToString()
                     };
@@ -639,6 +638,22 @@ namespace P2PERP.Controllers
             {
                 DataTable dt = await bal.QCAssignedCountRHK(startDate, endDate);
                 int count = (dt.Rows.Count > 0) ? Convert.ToInt32(dt.Rows[0]["QCAssignedCount"]) : 0;
+                return Json(new { count = count }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception)
+            {
+                return Json(new { count = 0 }, JsonRequestBehavior.AllowGet);
+            }
+        }
+        /// <summary>
+        /// Returns count of QC pending items between startDate and endDate.
+        /// </summary>
+        public async Task<JsonResult> GetPendingCountRHK(DateTime? startDate, DateTime? endDate)
+        {
+            try
+            {
+                DataTable dt = await bal.PendingCountRHK(startDate, endDate);
+                int count = (dt.Rows.Count > 0) ? Convert.ToInt32(dt.Rows[0]["PendingCount"]) : 0;
                 return Json(new { count = count }, JsonRequestBehavior.AllowGet);
             }
             catch (Exception)

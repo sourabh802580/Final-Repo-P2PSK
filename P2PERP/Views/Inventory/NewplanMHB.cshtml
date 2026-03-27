@@ -6,108 +6,112 @@
 }
 
 
+<div class="container-fluid bg-white " style="min-height:auto">
+    <h2 class="mb-4 text-center text-primary"> Material Requirement Planning</h2>
 
-<h2 class="mb-4 text-center text-primary"> Material Requirement Planning</h2>
+
+    <form id="stockForm">
+        <div class="row g-3 ">
+
+            <!-- Item Dropdown -->
+            <div class="col-md-6">
+                <label for="itemName" class="form-label">Item Name</label>
+                <select id="itemName" class="form-select">
+                    <option value="">-- Select Item --</option>
+                </select>
+            </div>
+
+            <!-- Plan Name -->
+            <div class="col-md-6">
+                <label for="planName" class="form-label">Plan Name *</label>
+                <input type="text" id="planName" class="form-control" required />
+            </div>
+
+            <!-- Year (auto) -->
+            <div class="col-md-2">
+                <label for="year" class="form-label">Year</label>
+                <input type="text" id="year" class="form-control" readonly />
+            </div>
+
+            <!-- Item Code -->
+            <div class="col-md-5">
+                <label for="itemCode" class="form-label">Item Code</label>
+                <input type="text" id="itemCode" class="form-control" readonly />
+            </div>
+
+            <!-- UOM -->
+            <div class="col-md-5">
+                <label for="uom" class="form-label">UOM</label>
+                <input type="text" id="uom" class="form-control" readonly />
+            </div>
+
+            <!-- Quantity (no required here) -->
+            <div class="col-md-6">
+                <label for="quantity" class="form-label">Quantity *</label>
+                <input type="number" id="quantity" class="form-control" />
+            </div>
+
+            <!-- Description -->
+            <div class="col-md-6">
+                <label for="description" class="form-label">Description</label>
+                <textarea id="description" class="form-control" readonly></textarea>
+            </div>
+
+            <!-- Add Button -->
+            <div class="col-md-12 text-end">
+                <button type="button" id="btnAdd" class="btn btn-success mt-2"><i class="bi bi-plus-circle me-2"></i> Add Item</button>
+            </div>
 
 
-<form id="stockForm" style="padding:50px">
-    <div class="row g-3">
+            <hr />
 
-        <!-- Item Dropdown -->
-        <div class="col-md-6">
-            <label for="itemName" class="form-label">Item Name</label>
-            <select id="itemName" class="form-select">
-                <option value="">-- Select Item --</option>
-            </select>
+            <!-- Table to Display Added Items -->
+            <!-- ✅ Items Table with DataTable support -->
+            <div class="table-responsive mt-4">
+                <table id="itemsTable" class="table table-striped table-bordered align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Item Name</th>
+                            <th>Item Code</th>
+                            <th>Quantity</th>
+                            <th>UOM</th>
+                            <th>Description</th>
+                            <th>Request Type</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+
+            <!-- Dates -->
+            <div class="row mt-3">
+                <div class="col-md-3">
+                    <label>From Date</label>
+                    <input type="date" id="fromDate" class="form-control " required />
+                </div>
+                <div class="col-md-3">
+                    <label>To Date</label>
+                    <input type="date" id="toDate" class="form-control " required />
+                </div>
+            </div>
+
+
+            <!-- Submit Button -->
+            <div class="text-center mt-4">
+                <button type="submit" class="btn btn-success"> Send for Approval</button>
+            </div>
+            <br><br>
+            <br />
+
+            <!-- Warning Alert -->
+            <div id="warning" class="alert alert-warning mt-3 d-none">
+                ⚠️ Warning! Kindly enter a Plan Name and at least one item.
+            </div>
         </div>
+    </form>
 
-        <!-- Plan Name -->
-        <div class="col-md-6">
-            <label for="planName" class="form-label">Plan Name *</label>
-            <input type="text" id="planName" class="form-control" required />
-        </div>
-
-        <!-- Year (auto) -->
-        <div class="col-md-2">
-            <label for="year" class="form-label">Year</label>
-            <input type="text" id="year" class="form-control" readonly />
-        </div>
-
-        <!-- Item Code -->
-        <div class="col-md-5">
-            <label for="itemCode" class="form-label">Item Code</label>
-            <input type="text" id="itemCode" class="form-control" readonly />
-        </div>
-
-        <!-- UOM -->
-        <div class="col-md-5">
-            <label for="uom" class="form-label">UOM</label>
-            <input type="text" id="uom" class="form-control" readonly />
-        </div>
-
-        <!-- Quantity (no required here) -->
-        <div class="col-md-6">
-            <label for="quantity" class="form-label">Quantity</label>
-            <input type="number" id="quantity" class="form-control" />
-        </div>
-
-        <!-- Description -->
-        <div class="col-md-6">
-            <label for="description" class="form-label">Description</label>
-            <textarea id="description" class="form-control" readonly></textarea>
-        </div>
-
-        <!-- Add Button -->
-        <div class="col-md-12 text-end">
-            <button type="button" id="btnAdd" class="btn btn-primary mt-2">➕ Add Item</button>
-        </div>
-    </div>
-
-    <hr />
-
-    <!-- Table to Display Added Items -->
-    <!-- ✅ Items Table with DataTable support -->
-    <div class="table-responsive mt-4">
-        <table id="itemsTable" class="table table-striped table-bordered align-middle">
-            <thead class="table-dark">
-                <tr>
-                    <th>Item Name</th>
-                    <th>Item Code</th>
-                    <th>Quantity</th>
-                    <th>UOM</th>
-                    <th>Description</th>
-                    <th>Request Type</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-    </div>
-
-    <!-- Dates -->
-    <div class="row mt-3">
-        <div class="col-md-3">
-            <label>From Date</label>
-            <input type="date" id="fromDate" class="form-control" required />
-        </div>
-        <div class="col-md-3">
-            <label>To Date</label>
-            <input type="date" id="toDate" class="form-control" required />
-        </div>
-    </div>
-    <br>
-
-    <!-- Submit Button -->
-    <div class="text-center mt-4">
-        <button type="submit" class="btn btn-success">📤 Send for Approval</button>
-    </div>
-    <br><br>
-
-    <!-- Warning Alert -->
-    <div id="warning" class="alert alert-warning mt-3 d-none">
-        ⚠️ Warning! Kindly enter a Plan Name and at least one item.
-    </div>
-</form>
+</div>
 
 <style>
     label {
@@ -118,36 +122,45 @@
         background-color: #f8f9fa;
     }
 
+    .container-fluid {
+        max-width: 1400px !important;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
     #itemsTable_wrapper {
         margin-top: 20px;
     }
+
+    #itemsTable th, #itemsTable td {
+        text-align: center !important;
+        vertical-align: middle !important;
+    }
 </style>
 
-
 <script>
-    let itemList = [];
+    let allItems = [];   // All items fetched from backend
+    let itemList = [];   // Items added to grid
     let table;
 
     $(document).ready(function () {
-        // Set year and today's date
         const today = new Date().toISOString().split("T")[0];
         $('#year').val(new Date().getFullYear());
         $('#fromDate').attr("min", today);
         $('#toDate').attr("min", today);
 
-        // From Date changes To Date min
+        // From Date -> To Date sync
         $('#fromDate').on('change', function () {
             $('#toDate').attr("min", $(this).val());
         });
 
-        // Load Item Dropdown
+        // 🟢 Load all items once
         $.get('/Inventory/GetItemListMHB', function (items) {
-            $.each(items, function (i, item) {
-                $('#itemName').append(`<option value="${item.ItemId}">${item.ItemName}</option>`);
-            });
+            allItems = items;
+            updateItemDropdown();
         });
 
-        // Fetch Item Details
+        // 🟡 On dropdown change, load details
         $('#itemName').on('change', function () {
             const itemId = $(this).val();
             if (!itemId) return;
@@ -159,17 +172,17 @@
             });
         });
 
+        // 🟢 Initialize DataTable
         table = $('#itemsTable').DataTable({
             paging: true,
-            searching: false,
+            searching: true,
             ordering: false,
             info: false,
-            language: {
-                emptyTable: "No items added yet."
-            }
+            lengthChange: false,
+            language: { emptyTable: "No items added yet." }
         });
 
-        // ➕ Add Item
+        // ➕ Add Item to Grid
         $('#btnAdd').click(function () {
             const itemId = $('#itemName').val();
             const itemName = $('#itemName option:selected').text();
@@ -180,6 +193,12 @@
 
             if (!itemId || !qty || qty <= 0) {
                 Swal.fire('Invalid Entry', 'Please select a valid item and quantity.', 'warning');
+                return;
+            }
+
+            // Prevent duplicate entries (double safety)
+            if (itemList.some(x => x.ItemId == itemId)) {
+                Swal.fire('Duplicate', 'This item is already added.', 'warning');
                 return;
             }
 
@@ -195,18 +214,30 @@
             };
 
             itemList.push(item);
+
+            // Refresh grid and dropdown
             renderTable();
+            updateItemDropdown();
             clearFields();
         });
 
-        // 🗑️ Delete Item
-        $('#itemsTable tbody').on('click', '.btn-delete', function () {
-            const index = $(this).data('index');
-            itemList.splice(index, 1);
+        // 🗑️ Remove item from grid
+        $('#itemsTable tbody').on('click', '.btn-remove', function () {
+            const row = $(this).closest('tr');
+            const itemCode = row.find('td:eq(1)').text();
+
+            // Remove the item from grid list
+            const removedItem = itemList.find(x => x.ItemCode === itemCode);
+            itemList = itemList.filter(x => x.ItemCode !== itemCode);
+
+            // Refresh table
             renderTable();
+
+            // Add removed item back into dropdown
+            updateItemDropdown();
         });
 
-        // ✅ Submit Form with SweetAlert
+        // ✅ Form Submit
         $('#stockForm').on('submit', function (e) {
             e.preventDefault();
 
@@ -229,7 +260,6 @@
                 return;
             }
 
-            // 🔔 Confirm submission
             Swal.fire({
                 title: 'Send Plan for Approval?',
                 text: "This action will submit the MRP plan.",
@@ -244,7 +274,6 @@
                         title: 'Submitting...',
                         text: 'Please wait...',
                         allowOutsideClick: false,
-                       
                         didOpen: () => Swal.showLoading()
                     });
 
@@ -268,18 +297,18 @@
                                     title: '✅ Success',
                                     text: 'Plan submitted successfully!',
                                     showConfirmButton: false,
-                                    timer: 1000   // closes after 2s
+                                    timer: 1000
                                 });
 
                                 setTimeout(() => {
                                     itemList = [];
                                     renderTable();
+                                    updateItemDropdown();
                                     $('#stockForm')[0].reset();
                                     $('#year').val(new Date().getFullYear());
                                     $('#fromDate').attr("min", today);
                                     $('#toDate').attr("min", today);
                                 }, 1000);
-
                             } else {
                                 Swal.fire('❌ Error', 'Failed to submit plan.', 'error');
                             }
@@ -293,24 +322,43 @@
         });
     });
 
+    // 🟢 Dropdown Refresh Logic
+    function updateItemDropdown() {
+        const ddl = $("#itemName").empty().append('<option value="">-- Select Item --</option>');
+        allItems.forEach(i => {
+            // Exclude items already in the grid
+            if (!itemList.some(g => g.ItemCode === i.ItemCode)) {
+                ddl.append(`<option value="${i.ItemId}">${i.ItemName}</option>`);
+            }
+        });
+    }
+
+    // 🟢 DataTable Render
     function renderTable() {
         table.clear();
-        itemList.forEach((item, i) => {
+        itemList.forEach((item) => {
             table.row.add([
                 item.ItemName,
                 item.ItemCode,
                 item.Quantity,
                 item.UOM,
-                item.Description,
+                `<span data-bs-toggle="tooltip" title="${item.Description}">${item.Description}</span>`,
                 item.RequestType,
-                `<button type="button" class="btn btn-sm btn-danger btn-delete" data-index="${i}">Remove</button>`
+                `<button class="btn btn-sm btn-square btn-remove bg-danger" data-bs-toggle="tooltip" title="Remove">
+                    <i class="bi bi-trash text-white"></i>
+                 </button>`
             ]);
         });
         table.draw();
+
+        // Enable Bootstrap tooltips
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
     }
 
-
-    // Clear Input Fields
+    // 🧹 Clear Fields
     function clearFields() {
         $('#itemName').val('');
         $('#itemCode').val('');
@@ -319,6 +367,222 @@
         $('#description').val('');
     }
 </script>
+
+
+@*<script>
+        let itemList = [];
+        let table;
+
+        $(document).ready(function () {
+            // Set year and today's date
+            const today = new Date().toISOString().split("T")[0];
+            $('#year').val(new Date().getFullYear());
+            $('#fromDate').attr("min", today);
+            $('#toDate').attr("min", today);
+
+            // From Date changes To Date min
+            $('#fromDate').on('change', function () {
+                $('#toDate').attr("min", $(this).val());
+            });
+
+
+            // Load Item Dropdown
+            $.get('/Inventory/GetItemListMHB', function (items) {
+                $.each(items, function (i, item) {
+                    $('#itemName').append(`<option value="${item.ItemId}">${item.ItemName}</option>`);
+                });
+            });
+
+            // Fetch Item Details
+            $('#itemName').on('change', function () {
+                const itemId = $(this).val();
+                if (!itemId) return;
+
+                $.get('/Inventory/GetItemDetailsMHB', { itemId: itemId }, function (item) {
+                    $('#itemCode').val(item.ItemCode);
+                    $('#uom').val(item.UOMName);
+                    $('#description').val(item.Description);
+                });
+            });
+
+            table = $('#itemsTable').DataTable({
+                paging: true,
+                searching: true,
+                ordering: false,
+                info: false,
+                lengthChange: false,
+
+                language: {
+                    emptyTable: "No items added yet."
+                }
+            });
+
+            // ➕ Add Item
+            $('#btnAdd').click(function () {
+                const itemId = $('#itemName').val();
+                const itemName = $('#itemName option:selected').text();
+                const itemCode = $('#itemCode').val();
+                const uom = $('#uom').val();
+                const qty = $('#quantity').val();
+                const desc = $('#description').val();
+
+                if (!itemId || !qty || qty <= 0) {
+                    Swal.fire('Invalid Entry', 'Please select a valid item and quantity.', 'warning');
+                    return;
+                }
+
+                const item = {
+                    ItemId: itemId,
+                    ItemName: itemName,
+                    ItemCode: itemCode,
+                    Quantity: qty,
+                    QuantityMRP: qty,
+                    UOM: uom,
+                    Description: desc,
+                    RequestType: "MRP"
+                };
+
+                itemList.push(item);
+                renderTable();
+                clearFields();
+            });
+
+            // 🗑️ Delete Item
+            $('#itemsTable tbody').on('click', '.btn-remove', function () {
+                const index = $(this).data('index');
+                itemList.splice(index, 1);
+                renderTable();
+            });
+
+            // ✅ Submit Form with SweetAlert
+            $('#stockForm').on('submit', function (e) {
+                e.preventDefault();
+
+                const planName = $('#planName').val();
+                const fromDate = $('#fromDate').val();
+                const toDate = $('#toDate').val();
+
+                if (!planName || !fromDate || !toDate || itemList.length === 0) {
+                    Swal.fire("⚠️ Warning", "Please enter all required fields and at least one item.", "warning");
+                    return;
+                }
+
+                if (fromDate < today) {
+                    Swal.fire("⚠️ Invalid Date", "'From Date' cannot be before today.", "warning");
+                    return;
+                }
+
+                if (toDate < fromDate) {
+                    Swal.fire("⚠️ Invalid Date", "'To Date' must be after 'From Date'.", "warning");
+                    return;
+                }
+
+                // 🔔 Confirm submission
+                Swal.fire({
+                    title: 'Send Plan for Approval?',
+                    text: "This action will submit the MRP plan.",
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#198754',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes, Submit'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        Swal.fire({
+                            title: 'Submitting...',
+                            text: 'Please wait...',
+                            allowOutsideClick: false,
+
+                            didOpen: () => Swal.showLoading()
+                        });
+
+                        const payload = {
+                            PlanName: planName,
+                            Year: $('#year').val(),
+                            FromDate: fromDate,
+                            ToDate: toDate,
+                            Items: itemList
+                        };
+
+                        $.ajax({
+                            type: 'POST',
+                            url: '/Inventory/SubmitPlanForApprovalMHB',
+                            contentType: 'application/json',
+                            data: JSON.stringify(payload),
+                            success: function (res) {
+                                if (res.success) {
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: '✅ Success',
+                                        text: 'Plan submitted successfully!',
+                                        showConfirmButton: false,
+                                        timer: 1000   // closes after 2s
+                                    });
+
+                                    setTimeout(() => {
+                                        itemList = [];
+                                        renderTable();
+                                        $('#stockForm')[0].reset();
+                                        $('#year').val(new Date().getFullYear());
+                                        $('#fromDate').attr("min", today);
+                                        $('#toDate').attr("min", today);
+                                    }, 1000);
+
+                                } else {
+                                    Swal.fire('❌ Error', 'Failed to submit plan.', 'error');
+                                }
+                            },
+                            error: function () {
+                                Swal.fire('❌ Server Error', 'Something went wrong.', 'error');
+                            }
+                        });
+                    }
+                });
+            });
+        });
+
+        function renderTable() {
+            table.clear();
+            itemList.forEach((item, i) => {
+                table.row.add([
+                    item.ItemName,
+                    item.ItemCode,
+                    item.Quantity,
+                    item.UOM,
+                    `<span data-bs-toggle="tooltip" title="${item.Description}">
+                    ${item.Description}
+                 </span>`,
+                    item.RequestType,
+
+                    ` <button class="btn btn-sm btn-square btn-remove  bg-danger" data-bs-toggle="tooltip" title="Remove">
+                 <i class="bi bi-trash text-white"></i>
+
+                </button>`
+
+
+
+
+                ]);
+            });
+            table.draw();
+
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        }
+
+
+        // Clear Input Fields
+        function clearFields() {
+            $('#itemName').val('');
+            $('#itemCode').val('');
+            $('#uom').val('');
+            $('#quantity').val('');
+            $('#description').val('');
+        }
+
+    </script>*@
 
 
 

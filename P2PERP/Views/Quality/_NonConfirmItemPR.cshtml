@@ -25,27 +25,28 @@
     <table id="Non-confirmItemTable" class="table table-striped table-bordered wrap" style="width:100%">
         <thead class="table-dark">
             <tr>
-                <th><input type="checkbox" id="selectAllNonConfirm" /></th>
+                <th><input type="checkbox" id="selectAllNonConfirm" class="small-checkbox" /></th>
                 <th>Sr No</th>
                 <th>GRN Code</th>
                 <th>Vendor Name</th>
-                <th>Add Date</th>
-                <th>Quality Check Date</th>
-                <th class="dt-center">Action</th>
+                <th>Add Date</th>             
+                <th class="dt-center ">Action</th>
             </tr>
         </thead>
     </table>
 </div>
 
 <!-- Bootstrap Modal for Viewing Details -->
-<div class="modal fade" id="viewDetailsModal" tabindex="-1" aria-labelledby="viewDetailsModalLabel" aria-hidden="true" data-bs-backdrop="false">
-    <div class="modal-dialog modal-lg">
+<div class="modal fade" id="viewDetailsModal" tabindex="-1" aria-labelledby="viewDetailsModalLabel" aria-hidden="true" data-bs-backdrop="True">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <!-- Added modal-dialog-centered class -->
         <div class="modal-content">
 
             <!--  Modal Header with Centered Title -->
-            <div class="modal-header bg-primary text-white justify-content-center">
-                <h5 class="modal-title text-white fw-bold" id="viewDetailsModalLabel">Non-Confirm Items</h5>
-                <button type="button" class="btn-close btn-close-white position-absolute end-0 me-3" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-header bg-primary text-white justify-content-center py-3">
+                <!-- Added py-3 for vertical padding -->
+                <h5 class="modal-title text-white fw-bold text-center w-100" id="viewDetailsModalLabel">Non-Confirm Items</h5> <!-- Added text-center and w-100 -->
+                <button type="button" class="btn-close btn-close-white position-absolute end-0me-1 mt-2 mb-2" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
 
             <!-- GRN Code in Box -->
@@ -61,12 +62,13 @@
                 <table class="table table-bordered" id="itemDetailsTableNonConfirm">
                     <thead class="table-dark">
                         <tr>
-                            <th><input type="checkbox" id="selectAllItemDetails" /></th>
+                            <th><input type="checkbox" id="selectAllItemDetails" class="small-checkbox" /></th>
                             <th>Sr No</th>
                             <th>Item Code</th>
                             <th>Item Name</th>
                             <th>Failure Reason</th>
                             <th>Failed QC Code</th>
+                            <th>QualityCheackDate</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -82,7 +84,6 @@
 
 
 <style>
-
     h4 {
         font-weight: 600;
         margin-bottom: 0;
@@ -99,19 +100,44 @@
         vertical-align: middle;
     }
 
-
     #itemDetailsTableNonConfirm th,
     #itemDetailsTableNonConfirm td {
         vertical-align: middle;
         text-align: center;
     }
-    /*  Table heading aur cell content center mein */
+
+    /* Table heading aur cell content center mein */
     #Non-confirmItemTable th,
     #Non-confirmItemTable td,
     #itemDetailsTableNonConfirm th,
     #itemDetailsTableNonConfirm td {
         text-align: center;
         vertical-align: middle !important;
+    }
+
+    /* ✅ SMALLER CHECKBOX STYLING FOR ALL CHECKBOXES */
+    .small-checkbox {
+        width: 14px !important;
+        height: 14px !important;
+        transform: scale(0.85);
+        margin: 0 auto;
+        display: block;
+    }
+
+    /* Ensure proper alignment for checkbox columns */
+    #Non-confirmItemTable th:first-child,
+    #Non-confirmItemTable td:first-child,
+    #itemDetailsTableNonConfirm th:first-child,
+    #itemDetailsTableNonConfirm td:first-child {
+        width: 30px !important;
+        text-align: center !important;
+    }
+
+    /* Modal positioning */
+    .modal-dialog-centered {
+        display: flex;
+        align-items: center;
+        min-height: calc(100% - 1rem);
     }
 </style>
 
@@ -126,47 +152,81 @@
             "timeOut": "3000"
         };
 
-        //  Main Date Range Picker for Table Filter
+        // ✅ UPDATED: Date Range Picker with DD-MM-YYYY format
         $('#Tabledate').daterangepicker({
             autoUpdateInput: false,
-            opens: "center",
-            drops: "down",
-            locale: { cancelLabel: 'Clear' },
+            alwaysShowCalendars: false,
+            locale: {
+                cancelLabel: 'Clear',
+                format: 'DD-MM-YYYY',
+                applyLabel: 'Apply',
+                customRangeLabel: 'Custom Range'
+            },
             ranges: {
                 'Today': [moment(), moment()],
-                'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
                 'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-                'This Month': [moment().startOf('month'), moment().endOf('month')],
-                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                'Last 1 Month': [moment().subtract(1, 'months').startOf('day'), moment()],
+                'Last 3 Months': [moment().subtract(3, 'months').startOf('day'), moment()],
+                'Last 1 Year': [moment().subtract(12, 'months').startOf('day'), moment()]
             }
-        });
+        }, function (start, end) {
+            // Set the date range in the input field
+            $('#Tabledate').val(start.format('DD-MM-YYYY') + ' - ' + end.format('DD-MM-YYYY'));
 
-        //  Custom Search Filter for AddDate (column index 4)
-        $.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
-            if (settings.nTable.id !== 'Non-confirmItemTable') return true;
-            const start = $('#Tabledate').data('start');
-            const end = $('#Tabledate').data('end');
-            const addDateStr = data[4];
-            if (!addDateStr) return false;
-            const addDate = moment(addDateStr, 'YYYY-MM-DD');
-            if (!start || !end) return true;
-            return addDate.isSameOrAfter(start) && addDate.isSameOrBefore(end);
-        });
+            // Store the dates in data attributes for filtering
+            $('#Tabledate').data('start', start);
+            $('#Tabledate').data('end', end);
 
-        // On Date Apply
-        $('#Tabledate').on('apply.daterangepicker', function (ev, picker) {
-            $(this).val(picker.startDate.format('YYYY-MM-DD') + ' - ' + picker.endDate.format('YYYY-MM-DD'));
-            $(this).data('start', picker.startDate);
-            $(this).data('end', picker.endDate);
+            // Trigger table redraw
             $('#Non-confirmItemTable').DataTable().draw();
         });
 
-        // On Cancel
-        $('#Tabledate').on('cancel.daterangepicker', function (ev, picker) {
-            $(this).val('');
+        // Handle cancel event
+        $('#Tabledate').on('cancel.daterangepicker', function () {
+            $(this).val('Select Date Range');
             $(this).removeData('start').removeData('end');
             $('#Non-confirmItemTable').DataTable().draw();
+        });
+
+        // Set initial placeholder value
+        $('#Tabledate').val('Select Date Range');
+
+        // FIXED: Custom Search Filter for BOTH AddDate AND QualityCheckDate - UPDATED for DD-MM-YYYY
+        $.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
+            if (settings.nTable.id !== 'Non-confirmItemTable') return true;
+
+            const start = $('#Tabledate').data('start');
+            const end = $('#Tabledate').data('end');
+
+            // If no date range selected, show all rows
+            if (!start || !end) return true;
+
+            // Get both date columns
+            const addDateStr = data[4]; // Add Date column (index 4)
+            const qualityCheckDateStr = data[5]; // Quality Check Date column (index 5)
+
+            //  Check if EITHER AddDate OR QualityCheckDate falls within the selected range
+            let addDateInRange = false;
+            let qualityCheckDateInRange = false;
+
+            // Check Add Date - PRIORITIZE DD-MM-YYYY format
+            if (addDateStr && addDateStr.trim() !== '') {
+                const addDate = moment(addDateStr, ['DD-MM-YYYY', 'YYYY-MM-DD', 'MM/DD/YYYY', 'DD/MM/YYYY', 'YYYY/MM/DD'], true);
+                if (addDate.isValid()) {
+                    addDateInRange = addDate.isSameOrAfter(start) && addDate.isSameOrBefore(end);
+                }
+            }
+
+            // Check Quality Check Date - PRIORITIZE DD-MM-YYYY format
+            if (qualityCheckDateStr && qualityCheckDateStr.trim() !== '') {
+                const qualityCheckDate = moment(qualityCheckDateStr, ['DD-MM-YYYY', 'YYYY-MM-DD', 'MM/DD/YYYY', 'DD/MM/YYYY', 'YYYY/MM/DD'], true);
+                if (qualityCheckDate.isValid()) {
+                    qualityCheckDateInRange = qualityCheckDate.isSameOrAfter(start) && qualityCheckDate.isSameOrBefore(end);
+                }
+            }
+
+            //  Return true if EITHER date falls within the range
+            return addDateInRange || qualityCheckDateInRange;
         });
 
         // 🔹 Main DataTable Initialization
@@ -191,36 +251,38 @@
                     searchable: false,
                     className: 'dt-center',
                     render: function (data, type, row) {
-                        return `<input type="checkbox" class="row-select" value="${row.GRNCode}" />`;
+                        return `<input type="checkbox" class="row-select small-checkbox" value="${row.GRNCode}" />`;
                     }
                 },
                 {
                     data: null,
+                    title: 'Sr No',
+                    orderable: false ,
                     className: 'dt-center',
                     render: function (data, type, row, meta) {
                         return meta.row + 1;
                     }
                 },
-                { data: "GRNCode" },
-                { data: "VenderName" },
-                { data: "AddDate" },
-                { data: "QualityCheckDate" },
+                { data: "GRNCode", orderable: false },
+                { data: "VenderName", orderable: false },
+                { data: "AddDate", orderable: false },
+
                 {
                     data: null,
                     className: "dt-center",
+                    orderable: false,
                     render: function (data, type, row) {
                         return `<button class="btn btn-sm btn-primary view-details-btn"
                 data-grn="${row.GRNCode}"
                 data-bs-toggle="tooltip"
                 data-bs-placement="top"
                 title="View Details">
-            <i class="bi bi-eye"></i>
+            <i class="bi bi-eye-fill"></i>
         </button>`;
                     }
                 }
             ],
             buttons: [
-                // PRINT
                 // PRINT - Main Table
                 {
                     extend: 'print',
@@ -233,11 +295,9 @@
                         columns: ':not(:first-child):not(:last-child)',
                         format: {
                             body: function (data, row, column, node) {
-                                // Handle serial number for selected rows
-                                if (column === 0) { // Sr No column
+                                if (column === 0) {
                                     const $node = $(node);
                                     if ($node.find('.row-select').prop('checked')) {
-                                        // Return sequential number for selected rows
                                         const selectedRows = $('input.row-select:checked');
                                         const currentIndex = selectedRows.index($node.closest('tr').find('.row-select'));
                                         return currentIndex + 1;
@@ -256,10 +316,7 @@
                         $.fn.dataTable.ext.buttons.print.action.call(this, e, dt, button, config);
                     },
                     customize: function (win) {
-                        // Get the body reference
                         var $body = $(win.document.body);
-
-                        // Add print-specific CSS styles
                         $body.append(`
             <style>
                 thead th {
@@ -292,20 +349,14 @@
                 }
             </style>
         `);
-
-                        // Add title and metadata
                         $body.prepend(`
             <h3>Non-Confirm Item List</h3>
-            <p>Generated on: ${moment().format("YYYY-MM-DD")}</p>
+            <p>Generated on: ${moment().format("DD-MM-YYYY")}</p>
         `);
-
-                        // Set body styling
                         $body.css({
                             'font-size': '12pt',
                             'font-family': 'Arial, sans-serif'
                         });
-
-                        // Fix serial numbers in print
                         const $table = $body.find('table');
                         $table.find('tbody tr').each(function (index) {
                             $(this).find('td:first').text(index + 1);
@@ -313,7 +364,7 @@
                     }
                 },
 
-                // PDF
+                // PDF - Main Table
                 {
                     extend: 'pdfHtml5',
                     text: '<i class="bi bi-file-earmark-pdf text-danger fs-5"></i>',
@@ -325,8 +376,7 @@
                         columns: ':not(:first-child):not(:last-child)',
                         format: {
                             body: function (data, row, column, node) {
-                                // Handle serial number for selected rows
-                                if (column === 0) { // Sr No column
+                                if (column === 0) {
                                     const $node = $(node);
                                     if ($node.find('.row-select').prop('checked')) {
                                         const selectedRows = $('input.row-select:checked');
@@ -355,7 +405,7 @@
                             margin: [0, 0, 0, 10]
                         };
                         doc.content.splice(1, 0, {
-                            text: `Generated on: ${moment().format("YYYY-MM-DD")}`,
+                            text: `Generated on: ${moment().format("DD-MM-YYYY")}`,
                             alignment: 'center',
                             margin: [0, 0, 0, 10],
                             fontSize: 10,
@@ -378,15 +428,21 @@
                                 cell.color = 'white';
                                 cell.alignment = 'center';
                                 cell.fontSize = 11;
+                                cell.bold = true;
                             });
-
-                            // Fix serial numbers in PDF
                             table.table.body.forEach((row, rowIndex) => {
-                                if (rowIndex > 0) { // Skip header row
-                                    row[0].text = rowIndex; // Sequential serial numbers
+                                if (rowIndex > 0) {
+                                    row[0].text = rowIndex;
+                                    row.forEach(cell => {
+                                        cell.alignment = 'center';
+                                    });
                                 }
                             });
+                            table.alignment = 'center';
                         }
+                        doc.defaultStyle = {
+                            alignment: 'center'
+                        };
                     }
                 },
 
@@ -399,21 +455,7 @@
                         rows: function (idx, data, node) {
                             return $(node).find('.row-select').prop('checked');
                         },
-                        columns: ':not(:first-child):not(:last-child)',
-                        format: {
-                            body: function (data, row, column, node) {
-                                // Handle serial number for selected rows
-                                if (column === 0) { // Sr No column
-                                    const $node = $(node);
-                                    if ($node.find('.row-select').prop('checked')) {
-                                        const selectedRows = $('input.row-select:checked');
-                                        const currentIndex = selectedRows.index($node.closest('tr').find('.row-select'));
-                                        return currentIndex + 1;
-                                    }
-                                }
-                                return data;
-                            }
-                        }
+                        columns: ':not(:first-child):not(:last-child)'
                     },
                     action: function (e, dt, button, config) {
                         const selected = $('input.row-select:checked').length;
@@ -434,21 +476,7 @@
                         rows: function (idx, data, node) {
                             return $(node).find('.row-select').prop('checked');
                         },
-                        columns: ':not(:first-child):not(:last-child)',
-                        format: {
-                            body: function (data, row, column, node) {
-                                // Handle serial number for selected rows
-                                if (column === 0) { // Sr No column
-                                    const $node = $(node);
-                                    if ($node.find('.row-select').prop('checked')) {
-                                        const selectedRows = $('input.row-select:checked');
-                                        const currentIndex = selectedRows.index($node.closest('tr').find('.row-select'));
-                                        return currentIndex + 1;
-                                    }
-                                }
-                                return data;
-                            }
-                        }
+                        columns: ':not(:first-child):not(:last-child)'
                     },
                     action: function (e, dt, button, config) {
                         const selected = $('input.row-select:checked').length;
@@ -506,12 +534,13 @@
                         response.data.forEach((item, index) => {
                             tbody.append(`
                                 <tr>
-                                    <td class="dt-center"><input type="checkbox" class="item-row-select" value="${item.ItemCode}" /></td>
+                                    <td class="dt-center"><input type="checkbox" class="item-row-select small-checkbox" value="${item.ItemCode}" /></td>
                                     <td>${index + 1}</td>
                                     <td>${item.ItemCode}</td>
                                     <td>${item.ItemName}</td>
                                     <td>${item.Reason}</td>
                                     <td>${item.FailedQCCode}</td>
+                                    <td>${item.AddedDate}</td>
                                 </tr>
                             `);
                         });
@@ -528,7 +557,6 @@
                                 "tr" +
                                 "<'row mt-2'<'col-md-6'i><'col-md-6 text-end'p>>",
                             buttons: [
-                                // PRINT
                                 // PRINT - Modal Table
                                 {
                                     extend: 'print',
@@ -538,20 +566,7 @@
                                         rows: function (idx, data, node) {
                                             return $(node).find('.item-row-select').prop('checked');
                                         },
-                                        columns: ':not(:first-child)',
-                                        format: {
-                                            body: function (data, row, column, node) {
-                                                if (column === 0) { // Sr No column
-                                                    const $node = $(node);
-                                                    if ($node.find('.item-row-select').prop('checked')) {
-                                                        const selectedRows = $('.item-row-select:checked');
-                                                        const currentIndex = selectedRows.index($node.closest('tr').find('.item-row-select'));
-                                                        return currentIndex + 1;
-                                                    }
-                                                }
-                                                return data;
-                                            }
-                                        }
+                                        columns: ':not(:first-child)'
                                     },
                                     action: function (e, dt, button, config) {
                                         const selected = $('.item-row-select:checked').length;
@@ -562,10 +577,7 @@
                                         $.fn.dataTable.ext.buttons.print.action.call(this, e, dt, button, config);
                                     },
                                     customize: function (win) {
-                                        // Get the body reference
                                         var $body = $(win.document.body);
-
-                                        // Add print-specific CSS styles
                                         $body.append(`
             <style>
                 thead th {
@@ -598,28 +610,22 @@
                 }
             </style>
         `);
-
-                                        // Add title and metadata
                                         $body.prepend(`
             <h3>Failed Items Details</h3>
             <p>GRN Code: <strong>${$('#modalGRNCodeNonConfirm').text()}</strong></p>
-            <p>Generated on: ${moment().format("YYYY-MM-DD")}</p>
+            <p>Generated on: ${moment().format("DD-MM-YYYY")}</p>
         `);
-
-                                        // Set body styling
                                         $body.css({
                                             'font-size': '12pt',
                                             'font-family': 'Arial, sans-serif'
                                         });
-
-                                        // Fix serial numbers in modal print
                                         const $table = $body.find('table');
                                         $table.find('tbody tr').each(function (index) {
                                             $(this).find('td:first').text(index + 1);
                                         });
                                     }
                                 },
-                                // PDF
+                                // PDF - Modal Table
                                 {
                                     extend: 'pdfHtml5',
                                     text: '<i class="bi bi-file-earmark-pdf text-danger fs-5"></i>',
@@ -628,20 +634,7 @@
                                         rows: function (idx, data, node) {
                                             return $(node).find('.item-row-select').prop('checked');
                                         },
-                                        columns: ':not(:first-child)',
-                                        format: {
-                                            body: function (data, row, column, node) {
-                                                if (column === 0) { // Sr No column
-                                                    const $node = $(node);
-                                                    if ($node.find('.item-row-select').prop('checked')) {
-                                                        const selectedRows = $('.item-row-select:checked');
-                                                        const currentIndex = selectedRows.index($node.closest('tr').find('.item-row-select'));
-                                                        return currentIndex + 1;
-                                                    }
-                                                }
-                                                return data;
-                                            }
-                                        }
+                                        columns: ':not(:first-child)'
                                     },
                                     action: function (e, dt, button, config) {
                                         const selected = $('.item-row-select:checked').length;
@@ -652,20 +645,29 @@
                                         $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, button, config);
                                     },
                                     customize: function (doc) {
-                                        doc.pageMargins = [40, 60, 40, 40];
+                                        doc.pageMargins = [40, 80, 40, 40];
                                         doc.styles.title = {
                                             fontSize: 16,
                                             bold: true,
                                             alignment: 'center',
                                             margin: [0, 0, 0, 10]
                                         };
-                                        doc.content.splice(1, 0, {
-                                            text: `Generated on: ${moment().format("YYYY-MM-DD")}`,
-                                            alignment: 'center',
-                                            margin: [0, 0, 0, 10],
-                                            fontSize: 10,
-                                            italics: true
-                                        });
+                                        doc.content.splice(1, 0,
+                                            {
+                                                text: `GRN Code: ${$('#modalGRNCodeNonConfirm').text()}`,
+                                                alignment: 'center',
+                                                margin: [0, 0, 0, 5],
+                                                fontSize: 12,
+                                                bold: true
+                                            },
+                                            {
+                                                text: `Generated on: ${moment().format("DD-MM-YYYY")}`,
+                                                alignment: 'center',
+                                                margin: [0, 0, 0, 10],
+                                                fontSize: 10,
+                                                italics: true
+                                            }
+                                        );
                                         const table = doc.content.find(n => n.table);
                                         if (table) {
                                             table.table.widths = Array(table.table.body[0].length).fill('*');
@@ -683,15 +685,21 @@
                                                 cell.color = 'white';
                                                 cell.alignment = 'center';
                                                 cell.fontSize = 11;
+                                                cell.bold = true;
                                             });
-
-                                            // Fix serial numbers in modal PDF
                                             table.table.body.forEach((row, rowIndex) => {
                                                 if (rowIndex > 0) {
                                                     row[0].text = rowIndex;
+                                                    row.forEach(cell => {
+                                                        cell.alignment = 'center';
+                                                    });
                                                 }
                                             });
+                                            table.alignment = 'center';
                                         }
+                                        doc.defaultStyle = {
+                                            alignment: 'center'
+                                        };
                                     }
                                 },
 
@@ -704,20 +712,7 @@
                                         rows: function (idx, data, node) {
                                             return $(node).find('.item-row-select').prop('checked');
                                         },
-                                        columns: ':not(:first-child)',
-                                        format: {
-                                            body: function (data, row, column, node) {
-                                                if (column === 0) { // Sr No column
-                                                    const $node = $(node);
-                                                    if ($node.find('.item-row-select').prop('checked')) {
-                                                        const selectedRows = $('.item-row-select:checked');
-                                                        const currentIndex = selectedRows.index($node.closest('tr').find('.item-row-select'));
-                                                        return currentIndex + 1;
-                                                    }
-                                                }
-                                                return data;
-                                            }
-                                        }
+                                        columns: ':not(:first-child)'
                                     },
                                     action: function (e, dt, button, config) {
                                         const selected = $('.item-row-select:checked').length;
@@ -738,20 +733,7 @@
                                         rows: function (idx, data, node) {
                                             return $(node).find('.item-row-select').prop('checked');
                                         },
-                                        columns: ':not(:first-child)',
-                                        format: {
-                                            body: function (data, row, column, node) {
-                                                if (column === 0) { // Sr No column
-                                                    const $node = $(node);
-                                                    if ($node.find('.item-row-select').prop('checked')) {
-                                                        const selectedRows = $('.item-row-select:checked');
-                                                        const currentIndex = selectedRows.index($node.closest('tr').find('.item-row-select'));
-                                                        return currentIndex + 1;
-                                                    }
-                                                }
-                                                return data;
-                                            }
-                                        }
+                                        columns: ':not(:first-child)'
                                     },
                                     action: function (e, dt, button, config) {
                                         const selected = $('.item-row-select:checked').length;
@@ -785,6 +767,19 @@
             });
 
             new bootstrap.Modal(document.getElementById('viewDetailsModal')).show();
+        });
+
+        //  Debug function to check date formats
+        table.on('draw', function () {
+            console.log('Table redrawn with date filter');
+            const start = $('#Tabledate').data('start');
+            const end = $('#Tabledate').data('end');
+            if (start && end) {
+                console.log('Active date filter:', {
+                    start: start.format('DD-MM-YYYY'),
+                    end: end.format('DD-MM-YYYY')
+                });
+            }
         });
 
     });
